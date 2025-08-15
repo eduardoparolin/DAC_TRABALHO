@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
+import {LoginService} from './login.service';
 
 @Component({
   selector: 'app-login',
@@ -6,6 +7,14 @@ import { Component } from '@angular/core';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
+  loginService = inject(LoginService);
+  constructor() { }
+
+  ngOnInit(): void {
+    this.loginService.login('a', 'n').then((res) => {
+      console.log(res);
+    })
+  }
 
 }
