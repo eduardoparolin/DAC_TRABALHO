@@ -1,6 +1,6 @@
 package com.dac.auth.dto.auth;
 
-import com.dac.auth.enums.UserType;
+import com.dac.auth.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 public class AuthResponseDTO {
     private String accessToken;
     private String tokenType;
-    private UserType tipo;
+    private Role tipo;
     private String usuario;
 }
