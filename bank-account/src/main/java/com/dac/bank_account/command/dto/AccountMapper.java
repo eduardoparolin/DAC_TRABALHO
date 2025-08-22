@@ -3,7 +3,7 @@ package com.dac.bank_account.command.dto;
 import com.dac.bank_account.command.dto.request.AccountRequestDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.entity.Transaction;
-import com.dac.bank_account.command.enums.TransactionType;
+import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Component;
 

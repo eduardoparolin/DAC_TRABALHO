@@ -1,11 +1,10 @@
 package com.dac.bank_account.command.entity;
 
-import com.dac.bank_account.command.enums.TransactionType;
+import com.dac.bank_account.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Data

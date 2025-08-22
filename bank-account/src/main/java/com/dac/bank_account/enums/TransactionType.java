@@ -1,4 +1,4 @@
-package com.dac.bank_account.command.enums;
+package com.dac.bank_account.enums;
 
 public enum TransactionType {
     DEPOSITO,

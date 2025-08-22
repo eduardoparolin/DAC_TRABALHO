@@ -31,24 +31,24 @@ public class AccountCommandController {
     @PostMapping("/{numero}/deposito")
     public ResponseEntity<MovementResponseDTO> deposit(@PathVariable String numero, @RequestBody @Valid MovementRequestDTO request) {
         MovementResponseDTO dto = accountCommandService.deposit(numero, request.valor());
-        return ResponseEntity.ok().body(dto);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/{numero}/sacar")
     public ResponseEntity<MovementResponseDTO> withdraw(@PathVariable String numero , @RequestBody @Valid MovementRequestDTO request) {
         MovementResponseDTO dto = accountCommandService.withdraw(numero, request.valor());
-        return ResponseEntity.ok().body(dto);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/{numero}/transferir")
     public ResponseEntity<TransferResponseDTO> transfer(@PathVariable String numero, @RequestBody @Valid TransferRequestDTO request) {
         TransferResponseDTO dto = accountCommandService.transfer(numero, request.valor(), request.destino());
-        return ResponseEntity.ok().body(dto);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/{numero}/limite")
     public ResponseEntity<AccountResponseDTO> setLimit(@PathVariable String numero, @RequestBody @Valid LimitRequestDTO request) {
         AccountResponseDTO dto = accountCommandService.setLimit(numero, request.limite());
-        return ResponseEntity.ok().body(dto);
+        return ResponseEntity.ok(dto);
     }
 }
