@@ -22,7 +22,7 @@ public class Account {
     private Long id;
     private Long clientId;
     private String accountNumber;
-    private OffsetDateTime criationDate;
+    private OffsetDateTime creationDate;
     private BigDecimal balance;
     private BigDecimal limitAmount;
     private Long managerId;

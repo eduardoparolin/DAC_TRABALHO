@@ -70,7 +70,7 @@ public class AccountQueryService {
                 account.getBalance(),
                 account.getLimitAmount(),
                 account.getManagerId().toString(),
-                account.getCriationDate().toString()
+                account.getCreationDate().toString()
         );
     }
 }

@@ -106,7 +106,7 @@ public class AccountCommandService {
                 account.getBalance(),
                 account.getLimitAmount(),
                 account.getManagerId().toString(),
-                account.getCriationDate().toString()
+                account.getCreationDate().toString()
 //                LocalDateTime.now(ZoneOffset.of("-03:00")).toString()
         );
     }

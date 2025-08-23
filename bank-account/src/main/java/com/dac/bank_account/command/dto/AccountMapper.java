@@ -28,7 +28,7 @@ public class AccountMapper {
         account.setBalance(BigDecimal.ZERO);
         account.setLimitAmount(dto.limitAmount());
         account.setManagerId(dto.managerId());
-        account.setCriationDate(OffsetDateTime.now(ZoneOffset.of("-03:00")));
+        account.setCreationDate(OffsetDateTime.now(ZoneOffset.of("-03:00")));
         return account;
     }
 
