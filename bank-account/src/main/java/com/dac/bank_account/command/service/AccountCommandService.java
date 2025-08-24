@@ -9,6 +9,7 @@ import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,6 +25,8 @@ public class AccountCommandService {
         this.accountCommandRepository = accountCommandRepository;
         this.accountMapper = accountMapper;
     }
+
+    @Transactional("commandTransactionManager")
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Account account = accountMapper.toEntity(dto);
         accountCommandRepository.save(account);
@@ -38,6 +41,7 @@ public class AccountCommandService {
         );
     }
 
+    @Transactional("commandTransactionManager")
     public MovementResponseDTO deposit(String accountNumber, BigDecimal amount) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
                         .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
@@ -54,6 +58,7 @@ public class AccountCommandService {
         );
     }
 
+    @Transactional("commandTransactionManager")
     public MovementResponseDTO withdraw(String accountNumber, BigDecimal amount) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
                         .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
@@ -70,6 +75,7 @@ public class AccountCommandService {
         );
     }
 
+    @Transactional("commandTransactionManager")
     public TransferResponseDTO transfer(String sourceAccountNumber, BigDecimal amount, String targetAccountNumber) {
         Account source = accountCommandRepository.findByAccountNumber(sourceAccountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Source account not found with account number: " + sourceAccountNumber));
@@ -94,6 +100,7 @@ public class AccountCommandService {
 
     }
 
+    @Transactional("commandTransactionManager")
     public AccountResponseDTO setLimit(String accountNumber, BigDecimal limite) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));

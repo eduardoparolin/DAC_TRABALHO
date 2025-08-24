@@ -9,6 +9,7 @@ import com.dac.bank_account.query.entity.TransactionView;
 import com.dac.bank_account.query.repository.AccountQueryRepository;
 import com.dac.bank_account.query.repository.TransactionQueryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class AccountQueryService {
         this.transactionQueryRepository = transactionQueryRepository;
     }
 
+    @Transactional("queryTransactionManager")
     public BalanceResponseDTO getBalance(String accountNumber) {
         AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
@@ -34,14 +36,12 @@ public class AccountQueryService {
         );
     }
 
+    @Transactional("queryTransactionManager")
     public StatementResponseDTO getStatement(String accountNumber) {
         AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
 
         List<TransactionView> transactions = transactionQueryRepository.findBySourceAccountNumber(accountNumber);
-        if (transactions.isEmpty()) {
-            throw new IllegalArgumentException("No transactions found for this account: " + accountNumber);
-        }
 
         List<TransactionResponseDTO> statements = transactions.stream()
                 .map(t -> new TransactionResponseDTO(
@@ -60,6 +60,7 @@ public class AccountQueryService {
         );
     }
 
+    @Transactional("queryTransactionManager")
     public AccountResponseDTO getAccountDetails(String accountNumber) {
         AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
