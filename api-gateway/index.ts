@@ -14,14 +14,14 @@ app.use("*", logger());
 
 app.get("/", (c) => c.text("Bantads API Gateway"));
 
+app.use("/clientes/*", authMiddleware);
+app.use("/contas/*", authMiddleware);
+app.use("/gerentes/*", authMiddleware);
+
 app.route("/auth", authRoutes);
 app.route("/clientes", customerRoutes);
 app.route("/contas", accountRoutes);
 app.route("/gerentes", managerRoutes);
-
-app.use("/clientes/*", authMiddleware);
-app.use("/contas/*", authMiddleware);
-app.use("/gerentes/*", authMiddleware);
 
 app.onError((err, c) => {
   console.error("Gateway Error:", err);
