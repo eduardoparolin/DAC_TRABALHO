@@ -4,6 +4,7 @@ import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
 import {Router} from '@angular/router';
+import {MatProgressBar} from '@angular/material/progress-bar';
 @Component({
   selector: 'app-login',
   imports: [
@@ -12,7 +13,8 @@ import {Router} from '@angular/router';
     ReactiveFormsModule,
     MatInput,
     MatError,
-    MatButton
+    MatButton,
+    MatProgressBar
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'

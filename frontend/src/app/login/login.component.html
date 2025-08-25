@@ -1,5 +1,8 @@
 <div class="login-container">
   <div class="login-card">
+    @if (loginService.loading()) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
     <form class="example-form">
       <mat-form-field class="form-full-width">
         <mat-label>Email</mat-label>
