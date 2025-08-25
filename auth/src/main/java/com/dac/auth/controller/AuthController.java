@@ -2,9 +2,7 @@ package com.dac.auth.controller;
 
 import com.dac.auth.dto.auth.AuthRequestDTO;
 import com.dac.auth.dto.auth.AuthResponseDTO;
-import com.dac.auth.service.interfaces.AuthServiceImpl;
 import com.dac.auth.service.interfaces.IAuthService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

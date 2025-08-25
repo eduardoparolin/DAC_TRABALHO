@@ -1,12 +1,12 @@
-package com.dac.auth.service.interfaces;
+package com.dac.auth.service;
 
 import com.dac.auth.dto.auth.AuthRequestDTO;
 import com.dac.auth.dto.auth.AuthResponseDTO;
-import com.dac.auth.enums.UserType;
+import com.dac.auth.service.interfaces.IAuthService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthServiceImpl implements IAuthService{
+public class AuthServiceImpl implements IAuthService {
 
     @Override
     public AuthResponseDTO login(AuthRequestDTO dto) {
