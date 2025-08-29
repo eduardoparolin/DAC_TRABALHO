@@ -6,6 +6,9 @@ import com.dac.bank_account.command.dto.response.AccountResponseDTO;
 import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
+import com.dac.bank_account.command.events.AccountCreatedEvent;
+import com.dac.bank_account.command.events.EventPublisher;
+import com.dac.bank_account.command.events.MoneyTransactionEvent;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Service;
@@ -17,16 +20,22 @@ import java.math.BigDecimal;
 public class AccountCommandService {
     private final AccountCommandRepository accountCommandRepository;
     private final AccountCommandMapper accountMapper;
+    private final EventPublisher eventPublisher;
 
-    public AccountCommandService(AccountCommandRepository accountCommandRepository, AccountCommandMapper accountMapper) {
+    public AccountCommandService(AccountCommandRepository accountCommandRepository, AccountCommandMapper accountMapper, EventPublisher eventPublisher) {
         this.accountCommandRepository = accountCommandRepository;
         this.accountMapper = accountMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional("commandTransactionManager")
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Account account = accountMapper.toEntity(dto);
         accountCommandRepository.save(account);
+
+        AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
+
+        eventPublisher.publishEvent("bank.account.created", event);
 
         return accountMapper.accountToDTO(account);
     }
@@ -41,6 +50,10 @@ public class AccountCommandService {
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
 
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
+
+        eventPublisher.publishEvent("bank.account.transactions", event);
+
         return accountMapper.toMovementDTO(account);
     }
 
@@ -53,6 +66,10 @@ public class AccountCommandService {
         var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.SAQUE, amount, null);
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
+
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
+
+        eventPublisher.publishEvent("bank.account.transactions", event);
 
         return accountMapper.toMovementDTO(account);
     }
@@ -71,6 +88,10 @@ public class AccountCommandService {
         source.getTransactions().add(transaction);
         accountCommandRepository.save(source);
         accountCommandRepository.save(target);
+
+        MoneyTransactionEvent event = accountMapper.toMoneyTransferEvent(source, target, amount, transaction);
+
+        eventPublisher.publishEvent("bank.account.transactions", event);
 
         return accountMapper.toTransferDTO(source, target, amount);
 

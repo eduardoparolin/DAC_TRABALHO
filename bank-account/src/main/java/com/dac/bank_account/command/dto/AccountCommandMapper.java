@@ -6,6 +6,8 @@ import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.entity.Transaction;
+import com.dac.bank_account.command.events.AccountCreatedEvent;
+import com.dac.bank_account.command.events.MoneyTransactionEvent;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Component;
@@ -71,6 +73,38 @@ public class AccountCommandMapper {
                 target.getAccountNumber(),
                 source.getBalance(),
                 amount
+        );
+    }
+
+    public AccountCreatedEvent accountToCreatedEvent(Account account) {
+        return new AccountCreatedEvent(
+                account.getId(),
+                account.getClientId(),
+                account.getAccountNumber(),
+                account.getBalance(),
+                account.getLimitAmount(),
+                account.getManagerId(),
+                account.getCreationDate()
+        );
+    }
+
+    public MoneyTransactionEvent toMoneyTransactionEvent(Account account, BigDecimal amount, Transaction transaction) {
+        return new MoneyTransactionEvent(
+                transaction.getId(),
+                account.getAccountNumber(),
+                amount,
+                transaction.getType(),
+                transaction.getDateTime()
+        );
+    }
+
+    public MoneyTransactionEvent toMoneyTransferEvent(Account source, Account target, BigDecimal amount, Transaction transaction) {
+        return new MoneyTransactionEvent(
+                transaction.getId(),
+                source.getAccountNumber(),
+                target.getAccountNumber(),
+                amount,
+                transaction.getDateTime()
         );
     }
 

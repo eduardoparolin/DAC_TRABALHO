@@ -1,20 +1,17 @@
-package com.dac.bank_account.query.entity;
+package com.dac.bank_account.command.events;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Entity
-@Table(name = "account")
-public class AccountView {
 
-    @Id
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class AccountCreatedEvent implements Serializable {
     private Long id;
     private Long clientId;
     private String accountNumber;
@@ -22,5 +19,4 @@ public class AccountView {
     private BigDecimal limitAmount;
     private Long managerId;
     private OffsetDateTime creationDate;
-
 }

@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
     ports:
-      - "5433:5432"
+      - "5431:5432"
     volumes:
       - pgdata1:/var/lib/postgresql/data
 
@@ -21,9 +21,19 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
     ports:
-      - "5434:5432"
+      - "5435:5432"
     volumes:
       - pgdata2:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # Porta para conexão dos serviços
+      - "15672:15672" # Porta para acessar o painel de gerenciamento (UI)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
   springapp:
     build: .
@@ -31,6 +41,7 @@ services:
     depends_on:
       - postgres1
       - postgres2
+      - rabbitmq
     ports:
       - "8080:8080"
     environment:
@@ -40,6 +51,10 @@ services:
       SPRING_DATASOURCE_QUERY_JDBC_URL: jdbc:postgresql://postgres2:5432/query_db
       SPRING_DATASOURCE_QUERY_USERNAME: postgres
       SPRING_DATASOURCE_QUERY_PASSWORD: admin
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
 
 volumes:
   pgdata1:
