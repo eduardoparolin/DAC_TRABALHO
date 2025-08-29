@@ -1,4 +1,4 @@
-package com.dac.auth.configuration;
+package com.dac.auth.infra.configuration;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;

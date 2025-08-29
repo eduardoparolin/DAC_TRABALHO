@@ -1,4 +1,4 @@
-package com.dac.auth.security;
+package com.dac.auth.infra.configuration.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
