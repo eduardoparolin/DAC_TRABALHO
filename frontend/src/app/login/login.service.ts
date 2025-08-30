@@ -5,6 +5,7 @@ import {HttpClientMockService} from '../utils/http-client-mock.service';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {Router} from '@angular/router';
+import {SessionService} from '../session/session.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,16 +13,16 @@ import {Router} from '@angular/router';
 export class LoginService {
   // http = inject(HttpClient);
   http = inject(HttpClientMockService);
-  router = inject(Router);
+  session = inject(SessionService);
   loading = signal(false);
   constructor() { }
 
   async login(email: string, password: string) {
     this.loading.set(true);
     await lastValueFrom(this.http.post<LoginResponse>(`${environment.baseUrl}/login`, {email, senha: password}))
-      .then(async () => {
+      .then(async (response) => {
         this.loading.set(false);
-        await this.router.navigate(['/clients']);
+        this.session.parseLoginResponse(response);
       })
       .catch((error) => {
         this.loading.set(false);

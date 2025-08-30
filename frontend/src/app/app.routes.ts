@@ -10,15 +10,15 @@ export const routes: Routes = [
     component: LoginComponent
   },
   {
-    path: 'clients',
+    path: 'clientes',
     component: ClientsComponent
   },
   {
-    path: 'managers',
+    path: 'gestores',
     component: ManagersComponent
   },
   {
-    path: 'accounts',
+    path: 'contas',
     component: AccountsComponent
   }
 ];
