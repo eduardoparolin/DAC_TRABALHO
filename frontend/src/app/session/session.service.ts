@@ -23,4 +23,8 @@ export class SessionService {
     this.user.set(user);
     return user;
   }
+
+  logout() {
+    this.user.set(null);
+  }
 }

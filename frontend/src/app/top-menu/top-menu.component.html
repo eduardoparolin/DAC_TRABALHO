@@ -1,0 +1,9 @@
+<div
+  class="container">
+  <div></div>
+  <app-person-identification [matMenuTriggerFor]="menu">
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="logout()">Sair</button>
+    </mat-menu>
+  </app-person-identification>
+</div>

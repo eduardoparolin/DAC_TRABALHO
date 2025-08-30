@@ -1,0 +1,14 @@
+.container {
+  width: calc(100% - 20px);
+  height: 40px;
+  background-color: #74a2ac;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  app-person-identification {
+    cursor: pointer;
+  }
+}

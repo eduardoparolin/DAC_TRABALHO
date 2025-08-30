@@ -1,0 +1,20 @@
+.person-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.photo-circle {
+  background-color: #ffffff;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+}
+
+.person-name {
+  font-size: 14px;
+}
+
+.person-role {
+  font-size: 10px;
+}
