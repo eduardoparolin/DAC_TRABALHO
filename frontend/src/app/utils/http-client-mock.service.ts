@@ -13,13 +13,13 @@ export class HttpClientMockService {
   post<T>(url: string, body: any): Observable<any> {
     if (url.includes('/login')) {
       if (body.email === 'eduardo+admin@nuvex.tech') {
-        return of(loginMockResponse.admin).pipe(delay(500)); // 500ms delay
+        return of(loginMockResponse.admin).pipe(delay(500));
       } else if (body.email === 'eduardo+manager@nuvex.tech') {
-        return of(loginMockResponse.manager).pipe(delay(500)); // 500ms delay
+        return of(loginMockResponse.manager).pipe(delay(500));
       } else if (body.email === 'eduardo+client@nuvex.tech') {
-        return of(loginMockResponse.client).pipe(delay(500)); // 500ms delay
+        return of(loginMockResponse.client).pipe(delay(500));
       } else {
-        return throwError(() => 'error').pipe(delay(500)); // 500ms delay
+        return throwError(() => 'Invalid email').pipe(delay(500));
       }
     }
     if (url.includes('/logout')) {

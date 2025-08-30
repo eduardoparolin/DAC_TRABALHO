@@ -3,7 +3,6 @@
   height: 40px;
   background-color: #74a2ac;
   display: flex;
-  align-items: center;
   justify-content: space-between;
   padding-left: 10px;
   padding-right: 10px;
@@ -11,4 +10,28 @@
   app-person-identification {
     cursor: pointer;
   }
+
+  .navigation {
+    display: flex;
+    gap: 4px;
+    .navigation-item {
+      cursor: pointer;
+      height: 24px;
+      min-width: 100px;
+      background: #b5d1da;
+      border-radius: 0 0 16px 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .navigation-item:hover {
+      background: #cfe2e8;
+    }
+
+    .navigation-item-active {
+      background: #ffffff;
+      font-weight: bold;
+      height: 28px;
+    }
+  }
+
 }

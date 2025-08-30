@@ -1,6 +1,12 @@
 <div
   class="container">
-  <div></div>
+  <div class="navigation">
+    @if (sessionService.user()?.isAdmin() ?? false) {
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard'">Dashboard</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'gerentes'">Gerentes</div>
+    }
+  </div>
   <app-person-identification [matMenuTriggerFor]="menu">
     <mat-menu #menu="matMenu">
       <button mat-menu-item (click)="logout()">Sair</button>

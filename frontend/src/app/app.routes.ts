@@ -3,6 +3,7 @@ import {LoginComponent} from './login/login.component';
 import {ClientsComponent} from './clients/clients.component';
 import {ManagersComponent} from './managers/managers.component';
 import {AccountsComponent} from './accounts/accounts.component';
+import {DashboardComponent} from './dashboard/dashboard.component';
 
 export const routes: Routes = [
   {
@@ -14,7 +15,11 @@ export const routes: Routes = [
     component: ClientsComponent
   },
   {
-    path: 'gestores',
+    path: 'dashboard',
+    component: DashboardComponent
+  },
+  {
+    path: 'gerentes',
     component: ManagersComponent
   },
   {
