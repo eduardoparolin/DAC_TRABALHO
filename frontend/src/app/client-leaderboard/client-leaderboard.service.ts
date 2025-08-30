@@ -1,16 +1,16 @@
 import {inject, Injectable, signal} from '@angular/core';
+import {HttpClientMockService} from '../utils/http-client-mock.service';
+import {MatDialog} from '@angular/material/dialog';
 import {Client} from '../clients/client.model';
 import {lastValueFrom} from 'rxjs';
 import {ClientResponse} from '../clients/clients.types';
 import {environment} from '../../environments/environment';
-import {HttpClientMockService} from '../utils/http-client-mock.service';
-import {MatDialog} from '@angular/material/dialog';
-import {ConfirmationDialogComponent} from '../utils/confirmation-dialog/confirmation-dialog.component';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ClientApprovalService {
+export class ClientLeaderboardService {
+
   http = inject(HttpClientMockService);
   dialog = inject(MatDialog);
   clients = signal<Client[]>([]);
@@ -18,15 +18,9 @@ export class ClientApprovalService {
 
   async getAllClients() {
     const clientsResponse = await lastValueFrom(this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`));
-    this.clients.set(clientsResponse.map(client => Client.fromJson(client)));
+    const clients = clientsResponse.map(client => Client.fromJson(client));
+    clients.sort((a, b) => b.balance - a.balance);
+    this.clients.set(clients);
   }
 
-  approveClient(clientId: string) {
-    this.dialog.open(ConfirmationDialogComponent, {});
-  }
-
-  rejectClient(clientId: string) {
-
-    this.dialog.open(ConfirmationDialogComponent, {});
-  }
 }

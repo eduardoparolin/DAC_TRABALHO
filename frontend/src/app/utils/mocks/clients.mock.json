@@ -12,5 +12,33 @@
     "gerente": "98574307084",
     "gerente_nome": "Geniéve",
     "gerente_email": "ger1@bantads.com.br"
+  },
+  {
+    "cpf": "12912861012",
+    "nome": "Dudu",
+    "email": "cli1@bantads.com.br",
+    "endereco": "Rua X, nr 10",
+    "cidade": "Curitiba",
+    "estado": "PR",
+    "saldo": 10000,
+    "salario": 1000,
+    "limite": 1000,
+    "gerente": "98574307084",
+    "gerente_nome": "Geniéve",
+    "gerente_email": "ger1@bantads.com.br"
+  },
+  {
+    "cpf": "12912861012",
+    "nome": "Dada",
+    "email": "cli1@bantads.com.br",
+    "endereco": "Rua X, nr 10",
+    "cidade": "Curitiba",
+    "estado": "PR",
+    "saldo": 1,
+    "salario": 1000,
+    "limite": 1000,
+    "gerente": "98574307084",
+    "gerente_nome": "Geniéve",
+    "gerente_email": "ger1@bantads.com.br"
   }
 ]

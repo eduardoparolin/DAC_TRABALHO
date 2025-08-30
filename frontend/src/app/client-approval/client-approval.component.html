@@ -21,8 +21,8 @@
     <ng-container matColumnDef="ACTIONS">
       <th mat-header-cell *matHeaderCellDef></th>
       <td mat-cell *matCellDef="let element">
-        <button mat-button>Rejeitar</button>
-        <button mat-raised-button>Aprovar</button>
+        <button mat-button (click)="rejectClient(element)">Rejeitar</button>
+        <button mat-raised-button (click)="approveClient(element)">Aprovar</button>
       </td>
     </ng-container>
 
