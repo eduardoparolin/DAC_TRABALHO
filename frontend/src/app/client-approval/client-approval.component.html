@@ -1,1 +1,31 @@
-<p>client-approval works!</p>
+<table mat-table [dataSource]="this.service.clients()" class="mat-elevation-z8">
+  <ng-container matColumnDef="CPF">
+    <th mat-header-cell *matHeaderCellDef> CPF </th>
+    <td mat-cell *matCellDef="let element"> {{element.cpf}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="NAME">
+    <th mat-header-cell *matHeaderCellDef> Nome </th>
+    <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="EMAIL">
+    <th mat-header-cell *matHeaderCellDef> E-mail </th>
+    <td mat-cell *matCellDef="let element"> {{element.email}} </td>
+  </ng-container>
+
+  <ng-container matColumnDef="WAGE">
+    <th mat-header-cell *matHeaderCellDef> Salário </th>
+    <td mat-cell *matCellDef="let element"> {{element.wage}} </td>
+  </ng-container>
+    <ng-container matColumnDef="ACTIONS">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-button>Rejeitar</button>
+        <button mat-raised-button>Aprovar</button>
+      </td>
+    </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
