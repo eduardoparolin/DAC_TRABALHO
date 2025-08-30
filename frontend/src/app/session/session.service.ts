@@ -11,7 +11,11 @@ export class SessionService {
   constructor() {
     effect(() => {
       if (this.user() != null) {
-        this.router.navigate(['/clientes']);
+        if (this.user()?.isAdmin()) {
+          this.router.navigate(['/dashboard-admin']);
+        } else {
+          this.router.navigate(['/clientes']);
+        }
       } else {
         this.router.navigate(['/login']);
       }

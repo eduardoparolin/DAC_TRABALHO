@@ -17,7 +17,7 @@ export class DashboardService {
   async getAllDashboardManagers() {
     const managersResponse = await lastValueFrom(this.http.get<GetManagersAdminDashboardResponse[]>(`${environment.baseUrl}/gerentes?filtro=dashboard`))
     const managers = managersResponse.map(manager => AdminDashboardManager.fromJson(manager));
-    console.log(managers);
+    managers.sort((a, b) => b.netPositive - a.netPositive);
     this.dashboardData.set(managers);
     return managers;
   }

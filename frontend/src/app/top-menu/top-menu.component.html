@@ -3,8 +3,8 @@
   <div class="navigation">
     @if (sessionService.user()?.isAdmin() ?? false) {
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-admin'">Dashboard</div>
-      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'gerentes'">Gerentes</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
     }
     @else if (sessionService.user()?.isManager() ?? false) {
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-gerente'">Dashboard</div>
