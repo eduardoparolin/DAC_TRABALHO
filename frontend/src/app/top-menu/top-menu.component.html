@@ -7,8 +7,10 @@
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
     }
     @else if (sessionService.user()?.isManager() ?? false) {
-      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-gerente'">Dashboard</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-gerente'">Aprovações</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Busca</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Melhores 3</div>
     }
     @else if (sessionService.user()?.isClient() ?? false) {
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-gerente'">Deposito</div>
