@@ -6,19 +6,38 @@ import {
 import {MatIconModule} from '@angular/material/icon';
 import {MatDialog} from '@angular/material/dialog';
 import {ClientsService} from './clients.service';
+import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {SessionService} from '../session/session.service';
 
 @Component({
   selector: 'app-clients',
-  imports: [MatTableModule, MatIconModule, MatButton],
+  imports: [MatTableModule, MatIconModule, MatButton, MatFormField, MatLabel, MatInput, ReactiveFormsModule],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss'
 })
 export class ClientsComponent {
   service = inject(ClientsService);
   readonly dialog = inject(MatDialog);
-  displayedColumns: string[] = ['CPF', 'NAME', 'EMAIL', 'WAGE', 'ACCOUNT_NUMBER', 'BALANCE', 'LIMIT', 'CPF_MANAGER', 'NAME_MANAGER'];
+  displayedColumns: string[] = ['CPF', 'NAME', 'EMAIL', 'WAGE', 'ACCOUNT_NUMBER', 'BALANCE', 'LIMIT', 'CPF_MANAGER', 'NAME_MANAGER', 'NAME_MANAGER'];
+  filterControl = new FormControl();
+  sessionService = inject(SessionService);
 
   ngOnInit() {
     this.service.getAllClients();
+    if (this.sessionService.user()?.isManager()) {
+      this.displayedColumns.push('ACTIONS');
+    }
   }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.service.filterClients(filterValue);
+  }
+
+  clearFilter() {
+    this.filterControl.setValue('');
+    this.service.clearFilter();
+  }
+
 }

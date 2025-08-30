@@ -10,6 +10,7 @@ import {Client} from './client.model';
 })
 export class ClientsService {
   clients = signal<Client[]>([]);
+  filteredClients = signal<Client[]>([]);
   http = inject(HttpClientMockService);
   constructor() { }
 
@@ -24,5 +25,18 @@ export class ClientsService {
   async getAllClients() {
     const clientsResponse = await lastValueFrom(this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`));
     this.clients.set(clientsResponse.map(client => Client.fromJson(client)));
+    this.filteredClients.set(this.clients());
+  }
+
+  filterClients(filter: string) {
+    const lowerFilter = filter.toLowerCase();
+    this.filteredClients.set(this.clients().filter(client =>
+      client.name.toLowerCase().includes(lowerFilter) ||
+      client.cpf.includes(lowerFilter)
+    ));
+  }
+
+  clearFilter() {
+    this.filteredClients.set(this.clients());
   }
 }
