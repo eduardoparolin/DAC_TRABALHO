@@ -9,6 +9,7 @@ import {ClientSearchComponent} from './client-search/client-search.component';
 import {ClientLeaderboardComponent} from './client-leaderboard/client-leaderboard.component';
 import {DepositComponent} from './deposit/deposit.component';
 import {WithdrawComponent} from './withdraw/withdraw.component';
+import {TransferComponent} from './transfer/transfer.component';
 
 export const routes: Routes = [
   {
@@ -46,6 +47,10 @@ export const routes: Routes = [
   {
     path: 'sacar',
     component: WithdrawComponent
+  },
+  {
+    path: 'transferir',
+    component: TransferComponent
   },
   {
     path: 'contas',
