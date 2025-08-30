@@ -1,8 +1,9 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
-import {MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {Manager} from '../manager.model';
 
 @Component({
   selector: 'app-new-edit-manager-dialog',
@@ -18,12 +19,25 @@ import {MatDialogRef} from '@angular/material/dialog';
   templateUrl: './new-edit-manager-dialog.component.html',
   styleUrl: './new-edit-manager-dialog.component.scss'
 })
-export class NewEditManagerDialogComponent {
+export class NewEditManagerDialogComponent implements OnInit {
   dialog = inject(MatDialogRef)
-  cpfFormControl = new FormControl(null, [Validators.required]);
-  nameFormControl = new FormControl(null, [Validators.required]);
-  emailFormControl = new FormControl(null, [Validators.required, Validators.email]);
-  passwordFormControl = new FormControl(null, [Validators.required]);
+  dialogData = inject<{manager: Manager | null}>(MAT_DIALOG_DATA)
+  cpfFormControl = new FormControl<string | null>(null, [Validators.required]);
+  nameFormControl = new FormControl<string | null>(null, [Validators.required]);
+  emailFormControl = new FormControl<string | null>(null, [Validators.required, Validators.email]);
+  passwordFormControl = new FormControl<string | null>(null);
+
+  ngOnInit() {
+    if (this.dialogData.manager != null) {
+      this.cpfFormControl.setValue(this.dialogData.manager.cpf);
+      this.cpfFormControl.disable()
+      this.nameFormControl.setValue(this.dialogData.manager.name);
+      this.emailFormControl.setValue(this.dialogData.manager.email);
+      this.passwordFormControl.removeValidators([Validators.required])
+    } else {
+      this.passwordFormControl.addValidators([Validators.required]);
+    }
+  }
 
   cancel() {
     this.dialog.close();
