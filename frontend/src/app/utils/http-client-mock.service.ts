@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import {delay, Observable, of, throwError} from 'rxjs';
 import loginMockResponse from './mocks/login.mock.json';
 import clientesGetMockResponse from './mocks/clients.mock.json';
+import managersAdminDashGetMockResponse from './mocks/managers-admin.mock.json';
 import managersGetMockResponse from './mocks/managers.mock.json';
-import managersAdminDashGetMockResponse from './mocks/managers.mock.json';
 
 @Injectable({
   providedIn: 'root'
