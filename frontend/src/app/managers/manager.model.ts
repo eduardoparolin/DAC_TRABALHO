@@ -10,7 +10,7 @@ export class Manager extends User {
   }
 
   static override fromJson(json: any): Manager {
-    const clients = (json['clientes'] as any[])?.map(clientJson => new Client(clientJson['saldo'])) ?? [];
+    const clients = (json['clientes'] as any[])?.map(clientJson => Client.fromJson(clientJson)) ?? [];
     return new Manager(json['id'], json['nome'], json['email'], json['cpf'], json['tipo'], clients);
   }
 

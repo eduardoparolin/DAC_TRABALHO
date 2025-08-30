@@ -5,6 +5,12 @@
     "email": "cli1@bantads.com.br",
     "endereco": "Rua X, nr 10",
     "cidade": "Curitiba",
-    "estado": "PR"
+    "estado": "PR",
+    "saldo": 1000,
+    "salario": 1000,
+    "limite": 1000,
+    "gerente": "98574307084",
+    "gerente_nome": "Geniéve",
+    "gerente_email": "ger1@bantads.com.br"
   }
 ]
