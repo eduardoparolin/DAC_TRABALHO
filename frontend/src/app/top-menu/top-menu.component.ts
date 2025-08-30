@@ -22,4 +22,8 @@ export class TopMenuComponent {
   logout() {
     this.sessionService.logout();
   }
+
+  openEditClientDialog() {
+
+  }
 }

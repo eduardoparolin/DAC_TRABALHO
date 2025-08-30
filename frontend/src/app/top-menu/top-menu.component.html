@@ -2,13 +2,26 @@
   class="container">
   <div class="navigation">
     @if (sessionService.user()?.isAdmin() ?? false) {
-      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard'">Dashboard</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-admin'">Dashboard</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'gerentes'">Gerentes</div>
+    }
+    @else if (sessionService.user()?.isManager() ?? false) {
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-gerente'">Dashboard</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
+    }
+    @else if (sessionService.user()?.isClient() ?? false) {
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-gerente'">Deposito</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Saque</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Transferência</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Extrato</div>
     }
   </div>
   <app-person-identification [matMenuTriggerFor]="menu">
     <mat-menu #menu="matMenu">
+      @if (sessionService.user()?.isClient() ?? false) {
+        <button mat-menu-item (click)="openEditClientDialog()">Editar Perfil</button>
+      }
       <button mat-menu-item (click)="logout()">Sair</button>
     </mat-menu>
   </app-person-identification>
