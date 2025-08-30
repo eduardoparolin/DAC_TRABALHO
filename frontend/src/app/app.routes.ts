@@ -7,6 +7,8 @@ import {DashboardComponent} from './dashboard/dashboard.component';
 import {ClientApprovalComponent} from './client-approval/client-approval.component';
 import {ClientSearchComponent} from './client-search/client-search.component';
 import {ClientLeaderboardComponent} from './client-leaderboard/client-leaderboard.component';
+import {DepositComponent} from './deposit/deposit.component';
+import {WithdrawComponent} from './withdraw/withdraw.component';
 
 export const routes: Routes = [
   {
@@ -36,6 +38,14 @@ export const routes: Routes = [
   {
     path: 'gerentes',
     component: ManagersComponent
+  },
+  {
+    path: 'depositar',
+    component: DepositComponent
+  },
+  {
+    path: 'sacar',
+    component: WithdrawComponent
   },
   {
     path: 'contas',

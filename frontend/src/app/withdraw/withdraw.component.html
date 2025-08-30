@@ -1,0 +1,13 @@
+<div class="withdraw-form">
+  <div>Valor em conta: {{ 0 | currency: 'BRL' }}</div>
+  <mat-form-field>
+    <mat-label>Valor a sacar</mat-label>
+    <input
+      matInput
+      currencyMask
+      [formControl]="valueFormControl"
+      [options]="{ prefix: 'R$', thousands: '.', decimal: ',' }"
+    />
+  </mat-form-field>
+  <button [disabled]="(valueFormControl.value ?? 0) <= 0" mat-raised-button (click)="withdraw()">Sacar</button>
+</div>

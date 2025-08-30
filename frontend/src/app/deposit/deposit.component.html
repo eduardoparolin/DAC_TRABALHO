@@ -1,0 +1,12 @@
+<div class="deposit-form">
+  <mat-form-field>
+    <mat-label>Valor a depositar</mat-label>
+    <input
+      matInput
+      currencyMask
+      [formControl]="valueFormControl"
+      [options]="{ prefix: 'R$', thousands: '.', decimal: ',' }"
+    />
+  </mat-form-field>
+  <button [disabled]="(valueFormControl.value ?? 0) <= 0" mat-raised-button (click)="deposit()">Depositar</button>
+</div>

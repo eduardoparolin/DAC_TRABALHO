@@ -13,8 +13,8 @@
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'top-3-clientes'">Melhores 3</div>
     }
     @else if (sessionService.user()?.isClient() ?? false) {
-      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-gerente'">Deposito</div>
-      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Saque</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'depositar'">Deposito</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'sacar'">Saque</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Transferência</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Extrato</div>
     }
