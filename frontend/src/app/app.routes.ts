@@ -4,6 +4,8 @@ import {ClientsComponent} from './clients/clients.component';
 import {ManagersComponent} from './managers/managers.component';
 import {AccountsComponent} from './accounts/accounts.component';
 import {DashboardComponent} from './dashboard/dashboard.component';
+import {ClientApprovalComponent} from './client-approval/client-approval.component';
+import {ClientSearchComponent} from './client-search/client-search.component';
 
 export const routes: Routes = [
   {
@@ -17,6 +19,18 @@ export const routes: Routes = [
   {
     path: 'dashboard-admin',
     component: DashboardComponent
+  },
+  {
+    path: 'aprovacao-clientes',
+    component: ClientApprovalComponent
+  },
+  {
+    path: 'busca-clientes',
+    component: ClientSearchComponent
+  },
+  {
+    path: 'top-3-clientes',
+    component: ClientApprovalComponent
   },
   {
     path: 'gerentes',

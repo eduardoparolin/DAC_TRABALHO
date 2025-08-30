@@ -2,7 +2,6 @@ import {Component, inject} from '@angular/core';
 import {PersonIdentificationComponent} from '../person-identification/person-identification.component';
 import {MatMenuModule} from '@angular/material/menu';
 import {SessionService} from '../session/session.service';
-import {MatButton} from '@angular/material/button';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 
 @Component({
@@ -10,7 +9,6 @@ import {RouterLink, RouterLinkActive} from '@angular/router';
   imports: [
     PersonIdentificationComponent,
     MatMenuModule,
-    MatButton,
     RouterLink,
     RouterLinkActive
   ],
