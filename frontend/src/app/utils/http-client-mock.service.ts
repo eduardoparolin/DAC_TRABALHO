@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import {delay, Observable, of, throwError} from 'rxjs';
 import loginMockResponse from './mocks/login.mock.json';
 import clientesGetMockResponse from './mocks/clients.mock.json';
+import managersGetMockResponse from './mocks/managers.mock.json';
+import managersAdminDashGetMockResponse from './mocks/managers.mock.json';
 
 @Injectable({
   providedIn: 'root'
@@ -28,9 +30,15 @@ export class HttpClientMockService {
     return of().pipe(delay(500));
   }
 
-  get<T>(url: string): Observable<any> {
+  get<T>(url: string): Observable<T> {
     if (url.includes('/clientes')) {
-      return of(clientesGetMockResponse).pipe(delay(500));
+      return of(clientesGetMockResponse as T).pipe(delay(500));
+    }
+    if (url.includes('/gerentes')) {
+      if (url.includes('filtro=dashboard')) {
+        return of(managersAdminDashGetMockResponse as T).pipe(delay(500));
+      }
+      return of(managersGetMockResponse as T).pipe(delay(500));
     }
     return of().pipe(delay(500));
   }

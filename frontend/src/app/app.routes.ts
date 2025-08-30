@@ -15,7 +15,7 @@ export const routes: Routes = [
     component: ClientsComponent
   },
   {
-    path: 'dashboard',
+    path: 'dashboard-admin',
     component: DashboardComponent
   },
   {

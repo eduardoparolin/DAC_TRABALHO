@@ -15,16 +15,22 @@ export class SessionService {
       } else {
         this.router.navigate(['/login']);
       }
-    })
+    });
+    const localStorageUser = localStorage.getItem('user');
+    if (localStorageUser) {
+      this.user.set(User.fromJson(JSON.parse(localStorageUser)));
+    }
   }
 
   parseLoginResponse(response: Map<string, string | boolean | number>): User {
+    localStorage.setItem('user', JSON.stringify(response));
     const user = User.fromJson(response);
     this.user.set(user);
     return user;
   }
 
   logout() {
+    localStorage.removeItem('user');
     this.user.set(null);
   }
 }

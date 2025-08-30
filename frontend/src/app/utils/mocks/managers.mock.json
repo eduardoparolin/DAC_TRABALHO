@@ -1,0 +1,32 @@
+[
+  {
+    "gerente": {
+      "cpf": "12912861012",
+      "nome": "Catharyna",
+      "email": "cli1@bantads.com.br",
+      "type": "MANAGER"
+    },
+    "clientes": [
+      {
+        "cpf": "12912861012",
+        "nome": "Catharyna",
+        "email": "cli1@bantads.com.br",
+        "type": "MANAGER",
+        "endereco": "Rua X, nr 10",
+        "cidade": "Curitiba",
+        "estado": "PR"
+      },
+      {
+        "cpf": "12912861012",
+        "nome": "Catharyna",
+        "email": "cli1@bantads.com.br",
+        "type": "MANAGER",
+        "endereco": "Rua X, nr 10",
+        "cidade": "Curitiba",
+        "estado": "PR"
+      }
+    ],
+    "saldo_positivo": 89123.22,
+    "saldo_negativo": -982.35
+  }
+]
