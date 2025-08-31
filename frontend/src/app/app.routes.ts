@@ -10,6 +10,7 @@ import {ClientLeaderboardComponent} from './client-leaderboard/client-leaderboar
 import {DepositComponent} from './deposit/deposit.component';
 import {WithdrawComponent} from './withdraw/withdraw.component';
 import {TransferComponent} from './transfer/transfer.component';
+import {AccountStatementComponent} from './account-statement/account-statement.component';
 
 export const routes: Routes = [
   {
@@ -55,5 +56,9 @@ export const routes: Routes = [
   {
     path: 'contas',
     component: AccountsComponent
+  },
+  {
+    path: 'extrato',
+    component: AccountStatementComponent
   }
 ];
