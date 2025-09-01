@@ -1,6 +1,7 @@
 package com.dac.auth.dto.payload;
 
 import com.dac.auth.enums.Action;
+import com.dac.auth.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,8 +15,8 @@ public class AuthPayload implements IAuthPayload{
     private AuthPayloadData data;
 
     @Override
-    public Long getIdUser() {
-        return Long.valueOf(getData().getIdUser());
+    public String getIdUser() {
+        return getData().getIdUser();
     }
 
     @Override
@@ -26,5 +27,10 @@ public class AuthPayload implements IAuthPayload{
     @Override
     public String getPassword() {
         return getData().getPassword();
+    }
+
+    @Override
+    public Role getRole() {
+        return getData().getRole();
     }
 }

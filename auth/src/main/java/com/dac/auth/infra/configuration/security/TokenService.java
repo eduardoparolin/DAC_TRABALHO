@@ -1,4 +1,4 @@
-package com.dac.auth.security;
+package com.dac.auth.infra.configuration.security;
 
 import com.dac.auth.model.User;
 import io.jsonwebtoken.Claims;
@@ -36,15 +36,14 @@ public class TokenService {
         Date now = new Date();
         Date exp = new Date(now.getTime() + Long.parseLong(expiration));
 
-        return TOKEN_PREFIX + " " +
-                Jwts.builder()
-                        .setIssuer("bantads")
-                        .claim(Claims.ID, user.getId().toString())
-                        .claim(ROLES_CLAIM, List.of("ROLE_" + user.getRole()))
-                        .setIssuedAt(now)
-                        .setExpiration(exp)
-                        .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                        .compact();
+        return Jwts.builder()
+                .setIssuer("bantads")
+                .claim(Claims.ID, user.getId().toString())
+                .claim(ROLES_CLAIM, List.of("ROLE_" + user.getRole()))
+                .setIssuedAt(now)
+                .setExpiration(exp)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
 
     public UsernamePasswordAuthenticationToken isValid(String token) {

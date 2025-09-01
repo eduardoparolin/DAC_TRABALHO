@@ -21,7 +21,7 @@ import java.util.Set;
 public class User implements UserDetails {
 
     @Id
-    private Long id;
+    private String id;
     private String email;
     private String password;
     private Role role;
@@ -33,6 +33,6 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return "";
+        return this.email;
     }
 }

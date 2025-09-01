@@ -1,4 +1,4 @@
-package com.dac.auth.consumer.utils.handlers.interfaces;
+package com.dac.auth.infra.consumer.utils.handlers.interfaces;
 
 import com.dac.auth.dto.payload.IAuthPayload;
 

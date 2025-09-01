@@ -2,7 +2,7 @@ package com.dac.auth.controller;
 
 import com.dac.auth.dto.auth.AuthRequestDTO;
 import com.dac.auth.dto.auth.AuthResponseDTO;
-import com.dac.auth.service.interfaces.IAuthService;
+import com.dac.auth.service.interfaces.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final IAuthService service;
+    private final AuthService service;
 
-    public AuthController(IAuthService service) {
+    public AuthController(AuthService service) {
         this.service = service;
     }
 
