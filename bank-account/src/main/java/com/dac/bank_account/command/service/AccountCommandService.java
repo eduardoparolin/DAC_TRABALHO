@@ -6,24 +6,26 @@ import com.dac.bank_account.command.dto.response.AccountResponseDTO;
 import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
+import com.dac.bank_account.command.events.AccountCreatedEvent;
+import com.dac.bank_account.command.events.EventPublisher;
+import com.dac.bank_account.command.events.MoneyTransactionEvent;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
 @Service
 public class AccountCommandService {
     private final AccountCommandRepository accountCommandRepository;
-    private final AccountMapper accountMapper;
+    private final AccountCommandMapper accountMapper;
+    private final EventPublisher eventPublisher;
 
-    public AccountCommandService(AccountCommandRepository accountCommandRepository, AccountMapper accountMapper) {
+    public AccountCommandService(AccountCommandRepository accountCommandRepository, AccountCommandMapper accountMapper, EventPublisher eventPublisher) {
         this.accountCommandRepository = accountCommandRepository;
         this.accountMapper = accountMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional("commandTransactionManager")
@@ -31,14 +33,11 @@ public class AccountCommandService {
         Account account = accountMapper.toEntity(dto);
         accountCommandRepository.save(account);
 
-        return new AccountResponseDTO(
-                account.getClientId().toString(),
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getLimitAmount(),
-                account.getManagerId().toString(),
-                OffsetDateTime.now(ZoneOffset.of("-03:00")).toString()
-        );
+        AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
+
+        eventPublisher.publishEvent("bank.account.created", event);
+
+        return accountMapper.accountToDTO(account);
     }
 
     @Transactional("commandTransactionManager")
@@ -51,11 +50,11 @@ public class AccountCommandService {
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
 
-        return new MovementResponseDTO(
-                account.getAccountNumber(),
-                OffsetDateTime.now(ZoneOffset.of("-03:00")).toString(),
-                account.getBalance()
-        );
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
+
+        eventPublisher.publishEvent("bank.account.transactions", event);
+
+        return accountMapper.toMovementDTO(account);
     }
 
     @Transactional("commandTransactionManager")
@@ -68,11 +67,11 @@ public class AccountCommandService {
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
 
-        return new MovementResponseDTO(
-                account.getAccountNumber(),
-                OffsetDateTime.now(ZoneOffset.of("-03:00")).toString(),
-                account.getBalance()
-        );
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
+
+        eventPublisher.publishEvent("bank.account.transactions", event);
+
+        return accountMapper.toMovementDTO(account);
     }
 
     @Transactional("commandTransactionManager")
@@ -90,13 +89,11 @@ public class AccountCommandService {
         accountCommandRepository.save(source);
         accountCommandRepository.save(target);
 
-        return new TransferResponseDTO(
-                source.getAccountNumber(),
-                OffsetDateTime.now(ZoneOffset.of("-03:00")).toString(),
-                target.getAccountNumber(),
-                source.getBalance(),
-                amount
-        );
+        MoneyTransactionEvent event = accountMapper.toMoneyTransferEvent(source, target, amount, transaction);
+
+        eventPublisher.publishEvent("bank.account.transactions", event);
+
+        return accountMapper.toTransferDTO(source, target, amount);
 
     }
 
@@ -107,14 +104,14 @@ public class AccountCommandService {
         account.setLimitAmount(limite);
         accountCommandRepository.save(account);
 
-        return new AccountResponseDTO(
-                account.getClientId().toString(),
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getLimitAmount(),
-                account.getManagerId().toString(),
-                account.getCreationDate().toString()
-//                LocalDateTime.now(ZoneOffset.of("-03:00")).toString()
-        );
+        return accountMapper.accountToDTO(account);
+    }
+
+    @Transactional("commandTransactionManager")
+    public void reassignManager(Long oldManagerId, Long newManagerId) {
+        int updated = accountCommandRepository.updateManagerForAccounts(oldManagerId, newManagerId);
+        if (updated == 0) {
+            throw new IllegalArgumentException("No accounts found for the given old manager ID: " + oldManagerId);
+        }
     }
 }

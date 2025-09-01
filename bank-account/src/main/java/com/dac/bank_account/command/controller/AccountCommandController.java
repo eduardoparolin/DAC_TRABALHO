@@ -46,9 +46,16 @@ public class AccountCommandController {
         return ResponseEntity.ok(dto);
     }
 
-    @PostMapping("/{numero}/limite")
+    @PatchMapping("/{numero}/limite")
     public ResponseEntity<AccountResponseDTO> setLimit(@PathVariable String numero, @RequestBody @Valid LimitRequestDTO request) {
         AccountResponseDTO dto = accountCommandService.setLimit(numero, request.limite());
         return ResponseEntity.ok(dto);
+    }
+
+    // PATCH gerente/alterar?oldManagerId=1&newManagerId=2
+    @PatchMapping("/gerente/alterar")
+    public ResponseEntity<Void> reassingManager(@RequestParam Long oldManagerId, @RequestParam Long newManagerId) {
+        accountCommandService.reassignManager(oldManagerId, newManagerId);
+        return ResponseEntity.ok().build();
     }
 }
