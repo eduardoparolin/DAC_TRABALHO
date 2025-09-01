@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { config } from "dotenv";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -7,6 +8,8 @@ import { customerRoutes } from "./routes/customerRoutes";
 import { accountRoutes } from "./routes/accountRoutes";
 import { managerRoutes } from "./routes/managerRoutes";
 import { authMiddleware } from "./middleware/auth";
+
+config();
 
 const app = new Hono();
 app.use("*", cors());
