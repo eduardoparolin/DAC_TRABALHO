@@ -6,6 +6,7 @@ import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -33,5 +34,46 @@ public class AccountQueryMapper {
         tx.setTargetAccountNumber(Optional.ofNullable(event.getTargetAccountNumber()).orElse(null));
 
         return tx;
+    }
+
+    public BalanceResponseDTO toBalanceResponseDTO(AccountView account) {
+        return new BalanceResponseDTO(
+                account.getClientId().toString(),
+                account.getAccountNumber(),
+                account.getBalance()
+        );
+    }
+
+    public AccountResponseDTO toAccountResponseDTO(AccountView account) {
+        return new AccountResponseDTO(
+                account.getClientId().toString(),
+                account.getAccountNumber(),
+                account.getBalance(),
+                account.getLimitAmount(),
+                account.getManagerId().toString(),
+                account.getCreationDate().toString()
+        );
+    }
+
+    public TransactionResponseDTO toTransactionResponseDTO(TransactionView transaction) {
+        return new TransactionResponseDTO(
+                transaction.getDateTime().toString(),
+                transaction.getType().toString(),
+                transaction.getSourceAccountNumber(),
+                transaction.getTargetAccountNumber(),
+                transaction.getAmount()
+        );
+    }
+
+    public StatementResponseDTO toStatementResponseDTO(AccountView account, List<TransactionView> transactions) {
+        List<TransactionResponseDTO> statements = transactions.stream()
+                .map(this::toTransactionResponseDTO)
+                .toList();
+
+        return new StatementResponseDTO(
+                account.getAccountNumber(),
+                account.getBalance(),
+                statements
+        );
     }
 }
