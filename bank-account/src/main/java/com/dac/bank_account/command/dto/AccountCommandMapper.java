@@ -90,7 +90,6 @@ public class AccountCommandMapper {
 
     public MoneyTransactionEvent toMoneyTransactionEvent(Account account, BigDecimal amount, Transaction transaction) {
         return new MoneyTransactionEvent(
-                transaction.getId(),
                 account.getAccountNumber(),
                 amount,
                 transaction.getType(),
@@ -100,7 +99,6 @@ public class AccountCommandMapper {
 
     public MoneyTransactionEvent toMoneyTransferEvent(Account source, Account target, BigDecimal amount, Transaction transaction) {
         return new MoneyTransactionEvent(
-                transaction.getId(),
                 source.getAccountNumber(),
                 target.getAccountNumber(),
                 amount,

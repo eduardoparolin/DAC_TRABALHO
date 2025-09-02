@@ -15,6 +15,7 @@ import java.time.OffsetDateTime;
 @Table(name = "transaction")
 public class TransactionView {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private OffsetDateTime dateTime;
 
