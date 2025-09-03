@@ -8,6 +8,7 @@ import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.entity.Transaction;
 import com.dac.bank_account.command.events.AccountCreatedEvent;
 import com.dac.bank_account.command.events.MoneyTransactionEvent;
+import com.dac.bank_account.command.events.RemovedManagerEvent;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Component;
@@ -103,6 +104,13 @@ public class AccountCommandMapper {
                 target.getAccountNumber(),
                 amount,
                 transaction.getDateTime()
+        );
+    }
+
+    public RemovedManagerEvent toRemovedManagerEvent(Long oldManagerId, Long newManagerId) {
+        return new RemovedManagerEvent(
+                oldManagerId,
+                newManagerId
         );
     }
 

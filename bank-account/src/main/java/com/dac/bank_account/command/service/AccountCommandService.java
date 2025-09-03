@@ -9,6 +9,7 @@ import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.events.AccountCreatedEvent;
 import com.dac.bank_account.command.events.EventPublisher;
 import com.dac.bank_account.command.events.MoneyTransactionEvent;
+import com.dac.bank_account.command.events.RemovedManagerEvent;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Service;
@@ -113,5 +114,8 @@ public class AccountCommandService {
         if (updated == 0) {
             throw new IllegalArgumentException("No accounts found for the given old manager ID: " + oldManagerId);
         }
+        RemovedManagerEvent event = accountMapper.toRemovedManagerEvent(oldManagerId, newManagerId);
+        eventPublisher.publishEvent("bank.account.updated", event );
+
     }
 }

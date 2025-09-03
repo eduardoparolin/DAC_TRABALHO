@@ -17,6 +17,7 @@ public class RabbitConfig {
 
     public static final String QUEUE_ACCOUNT_CREATED = "bank.account.created";
     public static final String QUEUE_TRANSACTION = "bank.account.transactions";
+    public static final String QUEUE_ACCOUNT_UPDATED = "bank.account.updated";
 
 
     @Bean
@@ -34,6 +35,8 @@ public class RabbitConfig {
         return new Queue(QUEUE_TRANSACTION, true);
     }
 
+    @Bean Queue accountUpdatedQueue() {return new Queue(QUEUE_ACCOUNT_UPDATED, true);}
+
 
     // 🔹 Bindings
     @Bean
@@ -44,6 +47,10 @@ public class RabbitConfig {
     @Bean
     public Binding transactionBinding(Queue transactionQueue, TopicExchange exchange) {
         return BindingBuilder.bind(transactionQueue).to(exchange).with(QUEUE_TRANSACTION);
+    }
+
+    @Bean Binding updatedBinding(Queue accountUpdatedQueue, TopicExchange exchange) {
+        return BindingBuilder.bind(accountUpdatedQueue).to(exchange).with(QUEUE_ACCOUNT_UPDATED);
     }
 
     @Bean

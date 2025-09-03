@@ -2,6 +2,7 @@ package com.dac.bank_account.query.consumer;
 
 import com.dac.bank_account.command.events.AccountCreatedEvent;
 import com.dac.bank_account.command.events.MoneyTransactionEvent;
+import com.dac.bank_account.command.events.RemovedManagerEvent;
 import com.dac.bank_account.query.dto.AccountQueryMapper;
 import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;
@@ -9,6 +10,8 @@ import com.dac.bank_account.query.repository.AccountQueryRepository;
 import com.dac.bank_account.query.repository.TransactionQueryRepository;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -41,6 +44,13 @@ public class AccountEventHandler {
         }
 
         saveTransaction(event);
+    }
+
+    @RabbitListener(queues = "bank.account.updated")
+    public void handleAccountUpdatedEvent(RemovedManagerEvent event) {
+        List<AccountView> accounts = accountQueryRepository.findByManagerId(event.getOldManagerId());
+        accounts.forEach(acc -> acc.setManagerId(event.getNewManagerId()));
+        accountQueryRepository.saveAll(accounts);
     }
 
     private void handleDeposit(MoneyTransactionEvent event) {

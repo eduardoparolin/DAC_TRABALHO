@@ -52,10 +52,9 @@ public class AccountCommandController {
         return ResponseEntity.ok(dto);
     }
 
-    // PATCH gerente/alterar?oldManagerId=1&newManagerId=2
-    @PatchMapping("/gerente/alterar")
-    public ResponseEntity<Void> reassingManager(@RequestParam Long oldManagerId, @RequestParam Long newManagerId) {
-        accountCommandService.reassignManager(oldManagerId, newManagerId);
+    @PatchMapping("/reatribuir/{gerenteOrigem}/{gerenteDestino}")
+    public ResponseEntity<Void> reassingManager(@PathVariable Long gerenteOrigem, @PathVariable Long gerenteDestino) {
+        accountCommandService.reassignManager(gerenteOrigem, gerenteDestino);
         return ResponseEntity.ok().build();
     }
 }
