@@ -32,6 +32,10 @@ public class AccountCommandService {
     @Transactional("commandTransactionManager")
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Account account = accountMapper.toEntity(dto);
+
+        double limit = dto.salary().doubleValue() / 2;
+        account.setLimitAmount(BigDecimal.valueOf(limit));
+
         accountCommandRepository.save(account);
 
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);

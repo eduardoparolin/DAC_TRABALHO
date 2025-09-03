@@ -32,7 +32,7 @@ public class AccountCommandMapper {
         account.setClientId(dto.clientId());
         account.setAccountNumber(generateAccountNumber());
         account.setBalance(BigDecimal.ZERO);
-        account.setLimitAmount(dto.limitAmount());
+        account.setLimitAmount(dto.salary());
         account.setManagerId(dto.managerId());
         account.setCreationDate(OffsetDateTime.now(ZoneOffset.of("-03:00")));
         return account;
