@@ -1,6 +1,7 @@
 package com.dac.bank_account.query.controller;
 
 import com.dac.bank_account.query.dto.AccountResponseDTO;
+import com.dac.bank_account.query.dto.ManagerAccountsResponseDTO;
 import com.dac.bank_account.query.dto.StatementResponseDTO;
 import com.dac.bank_account.query.dto.BalanceResponseDTO;
 import com.dac.bank_account.query.service.AccountQueryService;
@@ -32,6 +33,12 @@ public class AccountQueryController {
     @GetMapping("/{numero}")
     public ResponseEntity<AccountResponseDTO> getAccountDetails(@PathVariable String numero){
         AccountResponseDTO dto = accountQueryService.getAccountDetails(numero);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{idGerente}/gerente")
+    public ResponseEntity<ManagerAccountsResponseDTO> getManagerAccounts(@PathVariable String idGerente){
+        ManagerAccountsResponseDTO dto = accountQueryService.getManagerAccounts(idGerente);
         return ResponseEntity.ok(dto);
     }
 }

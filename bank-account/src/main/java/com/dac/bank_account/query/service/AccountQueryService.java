@@ -48,4 +48,10 @@ public class AccountQueryService {
 
         return accountQueryMapper.toAccountResponseDTO(account);
     }
+
+    @Transactional("queryTransactionManager")
+    public ManagerAccountsResponseDTO getManagerAccounts(String managerId) {
+        List<AccountView> accounts = accountQueryRepository.findByManagerId(Long.valueOf(managerId));
+        return accountQueryMapper.toManagerAccountsResponseDTO(managerId, accounts);
+    }
 }

@@ -76,4 +76,17 @@ public class AccountQueryMapper {
                 statements
         );
     }
+
+    public List<AccountResponseDTO> toAccountResponseDTOList(List<AccountView> accounts) {
+        return accounts.stream()
+                .map(this::toAccountResponseDTO)
+                .toList();
+    }
+
+    public ManagerAccountsResponseDTO toManagerAccountsResponseDTO(String managerId, List<AccountView> accounts) {
+        return new ManagerAccountsResponseDTO(
+                managerId,
+                toAccountResponseDTOList(accounts)
+        );
+    }
 }
