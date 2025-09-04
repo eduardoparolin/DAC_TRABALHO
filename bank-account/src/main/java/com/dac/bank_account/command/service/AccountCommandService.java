@@ -107,6 +107,11 @@ public class AccountCommandService {
         account.setLimitAmount(BigDecimal.valueOf(limit));
         accountCommandRepository.save(account);
 
+        AccountLimitChangedEvent event = accountMapper.accountToLimitChangedEvent(account);
+
+        eventPublisher.publishEvent("bank.account", event);
+
+
         return accountMapper.accountToDTO(account);
     }
 

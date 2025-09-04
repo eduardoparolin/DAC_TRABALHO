@@ -1,6 +1,7 @@
 package com.dac.bank_account.query.consumer;
 
 import com.dac.bank_account.command.events.AccountCreatedEvent;
+import com.dac.bank_account.command.events.AccountLimitChangedEvent;
 import com.dac.bank_account.command.events.MoneyTransactionEvent;
 import com.dac.bank_account.command.events.RemovedManagerEvent;
 import com.dac.bank_account.query.dto.AccountQueryMapper;
@@ -54,6 +55,16 @@ public class AccountEventHandler {
         List<AccountView> accounts = accountQueryRepository.findByManagerId(event.getOldManagerId());
         accounts.forEach(acc -> acc.setManagerId(event.getNewManagerId()));
         accountQueryRepository.saveAll(accounts);
+    }
+
+    @RabbitHandler
+    public void handleAccountLimitChangedEvent(AccountLimitChangedEvent event) {
+        System.out.println("Recebido evento do RabbitMQ: " + event);
+        AccountView account = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
+                .orElseThrow(() -> new RuntimeException("Account not found with number: " + event.getAccountNumber()));
+
+        account.setLimitAmount(event.getNewLimit());
+        accountQueryRepository.save(account);
     }
 
     private void handleDeposit(MoneyTransactionEvent event) {

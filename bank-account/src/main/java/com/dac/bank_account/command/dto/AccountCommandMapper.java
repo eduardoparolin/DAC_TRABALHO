@@ -7,6 +7,7 @@ import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.entity.Transaction;
 import com.dac.bank_account.command.events.AccountCreatedEvent;
+import com.dac.bank_account.command.events.AccountLimitChangedEvent;
 import com.dac.bank_account.command.events.MoneyTransactionEvent;
 import com.dac.bank_account.command.events.RemovedManagerEvent;
 import com.dac.bank_account.enums.TransactionType;
@@ -124,4 +125,10 @@ public class AccountCommandMapper {
     }
 
 
+    public AccountLimitChangedEvent accountToLimitChangedEvent(Account account) {
+        return new AccountLimitChangedEvent(
+                account.getAccountNumber(),
+                account.getLimitAmount()
+        );
+    }
 }
