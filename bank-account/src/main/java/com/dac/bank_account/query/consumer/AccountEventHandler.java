@@ -8,13 +8,16 @@ import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;
 import com.dac.bank_account.query.repository.AccountQueryRepository;
 import com.dac.bank_account.query.repository.TransactionQueryRepository;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-
+@EnableRabbit
 @Service
+@RabbitListener(queues = "bank.account")
 public class AccountEventHandler {
     private final AccountQueryRepository accountQueryRepository;
     private final AccountQueryMapper mapper;
@@ -27,7 +30,7 @@ public class AccountEventHandler {
         this.transactionQueryRepository = transactionQueryRepository;
     }
 
-    @RabbitListener(queues = "bank.account.created")
+    @RabbitHandler
     public void handleAccountCreatedEvent(AccountCreatedEvent event) {
         System.out.println("Recebido evento do RabbitMQ: " + event);
         AccountView account = mapper.toEntity(event);
@@ -35,7 +38,7 @@ public class AccountEventHandler {
 
     }
 
-    @RabbitListener(queues = "bank.account.transactions")
+    @RabbitHandler
     public void handleTransactionEvent(MoneyTransactionEvent event) {
         switch (event.getTransactionType()){
             case DEPOSITO -> handleDeposit(event);
@@ -46,7 +49,7 @@ public class AccountEventHandler {
         saveTransaction(event);
     }
 
-    @RabbitListener(queues = "bank.account.updated")
+    @RabbitHandler
     public void handleAccountUpdatedEvent(RemovedManagerEvent event) {
         List<AccountView> accounts = accountQueryRepository.findByManagerId(event.getOldManagerId());
         accounts.forEach(acc -> acc.setManagerId(event.getNewManagerId()));

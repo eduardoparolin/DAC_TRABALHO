@@ -6,10 +6,7 @@ import com.dac.bank_account.command.dto.response.AccountResponseDTO;
 import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
-import com.dac.bank_account.command.events.AccountCreatedEvent;
-import com.dac.bank_account.command.events.EventPublisher;
-import com.dac.bank_account.command.events.MoneyTransactionEvent;
-import com.dac.bank_account.command.events.RemovedManagerEvent;
+import com.dac.bank_account.command.events.*;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Service;
@@ -40,7 +37,7 @@ public class AccountCommandService {
 
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
 
-        eventPublisher.publishEvent("bank.account.created", event);
+        eventPublisher.publishEvent("bank.account", event);
 
         return accountMapper.accountToDTO(account);
     }
@@ -57,7 +54,7 @@ public class AccountCommandService {
 
         MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
 
-        eventPublisher.publishEvent("bank.account.transactions", event);
+        eventPublisher.publishEvent("bank.account", event);
 
         return accountMapper.toMovementDTO(account);
     }
@@ -74,7 +71,7 @@ public class AccountCommandService {
 
         MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
 
-        eventPublisher.publishEvent("bank.account.transactions", event);
+        eventPublisher.publishEvent("bank.account", event);
 
         return accountMapper.toMovementDTO(account);
     }
@@ -96,7 +93,7 @@ public class AccountCommandService {
 
         MoneyTransactionEvent event = accountMapper.toMoneyTransferEvent(source, target, amount, transaction);
 
-        eventPublisher.publishEvent("bank.account.transactions", event);
+        eventPublisher.publishEvent("bank.account", event);
 
         return accountMapper.toTransferDTO(source, target, amount);
 
@@ -120,7 +117,7 @@ public class AccountCommandService {
             throw new IllegalArgumentException("No accounts found for the given old manager ID: " + oldManagerId);
         }
         RemovedManagerEvent event = accountMapper.toRemovedManagerEvent(oldManagerId, newManagerId);
-        eventPublisher.publishEvent("bank.account.updated", event );
+        eventPublisher.publishEvent("bank.account", event );
 
     }
 }
