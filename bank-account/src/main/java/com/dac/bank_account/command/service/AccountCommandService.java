@@ -103,10 +103,11 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public AccountResponseDTO setLimit(String accountNumber, BigDecimal limite) {
+    public AccountResponseDTO setLimit(String accountNumber, BigDecimal salario) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
-        account.setLimitAmount(limite);
+        double limit = salario.doubleValue() / 2;
+        account.setLimitAmount(BigDecimal.valueOf(limit));
         accountCommandRepository.save(account);
 
         return accountMapper.accountToDTO(account);

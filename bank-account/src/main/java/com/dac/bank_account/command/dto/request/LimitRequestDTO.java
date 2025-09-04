@@ -8,6 +8,6 @@ import java.math.BigDecimal;
 public record LimitRequestDTO(
         @NotNull
         @Positive
-        BigDecimal limite
+        BigDecimal salario
 ) {
 }
