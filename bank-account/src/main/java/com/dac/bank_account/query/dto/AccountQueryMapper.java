@@ -6,6 +6,9 @@ import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,28 +43,33 @@ public class AccountQueryMapper {
         return new BalanceResponseDTO(
                 account.getClientId().toString(),
                 account.getAccountNumber(),
-                account.getBalance()
+                account.getBalance().doubleValue()
         );
     }
 
     public AccountResponseDTO toAccountResponseDTO(AccountView account) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+        OffsetDateTime brazilTime = account.getCreationDate().withOffsetSameInstant(ZoneOffset.ofHours(-3));
         return new AccountResponseDTO(
                 account.getClientId().toString(),
                 account.getAccountNumber(),
-                account.getBalance(),
-                account.getLimitAmount(),
+                account.getBalance().doubleValue(),
+                account.getLimitAmount().doubleValue(),
                 account.getManagerId().toString(),
-                account.getCreationDate().toString()
+                brazilTime.format(formatter)
         );
     }
 
     public TransactionResponseDTO toTransactionResponseDTO(TransactionView transaction) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
+        OffsetDateTime brazilTime = transaction.getDateTime().withOffsetSameInstant(ZoneOffset.ofHours(-3));
+
         return new TransactionResponseDTO(
-                transaction.getDateTime().toString(),
+                brazilTime.format(formatter),
                 transaction.getType().toString(),
                 transaction.getSourceAccountNumber(),
                 transaction.getTargetAccountNumber(),
-                transaction.getAmount()
+                transaction.getAmount().doubleValue()
         );
     }
 
@@ -72,7 +80,7 @@ public class AccountQueryMapper {
 
         return new StatementResponseDTO(
                 account.getAccountNumber(),
-                account.getBalance(),
+                account.getBalance().doubleValue(),
                 statements
         );
     }

@@ -11,7 +11,7 @@ public record AccountRequestDTO(
 
         @NotNull
         @Positive
-        BigDecimal salary,
+        Double salary,
 
         @NotNull
         Long managerId
