@@ -11,6 +11,7 @@ import {DepositComponent} from './deposit/deposit.component';
 import {WithdrawComponent} from './withdraw/withdraw.component';
 import {TransferComponent} from './transfer/transfer.component';
 import {AccountStatementComponent} from './account-statement/account-statement.component';
+import {SignupComponent} from './signup/signup.component';
 
 export const routes: Routes = [
   {
@@ -60,5 +61,9 @@ export const routes: Routes = [
   {
     path: 'extrato',
     component: AccountStatementComponent
+  },
+  {
+    path: 'cadastro',
+    component: SignupComponent
   }
 ];

@@ -1,6 +1,6 @@
 <div class="login-container">
   <div class="login-card">
-    @if (loginService.loading()) {
+    @if (service.loading()) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     }
     <form class="example-form">
@@ -26,7 +26,6 @@
         }
       </mat-form-field>
     </form>
-    <button [disabled]="loginService.loading()" mat-raised-button (click)="login()">Login</button>
-    <a class="clickable-link" (click)="signup()">Criar Conta</a>
+    <button [disabled]="service.loading()" mat-raised-button (click)="signup()">Criar Conta</button>
   </div>
 </div>

@@ -38,4 +38,8 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  async signup() {
+    await this.router.navigate(['cadastro']);
+  }
+
 }
