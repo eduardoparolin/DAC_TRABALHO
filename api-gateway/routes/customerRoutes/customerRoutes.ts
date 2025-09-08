@@ -8,38 +8,54 @@ import {
   getCustomersSchemaInput,
   UpdateCustomerByCPFSchemaInput,
 } from "./customerRoutesSchema";
+import { customersMock } from "./customerRoutes.mock";
 
 export const customerRoutes = new Hono();
 
 customerRoutes.get(
   "/",
-  zValidator("json", getCustomersSchemaInput, async (c) => {})
+  zValidator("query", getCustomersSchemaInput),
+  async (c) => {
+    return c.json(customersMock, 200);
+  }
 );
 
 customerRoutes.get(
   "/:cpf",
-  zValidator("json", getCustomerByCPFSchemaInput, async (c) => {})
+  zValidator("param", getCustomerByCPFSchemaInput),
+  async (c) => {
+    return c.json(customersMock[0], 200);
+  }
 );
 
 customerRoutes.post(
   "/",
   zValidator("json", createCustomerSchemaInput),
-  async (c) => {}
+  async (c) => {
+    return c.json({ message: "Cliente autocadastrado" }, 201);
+  }
 );
 
 customerRoutes.put(
   "/:cpf",
-  zValidator("json", UpdateCustomerByCPFSchemaInput, async (c) => {})
+  zValidator("param", UpdateCustomerByCPFSchemaInput),
+  async (c) => {
+    return c.json({ message: "Perfil do cliente alterado com sucesso" }, 200);
+  }
 );
 
 customerRoutes.post(
   "/:cpf/aprovar",
-  zValidator("json", aproveCustomerByCPFSchemaInput),
-  async (c) => {}
+  zValidator("param", aproveCustomerByCPFSchemaInput),
+  async (c) => {
+    return c.json({ message: "Cliente aprovado com sucesso" }, 200);
+  }
 );
 
 customerRoutes.post(
   "/:cpf/reprovar",
-  zValidator("json", declineCustomerByCPFSchemaInput),
-  async (c) => {}
+  zValidator("param", declineCustomerByCPFSchemaInput),
+  async (c) => {
+    return c.json({ message: "Cliente reprovado com sucesso" }, 200);
+  }
 );
