@@ -1,5 +1,6 @@
 package com.dac.auth.dto.payload;
 
+import com.dac.auth.dto.user.UserDTO;
 import com.dac.auth.enums.Action;
 import com.dac.auth.enums.Role;
 import lombok.AllArgsConstructor;
@@ -10,9 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class AuthPayload implements IAuthPayload{
+    private String requestedById;
     private Action action;
     private String messageSource;
     private AuthPayloadData data;
+    private SagaContext sagaContext;
 
     @Override
     public String getIdUser() {

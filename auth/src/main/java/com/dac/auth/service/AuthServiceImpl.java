@@ -8,6 +8,7 @@ import com.dac.auth.service.interfaces.AuthService;
 import com.dac.auth.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -22,20 +23,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDTO login(AuthRequestDTO dto) {
-        try {
-            UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword());
-            Authentication auth = this.authenticationManager.authenticate(usernamePassword);
-            String token = tokenService.generateToken((User) auth.getPrincipal());
-            User user = userService.findByEmail(dto.getEmail());
-            return new AuthResponseDTO(
-                    token,
-                    "Bearer",
-                    user.getRole()
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword());
+        Authentication auth = this.authenticationManager.authenticate(usernamePassword);
+        String token = tokenService.generateToken((User) auth.getPrincipal());
+        User user = userService.findByEmail(dto.getEmail());
+
+        return new AuthResponseDTO(
+                token,
+                "Bearer",
+                user.getRole()
+        );
     }
 
     @Override

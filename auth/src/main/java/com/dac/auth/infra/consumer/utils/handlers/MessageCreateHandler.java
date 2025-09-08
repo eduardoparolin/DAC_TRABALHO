@@ -1,5 +1,6 @@
 package com.dac.auth.infra.consumer.utils.handlers;
 
+import com.dac.auth.dto.user.UserCreateDTO;
 import com.dac.auth.infra.consumer.utils.handlers.interfaces.MessageHandler;
 import com.dac.auth.dto.payload.IAuthPayload;
 import com.dac.auth.model.User;
@@ -15,12 +16,13 @@ public class MessageCreateHandler<T extends IAuthPayload> implements MessageHand
 
     @Override
     public void handle(T data) {
-        User newUser = new User(
+        UserCreateDTO dto = new UserCreateDTO(
                 data.getIdUser(),
                 data.getEmail(),
                 data.getPassword(),
                 data.getRole()
         );
-        service.save(newUser);
+
+        service.save(dto);
     }
 }
