@@ -7,14 +7,16 @@ import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.entity.Transaction;
 import com.dac.bank_account.command.events.AccountCreatedEvent;
+import com.dac.bank_account.command.events.AccountLimitChangedEvent;
 import com.dac.bank_account.command.events.MoneyTransactionEvent;
+import com.dac.bank_account.command.events.RemovedManagerEvent;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
 @Component
@@ -31,9 +33,9 @@ public class AccountCommandMapper {
         account.setClientId(dto.clientId());
         account.setAccountNumber(generateAccountNumber());
         account.setBalance(BigDecimal.ZERO);
-        account.setLimitAmount(dto.limitAmount());
+        account.setLimitAmount(BigDecimal.valueOf(dto.salary()));
         account.setManagerId(dto.managerId());
-        account.setCreationDate(OffsetDateTime.now(ZoneOffset.of("-03:00")));
+        account.setCreationDate(OffsetDateTime.now());
         return account;
     }
 
@@ -43,7 +45,7 @@ public class AccountCommandMapper {
         transaction.setTargetAccountNumber(targetAccount);
         transaction.setType(type);
         transaction.setAmount(amount);
-        transaction.setDateTime(OffsetDateTime.now(ZoneOffset.of("-03:00")));
+        transaction.setDateTime(OffsetDateTime.now());
         return transaction;
     }
 
@@ -51,28 +53,28 @@ public class AccountCommandMapper {
         return new AccountResponseDTO(
                 account.getClientId().toString(),
                 account.getAccountNumber(),
-                account.getBalance(),
-                account.getLimitAmount(),
+                account.getBalance().doubleValue(),
+                account.getLimitAmount().doubleValue(),
                 account.getManagerId().toString(),
-                account.getCreationDate().toString()
+                account.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"))
         );
     }
 
     public MovementResponseDTO toMovementDTO(Account account) {
         return new MovementResponseDTO(
                 account.getAccountNumber(),
-                OffsetDateTime.now(ZoneOffset.of("-03:00")).toString(),
-                account.getBalance()
+                OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX")),
+                account.getBalance().doubleValue()
         );
     }
 
     public TransferResponseDTO toTransferDTO(Account source, Account target, BigDecimal amount) {
         return new TransferResponseDTO(
                 source.getAccountNumber(),
-                OffsetDateTime.now(ZoneOffset.of("-03:00")).toString(),
+                OffsetDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX")),
                 target.getAccountNumber(),
-                source.getBalance(),
-                amount
+                source.getBalance().doubleValue(),
+                amount.doubleValue()
         );
     }
 
@@ -90,7 +92,6 @@ public class AccountCommandMapper {
 
     public MoneyTransactionEvent toMoneyTransactionEvent(Account account, BigDecimal amount, Transaction transaction) {
         return new MoneyTransactionEvent(
-                transaction.getId(),
                 account.getAccountNumber(),
                 amount,
                 transaction.getType(),
@@ -100,11 +101,17 @@ public class AccountCommandMapper {
 
     public MoneyTransactionEvent toMoneyTransferEvent(Account source, Account target, BigDecimal amount, Transaction transaction) {
         return new MoneyTransactionEvent(
-                transaction.getId(),
                 source.getAccountNumber(),
                 target.getAccountNumber(),
                 amount,
                 transaction.getDateTime()
+        );
+    }
+
+    public RemovedManagerEvent toRemovedManagerEvent(Long oldManagerId, Long newManagerId) {
+        return new RemovedManagerEvent(
+                oldManagerId,
+                newManagerId
         );
     }
 
@@ -118,4 +125,10 @@ public class AccountCommandMapper {
     }
 
 
+    public AccountLimitChangedEvent accountToLimitChangedEvent(Account account) {
+        return new AccountLimitChangedEvent(
+                account.getAccountNumber(),
+                account.getLimitAmount()
+        );
+    }
 }

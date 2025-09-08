@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 public record AccountResponseDTO (
         String cliente,
         String numero,
-        BigDecimal saldo,
-        BigDecimal limite,
+        Double saldo,
+        Double limite,
         String gerente,
         String criacao
 ){

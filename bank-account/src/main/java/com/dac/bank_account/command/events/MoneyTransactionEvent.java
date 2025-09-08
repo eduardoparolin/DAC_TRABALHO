@@ -15,17 +15,14 @@ public class MoneyTransactionEvent {
     private String accountNumber;
     private String targetAccountNumber;
     private BigDecimal amount;
-    private Long transactionId;
     private TransactionType transactionType;
     private OffsetDateTime timestamp;
 
     // Construtor para DEPOSITO/SAQUE
-    public MoneyTransactionEvent(Long transactionId,
-                                 String accountNumber,
+    public MoneyTransactionEvent(String accountNumber,
                                  BigDecimal amount,
                                  TransactionType transactionType,
                                  OffsetDateTime timestamp) {
-        this.transactionId = transactionId;
         this.accountNumber = accountNumber;
         this.amount = amount;
         this.transactionType = transactionType;
@@ -33,12 +30,10 @@ public class MoneyTransactionEvent {
     }
 
     // Construtor para TRANSFERENCIA
-    public MoneyTransactionEvent(Long transactionId,
-                                 String accountNumber,
+    public MoneyTransactionEvent(String accountNumber,
                                  String targetAccountNumber,
                                  BigDecimal amount,
                                  OffsetDateTime timestamp) {
-        this.transactionId = transactionId;
         this.accountNumber = accountNumber;
         this.targetAccountNumber = targetAccountNumber;
         this.amount = amount;

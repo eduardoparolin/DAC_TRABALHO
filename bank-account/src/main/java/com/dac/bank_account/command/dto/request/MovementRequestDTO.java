@@ -8,6 +8,6 @@ import java.math.BigDecimal;
 public record MovementRequestDTO(
         @NotNull
         @Positive
-        BigDecimal valor
+        Double valor
 ) {
 }

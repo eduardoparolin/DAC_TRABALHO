@@ -6,9 +6,7 @@ import com.dac.bank_account.command.dto.response.AccountResponseDTO;
 import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
-import com.dac.bank_account.command.events.AccountCreatedEvent;
-import com.dac.bank_account.command.events.EventPublisher;
-import com.dac.bank_account.command.events.MoneyTransactionEvent;
+import com.dac.bank_account.command.events.*;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Service;
@@ -31,78 +29,88 @@ public class AccountCommandService {
     @Transactional("commandTransactionManager")
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Account account = accountMapper.toEntity(dto);
+
+        double limit = dto.salary().doubleValue() / 2;
+        account.setLimitAmount(BigDecimal.valueOf(limit));
+
         accountCommandRepository.save(account);
 
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
 
-        eventPublisher.publishEvent("bank.account.created", event);
+        eventPublisher.publishEvent("bank.account", event);
 
         return accountMapper.accountToDTO(account);
     }
 
     @Transactional("commandTransactionManager")
-    public MovementResponseDTO deposit(String accountNumber, BigDecimal amount) {
+    public MovementResponseDTO deposit(String accountNumber, Double amount) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
                         .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
-        account.deposit(amount);
+        account.deposit(BigDecimal.valueOf(amount));
 
-        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.DEPOSITO, amount, null);
+        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.DEPOSITO, BigDecimal.valueOf(amount), null);
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
 
-        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, BigDecimal.valueOf(amount), transaction);
 
-        eventPublisher.publishEvent("bank.account.transactions", event);
+        eventPublisher.publishEvent("bank.account", event);
 
         return accountMapper.toMovementDTO(account);
     }
 
     @Transactional("commandTransactionManager")
-    public MovementResponseDTO withdraw(String accountNumber, BigDecimal amount) {
+    public MovementResponseDTO withdraw(String accountNumber, Double amount) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
                         .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
-        account.withdraw(amount);
+        account.withdraw(BigDecimal.valueOf(amount));
 
-        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.SAQUE, amount, null);
+        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.SAQUE, BigDecimal.valueOf(amount), null);
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
 
-        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, amount, transaction);
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, BigDecimal.valueOf(amount), transaction);
 
-        eventPublisher.publishEvent("bank.account.transactions", event);
+        eventPublisher.publishEvent("bank.account", event);
 
         return accountMapper.toMovementDTO(account);
     }
 
     @Transactional("commandTransactionManager")
-    public TransferResponseDTO transfer(String sourceAccountNumber, BigDecimal amount, String targetAccountNumber) {
+    public TransferResponseDTO transfer(String sourceAccountNumber, Double amount, String targetAccountNumber) {
         Account source = accountCommandRepository.findByAccountNumber(sourceAccountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Source account not found with account number: " + sourceAccountNumber));
         Account target = accountCommandRepository.findByAccountNumber(targetAccountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Target account not found with account number: " + targetAccountNumber));
 
-        source.withdraw(amount);
-        target.deposit(amount);
+        source.withdraw(BigDecimal.valueOf(amount));
+        target.deposit(BigDecimal.valueOf(amount));
 
-        var transaction = accountMapper.toEntity(source.getAccountNumber(), TransactionType.TRANSFERENCIA, amount, target.getAccountNumber());
+        var transaction = accountMapper.toEntity(source.getAccountNumber(), TransactionType.TRANSFERENCIA, BigDecimal.valueOf(amount), target.getAccountNumber());
         source.getTransactions().add(transaction);
         accountCommandRepository.save(source);
         accountCommandRepository.save(target);
 
-        MoneyTransactionEvent event = accountMapper.toMoneyTransferEvent(source, target, amount, transaction);
+        MoneyTransactionEvent event = accountMapper.toMoneyTransferEvent(source, target, BigDecimal.valueOf(amount), transaction);
 
-        eventPublisher.publishEvent("bank.account.transactions", event);
+        eventPublisher.publishEvent("bank.account", event);
 
-        return accountMapper.toTransferDTO(source, target, amount);
+        return accountMapper.toTransferDTO(source, target, BigDecimal.valueOf(amount));
 
     }
 
     @Transactional("commandTransactionManager")
-    public AccountResponseDTO setLimit(String accountNumber, BigDecimal limite) {
+    public AccountResponseDTO setLimit(String accountNumber, Double salario) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
-        account.setLimitAmount(limite);
+        double limit = salario / 2;
+        account.setLimitAmount(BigDecimal.valueOf(limit));
         accountCommandRepository.save(account);
+
+        AccountLimitChangedEvent event = accountMapper.accountToLimitChangedEvent(account);
+
+        eventPublisher.publishEvent("bank.account", event);
+
 
         return accountMapper.accountToDTO(account);
     }
@@ -113,5 +121,8 @@ public class AccountCommandService {
         if (updated == 0) {
             throw new IllegalArgumentException("No accounts found for the given old manager ID: " + oldManagerId);
         }
+        RemovedManagerEvent event = accountMapper.toRemovedManagerEvent(oldManagerId, newManagerId);
+        eventPublisher.publishEvent("bank.account", event );
+
     }
 }

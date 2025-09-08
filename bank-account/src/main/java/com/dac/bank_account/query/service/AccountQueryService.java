@@ -1,9 +1,6 @@
 package com.dac.bank_account.query.service;
 
-import com.dac.bank_account.query.dto.AccountResponseDTO;
-import com.dac.bank_account.query.dto.StatementResponseDTO;
-import com.dac.bank_account.query.dto.BalanceResponseDTO;
-import com.dac.bank_account.query.dto.TransactionResponseDTO;
+import com.dac.bank_account.query.dto.*;
 import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;
 import com.dac.bank_account.query.repository.AccountQueryRepository;
@@ -18,10 +15,12 @@ public class AccountQueryService {
 
     private final AccountQueryRepository accountQueryRepository;
     private final TransactionQueryRepository transactionQueryRepository;
+    private final AccountQueryMapper accountQueryMapper;
 
-    public AccountQueryService(AccountQueryRepository accountQueryRepository, TransactionQueryRepository transactionQueryRepository) {
+    public AccountQueryService(AccountQueryRepository accountQueryRepository, TransactionQueryRepository transactionQueryRepository, AccountQueryMapper accountQueryMapper) {
         this.accountQueryRepository = accountQueryRepository;
         this.transactionQueryRepository = transactionQueryRepository;
+        this.accountQueryMapper = accountQueryMapper;
     }
 
     @Transactional("queryTransactionManager")
@@ -29,11 +28,7 @@ public class AccountQueryService {
         AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
 
-        return new BalanceResponseDTO(
-                account.getClientId().toString(),
-                account.getAccountNumber(),
-                account.getBalance()
-        );
+        return accountQueryMapper.toBalanceResponseDTO(account);
     }
 
     @Transactional("queryTransactionManager")
@@ -43,21 +38,7 @@ public class AccountQueryService {
 
         List<TransactionView> transactions = transactionQueryRepository.findBySourceAccountNumber(accountNumber);
 
-        List<TransactionResponseDTO> statements = transactions.stream()
-                .map(t -> new TransactionResponseDTO(
-                        t.getDateTime().toString(),
-                        t.getType().toString(),
-                        t.getSourceAccountNumber(),
-                        t.getTargetAccountNumber(),
-                        t.getAmount()
-                ))
-                .toList();
-
-        return new StatementResponseDTO(
-                account.getAccountNumber(),
-                account.getBalance(),
-                statements
-        );
+        return  accountQueryMapper.toStatementResponseDTO(account, transactions);
     }
 
     @Transactional("queryTransactionManager")
@@ -65,13 +46,12 @@ public class AccountQueryService {
         AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
 
-        return new AccountResponseDTO(
-                account.getClientId().toString(),
-                account.getAccountNumber(),
-                account.getBalance(),
-                account.getLimitAmount(),
-                account.getManagerId().toString(),
-                account.getCreationDate().toString()
-        );
+        return accountQueryMapper.toAccountResponseDTO(account);
+    }
+
+    @Transactional("queryTransactionManager")
+    public ManagerAccountsResponseDTO getManagerAccounts(String managerId) {
+        List<AccountView> accounts = accountQueryRepository.findByManagerId(Long.valueOf(managerId));
+        return accountQueryMapper.toManagerAccountsResponseDTO(managerId, accounts);
     }
 }

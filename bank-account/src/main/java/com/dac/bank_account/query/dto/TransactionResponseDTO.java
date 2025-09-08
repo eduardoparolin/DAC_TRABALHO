@@ -7,6 +7,6 @@ public record TransactionResponseDTO(
         String tipo,
         String origem,
         String destino,
-        BigDecimal valor
+        Double valor
 ) {
 }

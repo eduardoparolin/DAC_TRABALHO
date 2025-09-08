@@ -11,6 +11,6 @@ public record TransferRequestDTO(
         String destino,
         @NotNull
         @Positive
-        BigDecimal valor
+        Double valor
 ) {
 }

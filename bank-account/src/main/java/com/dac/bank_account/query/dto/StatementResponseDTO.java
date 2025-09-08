@@ -5,6 +5,6 @@ import java.util.List;
 
 public record StatementResponseDTO(
         String conta,
-        BigDecimal saldo,
+        Double saldo,
         List<TransactionResponseDTO> movimentacoes
 ) {}
