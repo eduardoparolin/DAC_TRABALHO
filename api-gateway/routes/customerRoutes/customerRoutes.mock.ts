@@ -1,0 +1,40 @@
+export const customersMock = [
+  {
+    cpf: "12912861012",
+    nome: "Catharyna",
+    email: "cli1@bantads.com.br",
+    endereco: "Rua X, nr 10",
+    cidade: "Curitiba",
+    estado: "PR",
+  },
+  {
+    cpf: "92837465021",
+    nome: "João Silva",
+    email: "cli2@bantads.com.br",
+    endereco: "Rua Y, nr 45",
+    cidade: "São Paulo",
+    estado: "SP",
+  },
+  {
+    cpf: "56781234098",
+    nome: "Maria Oliveira",
+    email: "cli3@bantads.com.br",
+    endereco: "Av. Brasil, nr 100",
+    cidade: "Rio de Janeiro",
+    estado: "RJ",
+  },
+  {
+    cpf: "34567890123",
+    nome: "Pedro Santos",
+    email: "cli4@bantads.com.br",
+    endereco: "Rua das Flores, nr 12",
+    cidade: "Belo Horizonte",
+    estado: "MG",
+  },
+  {
+    cpf: "78901234567",
+    nome: "Ana Costa",
+    email: "cli5@bantads.com.br",
+    endereco: "Rua Central, nr 200",
+  },
+];
