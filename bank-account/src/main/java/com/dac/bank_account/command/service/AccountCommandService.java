@@ -99,6 +99,8 @@ public class AccountCommandService {
 
         var transaction = accountMapper.toEntity(source.getAccountNumber(), TransactionType.TRANSFERENCIA, BigDecimal.valueOf(amount), target.getAccountNumber());
         source.getTransactions().add(transaction);
+        target.getTransactions().add(transaction);
+
         accountCommandRepository.save(source);
         accountCommandRepository.save(target);
 

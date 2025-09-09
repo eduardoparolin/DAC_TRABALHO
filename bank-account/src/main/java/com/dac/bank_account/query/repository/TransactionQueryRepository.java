@@ -7,5 +7,6 @@ import java.util.List;
 
 
 public interface TransactionQueryRepository extends JpaRepository<TransactionView, Long> {
-    List<TransactionView> findBySourceAccountNumber(String sourceAccountNumber);
+    List<TransactionView> findBySourceAccountNumberOrTargetAccountNumber(String sourceAccountNumber, String targetAccountNumber);
+
 }

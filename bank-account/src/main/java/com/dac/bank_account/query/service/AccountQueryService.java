@@ -39,7 +39,8 @@ public class AccountQueryService {
         AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
 
-        List<TransactionView> transactions = transactionQueryRepository.findBySourceAccountNumber(accountNumber);
+        List<TransactionView> transactions = transactionQueryRepository
+                .findBySourceAccountNumberOrTargetAccountNumber(accountNumber, accountNumber);
 
         return  accountQueryMapper.toStatementResponseDTO(account, transactions);
     }
