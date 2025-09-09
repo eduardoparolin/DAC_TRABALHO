@@ -8,6 +8,8 @@ import com.dac.bank_account.query.service.AccountQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/query/contas")
 public class AccountQueryController {
@@ -39,6 +41,12 @@ public class AccountQueryController {
     @GetMapping("/{idGerente}/gerente")
     public ResponseEntity<ManagerAccountsResponseDTO> getManagerAccounts(@PathVariable String idGerente){
         ManagerAccountsResponseDTO dto = accountQueryService.getManagerAccounts(idGerente);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{idGerente}/gerente/top3")
+    public ResponseEntity<List<AccountResponseDTO>> getTop3Accounts(@PathVariable String idGerente){
+        List<AccountResponseDTO> dto = accountQueryService.getTop3Accounts(idGerente);
         return ResponseEntity.ok(dto);
     }
 }

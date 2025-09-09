@@ -7,6 +7,7 @@ import com.dac.bank_account.query.repository.AccountQueryRepository;
 import com.dac.bank_account.query.repository.TransactionQueryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -17,7 +18,9 @@ public class AccountQueryService {
     private final TransactionQueryRepository transactionQueryRepository;
     private final AccountQueryMapper accountQueryMapper;
 
-    public AccountQueryService(AccountQueryRepository accountQueryRepository, TransactionQueryRepository transactionQueryRepository, AccountQueryMapper accountQueryMapper) {
+    public AccountQueryService(AccountQueryRepository accountQueryRepository,
+                               TransactionQueryRepository transactionQueryRepository,
+                               AccountQueryMapper accountQueryMapper) {
         this.accountQueryRepository = accountQueryRepository;
         this.transactionQueryRepository = transactionQueryRepository;
         this.accountQueryMapper = accountQueryMapper;
@@ -53,5 +56,11 @@ public class AccountQueryService {
     public ManagerAccountsResponseDTO getManagerAccounts(String managerId) {
         List<AccountView> accounts = accountQueryRepository.findByManagerId(Long.valueOf(managerId));
         return accountQueryMapper.toManagerAccountsResponseDTO(managerId, accounts);
+    }
+
+    @Transactional("queryTransactionManager")
+    public List<AccountResponseDTO> getTop3Accounts(String managerId) {
+        List<AccountView> accounts = accountQueryRepository.findTop3ByManagerIdOrderByBalanceDesc(Long.valueOf(managerId));
+        return accountQueryMapper.toAccountResponseDTOList(accounts);
     }
 }

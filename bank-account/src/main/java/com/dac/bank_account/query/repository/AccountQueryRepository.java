@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface AccountQueryRepository extends JpaRepository<AccountView, Long> {
     Optional<AccountView> findByAccountNumber(String accountNumber);
     List<AccountView> findByManagerId(Long managerId);
+    List<AccountView> findTop3ByManagerIdOrderByBalanceDesc(Long managerId);
 }
