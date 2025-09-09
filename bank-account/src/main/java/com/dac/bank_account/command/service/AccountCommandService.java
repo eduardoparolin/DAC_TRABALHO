@@ -9,6 +9,8 @@ import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.events.*;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
+import com.dac.bank_account.exception.InsufficientFundsException;
+import com.dac.bank_account.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +32,7 @@ public class AccountCommandService {
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Account account = accountMapper.toEntity(dto);
 
-        double limit = dto.salary().doubleValue() / 2;
+        double limit = dto.salary() / 2;
         account.setLimitAmount(BigDecimal.valueOf(limit));
 
         accountCommandRepository.save(account);
@@ -45,7 +47,7 @@ public class AccountCommandService {
     @Transactional("commandTransactionManager")
     public MovementResponseDTO deposit(String accountNumber, Double amount) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
-                        .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
+                        .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
         account.deposit(BigDecimal.valueOf(amount));
 
         var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.DEPOSITO, BigDecimal.valueOf(amount), null);
@@ -62,7 +64,12 @@ public class AccountCommandService {
     @Transactional("commandTransactionManager")
     public MovementResponseDTO withdraw(String accountNumber, Double amount) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
-                        .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
+                        .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+
+        if(amount > account.getBalance().doubleValue() + account.getLimitAmount().doubleValue()) {
+            throw new InsufficientFundsException("Insufficient funds for withdrawal in account number: " + accountNumber);
+        }
+
         account.withdraw(BigDecimal.valueOf(amount));
 
         var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.SAQUE, BigDecimal.valueOf(amount), null);
@@ -79,9 +86,13 @@ public class AccountCommandService {
     @Transactional("commandTransactionManager")
     public TransferResponseDTO transfer(String sourceAccountNumber, Double amount, String targetAccountNumber) {
         Account source = accountCommandRepository.findByAccountNumber(sourceAccountNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Source account not found with account number: " + sourceAccountNumber));
+                .orElseThrow(() -> new ResourceNotFoundException("Source account not found with account number: " + sourceAccountNumber));
         Account target = accountCommandRepository.findByAccountNumber(targetAccountNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Target account not found with account number: " + targetAccountNumber));
+                .orElseThrow(() -> new ResourceNotFoundException("Target account not found with account number: " + targetAccountNumber));
+
+        if(amount > source.getBalance().doubleValue() + source.getLimitAmount().doubleValue()) {
+            throw new InsufficientFundsException("Insufficient funds for transfer in account number: " + sourceAccountNumber);
+        }
 
         source.withdraw(BigDecimal.valueOf(amount));
         target.deposit(BigDecimal.valueOf(amount));
@@ -100,10 +111,10 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public AccountResponseDTO setLimit(String accountNumber, Double salario) {
+    public AccountResponseDTO setLimit(String accountNumber, Double salary) {
         Account account = accountCommandRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found with account number: " + accountNumber));
-        double limit = salario / 2;
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+        double limit = salary / 2;
         account.setLimitAmount(BigDecimal.valueOf(limit));
         accountCommandRepository.save(account);
 
@@ -119,7 +130,7 @@ public class AccountCommandService {
     public void reassignManager(Long oldManagerId, Long newManagerId) {
         int updated = accountCommandRepository.updateManagerForAccounts(oldManagerId, newManagerId);
         if (updated == 0) {
-            throw new IllegalArgumentException("No accounts found for the given old manager ID: " + oldManagerId);
+            throw new ResourceNotFoundException("No accounts found for the given old manager ID: " + oldManagerId);
         }
         RemovedManagerEvent event = accountMapper.toRemovedManagerEvent(oldManagerId, newManagerId);
         eventPublisher.publishEvent("bank.account", event );
