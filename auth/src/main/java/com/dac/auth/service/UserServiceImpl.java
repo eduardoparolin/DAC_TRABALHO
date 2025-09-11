@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(dto.getPassword());
         }
 
-        if(validField(dto.getRole().toString())) {
+        if(Objects.nonNull(dto.getRole()) && validField(dto.getRole().toString())) {
           user.setRole(dto.getRole());
         }
 
