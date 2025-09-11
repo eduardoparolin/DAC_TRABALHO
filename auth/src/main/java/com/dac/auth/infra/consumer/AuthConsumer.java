@@ -22,8 +22,9 @@ public class AuthConsumer {
         try {
             MessageHandler<AuthPayload> strategyHandler = handlerFactory.getStrategy(payload.getAction());
             strategyHandler.handle(payload);
+            producer.sendSuccessResult(payload.getAction());
         } catch (ApiException ex) {
-            producer.sendResult(payload, "FAIL", ex.getMessage());
+            producer.sendFailResult(payload.getAction(), ex.getMessage());
         }
 
     }
