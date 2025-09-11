@@ -74,4 +74,11 @@ public class AccountQueryService {
 
         return accountQueryMapper.toAccountResponseDTOList(accounts);
     }
+
+    public AccountResponseDTO getClientAccount(String clientId) {
+        AccountView account = accountQueryRepository.findByClientId(Long.valueOf(clientId))
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found for client with ID: " + clientId));
+
+        return accountQueryMapper.toAccountResponseDTO(account);
+    }
 }

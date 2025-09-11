@@ -49,4 +49,10 @@ public class AccountQueryController {
         List<AccountResponseDTO> dto = accountQueryService.getTop3Accounts(idGerente);
         return ResponseEntity.ok(dto);
     }
+
+    @GetMapping("cliente/{idCliente}")
+    public ResponseEntity<AccountResponseDTO> getClientAccount(@PathVariable String idCliente){
+        AccountResponseDTO dto = accountQueryService.getClientAccount(idCliente);
+        return ResponseEntity.ok(dto);
+    }
 }
