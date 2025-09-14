@@ -3,11 +3,11 @@ import { config } from "dotenv";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { accountRoutes } from "./routes/accountRoutes";
-import { managerRoutes } from "./routes/managerRoutes";
 import { authMiddleware } from "./middleware/auth";
 import { authRoutes } from "./routes/authRoutes/authRoutes";
 import { customerRoutes } from "./routes/customerRoutes/customerRoutes";
+import { accountRoutes } from "./routes/accountsRoutes/accountRoutes";
+import { managerRoutes } from "./routes/managerRoutes/managerRoutes";
 
 config();
 
