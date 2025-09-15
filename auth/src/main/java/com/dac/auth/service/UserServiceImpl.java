@@ -11,6 +11,7 @@ import com.dac.auth.infra.repository.UserRepository;
 import com.dac.auth.service.interfaces.AuthenticationFacade;
 import com.dac.auth.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
@@ -26,7 +28,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO save(UserCreateDTO dto) {
-        User existingUser = findByEmail(dto.getEmail());
+        log.info("Criando usuario");
+        User existingUser = repository.findById(dto.getId()).orElse(null);
+        if(Objects.nonNull(existingUser)) {
+            throw new ApiException("Usuario com ID já existente.", HttpStatus.BAD_REQUEST);
+        }
+
+        existingUser = repository.findByEmail(dto.getEmail()).orElse(null);
         if(Objects.nonNull(existingUser)) {
             throw new ApiException("Email em uso.", HttpStatus.BAD_REQUEST);
         }
@@ -38,21 +46,25 @@ public class UserServiceImpl implements UserService {
                 dto.getRole()
         );
 
+        log.info("Usuario criado com sucesso");
         return UserDTO.fromEntity(repository.save(createUser));
     }
 
     @Override
     public User findById(String id) {
-        return repository.findById(id).orElse(null);
+        log.info("Buscando usuario com ID {}", id);
+        return repository.findById(id).orElseThrow(() -> new ApiException("Usuario com id "+id+" não encontrado", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public User findByEmail(String email) {
-        return repository.findByEmail(email).orElse(null);
+        log.info("Buscando usuario com Email {}", email);
+        return repository.findByEmail(email).orElseThrow(() -> new ApiException("Usuario com email "+email+" não encontrado", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public UserDTO update(UserUpdateDTO dto, String id, String requesterId) {
+        log.info("Atualizando usuario");
         User existingUser = findById(id);
 
         if(Objects.isNull(existingUser)) {
@@ -67,21 +79,19 @@ public class UserServiceImpl implements UserService {
 
         User updateUser = updateValidFields(existingUser, dto);
 
+        log.info("Usuario atualizado com sucesso");
         return UserDTO.fromEntity(repository.save(updateUser));
     }
 
     @Override
-    public void delete(String id) {
-        getById(id);
-        repository.deleteById(id);
-    }
-
-    private User getById(String id) {
-        Optional<User> user = repository.findById(id);
-        if(user.isEmpty()) {
-            throw new ApiException("Usuario não encontrado.", HttpStatus.BAD_REQUEST);
+    public void delete(String id, String requesterId) {
+        log.info("Excluindo usuario");
+        if(requesterId.equals(id)) {
+            throw new ApiException("Usuário não pode deletar a si mesmo", HttpStatus.BAD_REQUEST);
         }
-        return user.get();
+        findById(id);
+        repository.deleteById(id);
+        log.info("Usuario deletado com sucesso");
     }
 
     private User updateValidFields(User user, UserUpdateDTO dto) {
@@ -89,7 +99,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(dto.getPassword());
         }
 
-        if(validField(dto.getRole().toString())) {
+        if(Objects.nonNull(dto.getRole()) && validField(dto.getRole().toString())) {
           user.setRole(dto.getRole());
         }
 

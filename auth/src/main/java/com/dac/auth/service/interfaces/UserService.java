@@ -10,5 +10,5 @@ public interface UserService {
     User findById(String id);
     User findByEmail(String email);
     UserDTO update(UserUpdateDTO user, String id, String requesterId);
-    void delete(String id);
+    void delete(String id, String requesterId);
 }
