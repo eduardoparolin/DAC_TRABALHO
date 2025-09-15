@@ -40,4 +40,58 @@ public class ManagerController {
         managerService.deleteByCpf(cpf);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+    @GetMapping("/{cpf}")
+    public ResponseEntity<Manager> getManagerByCpf(@PathVariable String cpf) {
+        return managerService.findByCpf(cpf)
+                .map(manager -> new ResponseEntity<>(manager, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Manager>> getAllManagers() {
+        List<Manager> managers = managerService.findAll();
+        return new ResponseEntity<>(managers, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{cpf}")
+    public ResponseEntity<Void> deleteManager(@PathVariable String cpf) {
+        managerService.deleteByCpf(cpf);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @GetMapping("/{cpf}")
+    public ResponseEntity<Manager> getManagerByCpf(@PathVariable String cpf) {
+        return managerService.findByCpf(cpf)
+                .map(manager -> new ResponseEntity<>(manager, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Manager>> getAllManagers() {
+        List<Manager> managers = managerService.findAll();
+        return new ResponseEntity<>(managers, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{cpf}")
+    public ResponseEntity<Void> deleteManager(@PathVariable String cpf) {
+        managerService.deleteByCpf(cpf);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    @GetMapping("/{cpf}")
+    public ResponseEntity<Manager> getManagerByCpf(@PathVariable String cpf) {
+        return managerService.findByCpf(cpf)
+                .map(manager -> new ResponseEntity<>(manager, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Manager>> getAllManagers() {
+        List<Manager> managers = managerService.findAll();
+        return new ResponseEntity<>(managers, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{cpf}")
+    public ResponseEntity<Void> deleteManager(@PathVariable String cpf) {
+        managerService.deleteByCpf(cpf);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
