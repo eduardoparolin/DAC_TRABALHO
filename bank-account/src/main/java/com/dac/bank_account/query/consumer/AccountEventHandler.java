@@ -61,39 +61,48 @@ public class AccountEventHandler {
     public void handleAccountLimitChangedEvent(AccountLimitChangedEvent event) {
         System.out.println("Recebido evento do RabbitMQ: " + event);
         AccountView account = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Account not found with number: " + event.getAccountNumber()));
+                .orElse(null);
 
-        account.setLimitAmount(event.getNewLimit());
-        accountQueryRepository.save(account);
+        if(account != null) {
+            account.setLimitAmount(event.getNewLimit());
+            accountQueryRepository.save(account);
+        }
     }
 
     private void handleDeposit(MoneyTransactionEvent event) {
         AccountView account = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Account not found with number: " + event.getAccountNumber()));
+                .orElse(null);
 
-        account.setBalance(account.getBalance().add(event.getAmount()));
-        accountQueryRepository.save(account);
+        if(account != null) {
+            account.setBalance(account.getBalance().add(event.getAmount()));
+            accountQueryRepository.save(account);
+        }
     }
 
     private void handleWithdraw(MoneyTransactionEvent event) {
         AccountView account = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Account not found with number: " + event.getAccountNumber()));
+                .orElse(null);
 
-        account.setBalance(account.getBalance().subtract(event.getAmount()));
-        accountQueryRepository.save(account);
+        if(account != null) {
+            account.setBalance(account.getBalance().subtract(event.getAmount()));
+            accountQueryRepository.save(account);
+        }
     }
 
     private void handleTransfer(MoneyTransactionEvent event) {
         AccountView source = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Source account not found with number: " + event.getAccountNumber()));
+                .orElse(null);
         AccountView target = accountQueryRepository.findByAccountNumber(event.getTargetAccountNumber())
-                .orElseThrow(() -> new RuntimeException("Target account not found with number: " + event.getTargetAccountNumber()));
+                .orElse(null);
 
-        source.setBalance(source.getBalance().subtract(event.getAmount()));
-        target.setBalance(target.getBalance().add(event.getAmount()));
+        if(source != null && target != null) {
+            source.setBalance(source.getBalance().subtract(event.getAmount()));
+            target.setBalance(target.getBalance().add(event.getAmount()));
 
-        accountQueryRepository.save(source);
-        accountQueryRepository.save(target);
+            accountQueryRepository.save(source);
+            accountQueryRepository.save(target);
+        }
+
     }
 
     private void saveTransaction(MoneyTransactionEvent event) {
