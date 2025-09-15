@@ -40,6 +40,17 @@ public class ClientController {
         return service.getById(id);
     }
 
+    @GetMapping("/search")
+    public com.bank.client.dto.PageResponse<ClientResponse> search(
+            @RequestParam(required = false) String cpf,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String nome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "nome,asc") String sort) {
+        return service.search(cpf, email, nome, page, size, sort);
+    }
+
     @PutMapping("/{id}")
     public ClientResponse update(@PathVariable Long id, @Valid @RequestBody ClientRequest req) {
         return service.update(id, req);
