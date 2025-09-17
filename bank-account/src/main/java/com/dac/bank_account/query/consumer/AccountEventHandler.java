@@ -1,9 +1,6 @@
 package com.dac.bank_account.query.consumer;
 
-import com.dac.bank_account.command.events.AccountCreatedEvent;
-import com.dac.bank_account.command.events.AccountLimitChangedEvent;
-import com.dac.bank_account.command.events.MoneyTransactionEvent;
-import com.dac.bank_account.command.events.RemovedManagerEvent;
+import com.dac.bank_account.command.events.*;
 import com.dac.bank_account.query.dto.AccountQueryMapper;
 import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;
@@ -65,6 +62,16 @@ public class AccountEventHandler {
 
         if(account != null) {
             account.setLimitAmount(event.getNewLimit());
+            accountQueryRepository.save(account);
+        }
+    }
+
+    @RabbitHandler
+    public void handleAssignedNewManagerEvent(AssignedNewManager event) {
+        AccountView account = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
+                .orElse(null);
+        if(account != null) {
+            account.setManagerId(event.getNewManagerId());
             accountQueryRepository.save(account);
         }
     }

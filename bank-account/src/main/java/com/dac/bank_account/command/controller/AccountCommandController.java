@@ -57,4 +57,11 @@ public class AccountCommandController {
         accountCommandService.reassignManager(gerenteOrigem, gerenteDestino);
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/redistribuir/{novoGerente}")
+    public ResponseEntity<AccountResponseDTO> assignToNewManager(@PathVariable Long novoGerente) {
+        return accountCommandService.assignAccountToNewManager(novoGerente)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
+    }
 }

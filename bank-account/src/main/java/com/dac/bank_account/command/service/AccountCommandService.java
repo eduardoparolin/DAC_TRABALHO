@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Service
 public class AccountCommandService {
@@ -137,5 +138,31 @@ public class AccountCommandService {
         RemovedManagerEvent event = accountMapper.toRemovedManagerEvent(oldManagerId, newManagerId);
         eventPublisher.publishEvent("bank.account", event );
 
+    }
+
+    @Transactional("commandTransactionManager")
+    public Optional<AccountResponseDTO> assignAccountToNewManager(Long newManagerId) {
+        Optional<Account> optionalAccount = accountCommandRepository.findAccountWithLowestPositiveBalanceFromTopManagers();
+
+        if (optionalAccount.isEmpty()) {
+            return  Optional.empty();
+        }
+
+        Account chosen = optionalAccount.get();
+        Long previousManagerId = chosen.getManagerId();
+
+        long countAccounts = accountCommandRepository.countByManagerId(previousManagerId);
+        if (countAccounts == 1) {
+            return Optional.empty();
+        }
+
+        chosen.setManagerId(newManagerId);
+        accountCommandRepository.save(chosen);
+
+        AssignedNewManager event = accountMapper.toAssignedNewManager(chosen.getAccountNumber(), newManagerId);
+
+        eventPublisher.publishEvent("bank.account", event);
+
+        return Optional.of(accountMapper.accountToDTO(chosen));
     }
 }

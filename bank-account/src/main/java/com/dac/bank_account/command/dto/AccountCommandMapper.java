@@ -6,10 +6,7 @@ import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.entity.Transaction;
-import com.dac.bank_account.command.events.AccountCreatedEvent;
-import com.dac.bank_account.command.events.AccountLimitChangedEvent;
-import com.dac.bank_account.command.events.MoneyTransactionEvent;
-import com.dac.bank_account.command.events.RemovedManagerEvent;
+import com.dac.bank_account.command.events.*;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Component;
@@ -129,6 +126,13 @@ public class AccountCommandMapper {
         return new AccountLimitChangedEvent(
                 account.getAccountNumber(),
                 account.getLimitAmount()
+        );
+    }
+
+    public AssignedNewManager toAssignedNewManager(String accountNumber, Long newManagerId) {
+        return new AssignedNewManager(
+                accountNumber,
+                newManagerId
         );
     }
 }
