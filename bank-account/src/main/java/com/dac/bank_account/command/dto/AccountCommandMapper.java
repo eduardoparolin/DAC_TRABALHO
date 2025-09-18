@@ -1,40 +1,19 @@
 package com.dac.bank_account.command.dto;
 
-import com.dac.bank_account.command.dto.request.AccountRequestDTO;
-import com.dac.bank_account.command.dto.response.AccountResponseDTO;
 import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.entity.Transaction;
-import com.dac.bank_account.command.events.*;
+import com.dac.bank_account.command.events.cqrs.*;
 import com.dac.bank_account.enums.TransactionType;
-import com.dac.bank_account.command.repository.AccountCommandRepository;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Random;
 
 @Component
 public class AccountCommandMapper {
-
-    private final AccountCommandRepository accountRepository;
-
-    public AccountCommandMapper(AccountCommandRepository accountRepository) {
-        this.accountRepository = accountRepository;
-    }
-
-    public Account toEntity(AccountRequestDTO dto) {
-        Account account = new Account();
-        account.setClientId(dto.clientId());
-        account.setAccountNumber(generateAccountNumber());
-        account.setBalance(BigDecimal.ZERO);
-        account.setLimitAmount(BigDecimal.valueOf(dto.salary()));
-        account.setManagerId(dto.managerId());
-        account.setCreationDate(OffsetDateTime.now());
-        return account;
-    }
 
     public Transaction toEntity(String sourceAccount, TransactionType type, BigDecimal amount, String targetAccount) {
         Transaction transaction = new Transaction();
@@ -44,17 +23,6 @@ public class AccountCommandMapper {
         transaction.setAmount(amount);
         transaction.setDateTime(OffsetDateTime.now());
         return transaction;
-    }
-
-    public AccountResponseDTO accountToDTO(Account account) {
-        return new AccountResponseDTO(
-                account.getClientId().toString(),
-                account.getAccountNumber(),
-                account.getBalance().doubleValue(),
-                account.getLimitAmount().doubleValue(),
-                account.getManagerId().toString(),
-                account.getCreationDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"))
-        );
     }
 
     public MovementResponseDTO toMovementDTO(Account account) {
@@ -111,16 +79,6 @@ public class AccountCommandMapper {
                 newManagerId
         );
     }
-
-    public String generateAccountNumber() {
-        Random random = new Random();
-        String number;
-        do {
-            number = String.valueOf(1000 + random.nextInt(9000));
-        } while (accountRepository.existsByAccountNumber(number));
-        return number;
-    }
-
 
     public AccountLimitChangedEvent accountToLimitChangedEvent(Account account) {
         return new AccountLimitChangedEvent(

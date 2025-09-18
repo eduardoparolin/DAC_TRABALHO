@@ -5,11 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AccountCommandRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByAccountNumber(String accountNumber);
     boolean existsByAccountNumber(String accountNumber);
+    Optional<Account> findByClientId(Long ClientId);
 
     @Modifying
     @Query("UPDATE Account a SET a.managerId = :newManagerId WHERE a.managerId = :oldManagerId")
@@ -38,4 +40,27 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
     LIMIT 1
     """, nativeQuery = true)
     Optional<Account> findAccountWithLowestPositiveBalanceFromTopManagers();
+
+    @Query(value = """
+    SELECT 
+    	managerid
+    FROM
+    	account
+    GROUP BY 
+    	managerid
+    HAVING
+    	count(account) = (
+    	SELECT
+    		min(cnt)
+    	FROM
+    		(
+    		SELECT 
+    			count(*) AS cnt
+    		FROM
+    			account
+    		GROUP BY
+    			managerid ))
+    limit 1
+""", nativeQuery = true)
+    long findManagerIdWithMinAccounts();
 }

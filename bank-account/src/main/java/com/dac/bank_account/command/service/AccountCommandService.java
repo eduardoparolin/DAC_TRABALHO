@@ -1,12 +1,11 @@
 package com.dac.bank_account.command.service;
 
 import com.dac.bank_account.command.dto.*;
-import com.dac.bank_account.command.dto.request.AccountRequestDTO;
-import com.dac.bank_account.command.dto.response.AccountResponseDTO;
 import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.events.*;
+import com.dac.bank_account.command.events.cqrs.*;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import com.dac.bank_account.exception.InsufficientFundsException;
@@ -15,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class AccountCommandService {
@@ -30,19 +31,26 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public AccountResponseDTO createAccount(AccountRequestDTO dto) {
-        Account account = accountMapper.toEntity(dto);
+    public Account createAccount(Long clientId, Double salary, Long managerId) {
+        Account account = new Account();
+        account.setClientId(clientId);
+        account.setAccountNumber(generateAccountNumber());
+        account.setBalance(BigDecimal.ZERO);
+        account.setManagerId(managerId);
+        account.setCreationDate(OffsetDateTime.now());
 
-        double limit = dto.salary() / 2;
-        account.setLimitAmount(BigDecimal.valueOf(limit));
+        if(salary >= 2000){
+            account.setLimitAmount(BigDecimal.valueOf(salary / 2));
+        }else{
+            account.setLimitAmount(BigDecimal.ZERO);
+        }
 
         accountCommandRepository.save(account);
 
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
-
         eventPublisher.publishEvent("bank.account", event);
 
-        return accountMapper.accountToDTO(account);
+        return account;
     }
 
     @Transactional("commandTransactionManager")
@@ -114,23 +122,27 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public AccountResponseDTO setLimit(String accountNumber, Double salary) {
-        Account account = accountCommandRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
-        double limit = salary / 2;
-        account.setLimitAmount(BigDecimal.valueOf(limit));
+    public Account setLimit(Long clientId, Double salary) {
+        Account account = accountCommandRepository.findByClientId(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
+
+        if(salary != null && salary >= 2000){
+            account.setLimitAmount(BigDecimal.valueOf(salary / 2));
+        }else{
+            account.setLimitAmount(BigDecimal.ZERO);
+        }
         accountCommandRepository.save(account);
 
         AccountLimitChangedEvent event = accountMapper.accountToLimitChangedEvent(account);
-
         eventPublisher.publishEvent("bank.account", event);
 
 
-        return accountMapper.accountToDTO(account);
+        return account;
     }
 
     @Transactional("commandTransactionManager")
-    public void reassignManager(Long oldManagerId, Long newManagerId) {
+    public void reassignManager(Long oldManagerId) {
+        Long newManagerId = accountCommandRepository.findManagerIdWithMinAccounts();
         int updated = accountCommandRepository.updateManagerForAccounts(oldManagerId, newManagerId);
         if (updated == 0) {
             throw new ResourceNotFoundException("No accounts found for the given old manager ID: " + oldManagerId);
@@ -141,7 +153,7 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public Optional<AccountResponseDTO> assignAccountToNewManager(Long newManagerId) {
+    public Optional<Account> assignAccountToNewManager(Long newManagerId) {
         Optional<Account> optionalAccount = accountCommandRepository.findAccountWithLowestPositiveBalanceFromTopManagers();
 
         if (optionalAccount.isEmpty()) {
@@ -160,9 +172,18 @@ public class AccountCommandService {
         accountCommandRepository.save(chosen);
 
         AssignedNewManager event = accountMapper.toAssignedNewManager(chosen.getAccountNumber(), newManagerId);
-
         eventPublisher.publishEvent("bank.account", event);
 
-        return Optional.of(accountMapper.accountToDTO(chosen));
+        return Optional.of(chosen);
     }
+
+    public String generateAccountNumber() {
+        Random random = new Random();
+        String number;
+        do {
+            number = String.valueOf(1000 + random.nextInt(9000));
+        } while (accountCommandRepository.existsByAccountNumber(number));
+        return number;
+    }
+
 }

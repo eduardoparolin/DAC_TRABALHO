@@ -1,6 +1,6 @@
 package com.dac.bank_account.query.consumer;
 
-import com.dac.bank_account.command.events.*;
+import com.dac.bank_account.command.events.cqrs.*;
 import com.dac.bank_account.query.dto.AccountQueryMapper;
 import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;

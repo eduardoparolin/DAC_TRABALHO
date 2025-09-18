@@ -1,7 +1,7 @@
 package com.dac.bank_account.query.dto;
 
-import com.dac.bank_account.command.events.AccountCreatedEvent;
-import com.dac.bank_account.command.events.MoneyTransactionEvent;
+import com.dac.bank_account.command.events.cqrs.AccountCreatedEvent;
+import com.dac.bank_account.command.events.cqrs.MoneyTransactionEvent;
 import com.dac.bank_account.query.entity.AccountView;
 import com.dac.bank_account.query.entity.TransactionView;
 import org.springframework.stereotype.Component;

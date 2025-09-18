@@ -1,4 +1,4 @@
-package com.dac.bank_account.command.events;
+package com.dac.bank_account.command.events.cqrs;
 
 import com.dac.bank_account.enums.TransactionType;
 import lombok.AllArgsConstructor;
