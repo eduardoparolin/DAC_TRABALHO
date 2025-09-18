@@ -36,7 +36,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout() {
-        return;
+    public void logout(String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        tokenService.invalidateToken(token);
     }
 }

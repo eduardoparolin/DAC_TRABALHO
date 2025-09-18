@@ -5,10 +5,7 @@ import com.dac.auth.dto.auth.AuthResponseDTO;
 import com.dac.auth.service.interfaces.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -24,9 +21,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
-        service.logout();
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        service.logout(authorizationHeader);
+        return ResponseEntity.ok().build();
     }
 
 }
