@@ -75,7 +75,7 @@ public class AccountSagaHandler {
     @RabbitListener(queues = "delete.manager.saga")
     public void handleDeleteManagerSaga(ReassignManagerSagaEvent event) {
         try {
-            accountCommandService.reassignManager(event.getOldManagerId());
+            accountCommandService.reassignManager(event.getOldManagerId(), event.getNewManagerId());
             rabbitTemplate.convertAndSend(
                     "saga.exchange",
                     "delete.manager.saga.success",
@@ -91,19 +91,11 @@ public class AccountSagaHandler {
     @RabbitListener(queues = "new.manager.saga")
     public void handleNewManagerSaga(AssignNewManagerSagaEvent event) {
         try {
-            Optional<Account> updatedAccount = accountCommandService.assignAccountToNewManager(event.getNewManagerId());
-
-            if(updatedAccount.isPresent()) {
-                rabbitTemplate.convertAndSend(
-                        "saga.exchange",
-                        "new.manager.saga.success",
-                        new AccountAssignedToNewManagerSagaEvent(updatedAccount.get().getAccountNumber(), updatedAccount.get().getManagerId()));
-            }else{
-                rabbitTemplate.convertAndSend(
-                        "saga.exchange",
-                        "new.manager.saga.no_content",
-                        new AccountAssignmentFailedSagaEvent(event.getNewManagerId(), "No account eligible for reassignment"));
-            }
+            Account account = accountCommandService.assignAccountToNewManager(event.getOldManagerId(), event.getNewManagerId());
+            rabbitTemplate.convertAndSend(
+                    "saga.exchange",
+                    "new.manager.saga.success",
+                    new AccountAssignedToNewManagerSagaEvent(account.getAccountNumber(), account.getManagerId()));
 
         } catch (Exception e) {
             rabbitTemplate.convertAndSend(

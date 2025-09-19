@@ -7,4 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class ReassignManagerSagaEvent {
     private Long oldManagerId;
+    private Long newManagerId;
 }

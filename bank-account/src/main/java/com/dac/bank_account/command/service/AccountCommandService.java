@@ -56,7 +56,7 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public Account updateAccountStatus(Long clientId, boolean approved) {
+    public Account updateAccountStatus(Long clientId, Boolean approved) {
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
@@ -161,8 +161,7 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void reassignManager(Long oldManagerId) {
-        Long newManagerId = accountCommandRepository.findManagerIdWithMinAccounts();
+    public void reassignManager(Long oldManagerId, Long newManagerId) {
         int updated = accountCommandRepository.updateManagerForAccounts(oldManagerId, newManagerId);
         if (updated == 0) {
             throw new ResourceNotFoundException("No accounts found for the given old manager ID: " + oldManagerId);
@@ -173,28 +172,19 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public Optional<Account> assignAccountToNewManager(Long newManagerId) {
-        Optional<Account> optionalAccount = accountCommandRepository.findAccountWithLowestPositiveBalanceFromTopManagers();
+    public Account assignAccountToNewManager(Long oldManagerId, Long newManagerId) {
+        Account account = accountCommandRepository.
+                findFirstByManagerIdAndBalanceGreaterThanOrderByBalanceAsc(oldManagerId, BigDecimal.ZERO)
+                .orElseThrow(() -> new ResourceNotFoundException("No account with positive balance found for the given old manager ID: " + oldManagerId));
 
-        if (optionalAccount.isEmpty()) {
-            return  Optional.empty();
-        }
+        account.setManagerId(newManagerId);
+        accountCommandRepository.save(account);
 
-        Account chosen = optionalAccount.get();
-        Long previousManagerId = chosen.getManagerId();
-
-        long countAccounts = accountCommandRepository.countByManagerId(previousManagerId);
-        if (countAccounts == 1) {
-            return Optional.empty();
-        }
-
-        chosen.setManagerId(newManagerId);
-        accountCommandRepository.save(chosen);
-
-        AssignedNewManager event = accountMapper.toAssignedNewManager(chosen.getAccountNumber(), newManagerId);
+        AssignedNewManager event = accountMapper.toAssignedNewManager(account.getAccountNumber(), newManagerId);
         eventPublisher.publishEvent("bank.account", event);
 
-        return Optional.of(chosen);
+        return account;
+
     }
 
     public String generateAccountNumber() {
