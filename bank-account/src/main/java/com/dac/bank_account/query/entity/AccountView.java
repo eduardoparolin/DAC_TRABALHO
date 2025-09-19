@@ -1,5 +1,6 @@
 package com.dac.bank_account.query.entity;
 
+import com.dac.bank_account.enums.AccountStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,5 +23,7 @@ public class AccountView {
     private BigDecimal limitAmount;
     private Long managerId;
     private OffsetDateTime creationDate;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
 }
