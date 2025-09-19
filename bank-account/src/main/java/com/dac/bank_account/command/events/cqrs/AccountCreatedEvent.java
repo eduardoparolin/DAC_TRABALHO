@@ -1,5 +1,6 @@
 package com.dac.bank_account.command.events.cqrs;
 
+import com.dac.bank_account.enums.AccountStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,5 @@ public class AccountCreatedEvent implements Serializable {
     private BigDecimal limitAmount;
     private Long managerId;
     private OffsetDateTime creationDate;
+    private AccountStatus status;
 }

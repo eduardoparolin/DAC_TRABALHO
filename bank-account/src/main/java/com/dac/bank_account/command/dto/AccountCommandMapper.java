@@ -51,7 +51,8 @@ public class AccountCommandMapper {
                 account.getBalance(),
                 account.getLimitAmount(),
                 account.getManagerId(),
-                account.getCreationDate()
+                account.getCreationDate(),
+                account.getStatus()
         );
     }
 
@@ -91,6 +92,13 @@ public class AccountCommandMapper {
         return new AssignedNewManager(
                 accountNumber,
                 newManagerId
+        );
+    }
+
+    public AccountStatusChangedEvent accountToStatusChangedEvent(Account account) {
+        return new AccountStatusChangedEvent(
+                account.getAccountNumber(),
+                account.getStatus()
         );
     }
 }

@@ -24,6 +24,7 @@ public class AccountQueryMapper {
         account.setLimitAmount(event.getLimitAmount());
         account.setManagerId(event.getManagerId());
         account.setCreationDate(event.getCreationDate());
+        account.setStatus(event.getStatus());
         
         return account;
     }

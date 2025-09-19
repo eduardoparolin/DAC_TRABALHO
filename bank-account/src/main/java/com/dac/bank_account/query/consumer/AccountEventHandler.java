@@ -76,6 +76,17 @@ public class AccountEventHandler {
         }
     }
 
+    @RabbitHandler
+    public void handleAccountStatusChangedEvent(AccountStatusChangedEvent event) {
+        AccountView account = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
+                .orElse(null);
+
+        if(account != null) {
+            account.setStatus(event.getAccountStatus());
+            accountQueryRepository.save(account);
+        }
+    }
+
     private void handleDeposit(MoneyTransactionEvent event) {
         AccountView account = accountQueryRepository.findByAccountNumber(event.getAccountNumber())
                 .orElse(null);

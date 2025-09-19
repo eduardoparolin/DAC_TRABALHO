@@ -6,6 +6,7 @@ import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
 import com.dac.bank_account.command.events.*;
 import com.dac.bank_account.command.events.cqrs.*;
+import com.dac.bank_account.enums.AccountStatus;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
 import com.dac.bank_account.exception.InsufficientFundsException;
@@ -38,6 +39,7 @@ public class AccountCommandService {
         account.setBalance(BigDecimal.ZERO);
         account.setManagerId(managerId);
         account.setCreationDate(OffsetDateTime.now());
+        account.setStatus(AccountStatus.PENDENTE);
 
         if(salary >= 2000){
             account.setLimitAmount(BigDecimal.valueOf(salary / 2));
@@ -48,6 +50,24 @@ public class AccountCommandService {
         accountCommandRepository.save(account);
 
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
+        eventPublisher.publishEvent("bank.account", event);
+
+        return account;
+    }
+
+    @Transactional("commandTransactionManager")
+    public Account updateAccountStatus(Long clientId, boolean approved) {
+        Account account = accountCommandRepository.findByClientId(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
+
+        if(approved){
+            account.setStatus(AccountStatus.ATIVA);
+        }else{
+            account.setStatus(AccountStatus.REJEITADA);
+        }
+        accountCommandRepository.save(account);
+
+        AccountStatusChangedEvent event = accountMapper.accountToStatusChangedEvent(account);
         eventPublisher.publishEvent("bank.account", event);
 
         return account;

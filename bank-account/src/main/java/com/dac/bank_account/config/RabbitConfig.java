@@ -29,18 +29,21 @@ public class RabbitConfig {
     public static final String QUEUE_UPDATE_CLIENT_SAGA = "update.client.saga";
     public static final String QUEUE_DELETE_MANAGER_SAGA = "delete.manager.saga";
     public static final String QUEUE_NEW_MANAGER_SAGA = "new.manager.saga";
+    public static final String QUEUE_UPDATE_ACCOUNT_STATUS_SAGA = "update.status.saga";
 
     // Filas de sucesso
     public static final String QUEUE_CREATE_ACCOUNT_SAGA_SUCCESS = "create.account.saga.success";
     public static final String QUEUE_UPDATE_CLIENT_SAGA_SUCCESS = "update.client.saga.success";
     public static final String QUEUE_DELETE_MANAGER_SAGA_SUCCESS = "delete.manager.saga.success";
     public static final String QUEUE_NEW_MANAGER_SAGA_SUCCESS = "new.manager.saga.success";
+    public static final String QUEUE_UPDATE_ACCOUNT_STATUS_SAGA_SUCCESS = "update.status.saga.success";
 
     // Filas de falha
     public static final String QUEUE_CREATE_ACCOUNT_SAGA_FAILURE = "create.account.saga.failure";
     public static final String QUEUE_UPDATE_CLIENT_SAGA_FAILURE = "update.client.saga.failure";
     public static final String QUEUE_DELETE_MANAGER_SAGA_FAILURE = "delete.manager.saga.failure";
     public static final String QUEUE_NEW_MANAGER_SAGA_FAILURE = "new.manager.saga.failure";
+    public static final String QUEUE_UPDATE_ACCOUNT_STATUS_SAGA_FAILURE = "update.status.saga.failure";
 
     // ---------------- CQRS Beans ----------------
     @Bean
@@ -87,6 +90,7 @@ public class RabbitConfig {
     @Bean public Queue updateClientSagaQueue() { return new Queue(QUEUE_UPDATE_CLIENT_SAGA, true); }
     @Bean public Queue deleteManagerSagaQueue() { return new Queue(QUEUE_DELETE_MANAGER_SAGA, true); }
     @Bean public Queue newManagerSagaQueue() { return new Queue(QUEUE_NEW_MANAGER_SAGA, true); }
+    @Bean public Queue updateAccountStatusSagaQueue() { return new Queue(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA, true); }
 
     // ---- Bindings de comando SAGA ----
     @Bean public Binding bindingCreateAccountSaga(Queue createAccountSagaQueue, DirectExchange sagaExchange) {
@@ -101,12 +105,16 @@ public class RabbitConfig {
     @Bean public Binding bindingNewManagerSaga(Queue newManagerSagaQueue, DirectExchange sagaExchange) {
         return BindingBuilder.bind(newManagerSagaQueue).to(sagaExchange).with(QUEUE_NEW_MANAGER_SAGA);
     }
+    @Bean public Binding bindingUpdateAccountStatusSaga(Queue updateAccountStatusSagaQueue, DirectExchange sagaExchange) {
+        return BindingBuilder.bind(updateAccountStatusSagaQueue).to(sagaExchange).with(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA);
+    }
 
     // ---- Filas de sucesso SAGA ----
     @Bean public Queue createAccountSagaSuccessQueue() { return new Queue(QUEUE_CREATE_ACCOUNT_SAGA_SUCCESS, true); }
     @Bean public Queue updateClientSagaSuccessQueue() { return new Queue(QUEUE_UPDATE_CLIENT_SAGA_SUCCESS, true); }
     @Bean public Queue deleteManagerSagaSuccessQueue() { return new Queue(QUEUE_DELETE_MANAGER_SAGA_SUCCESS, true); }
     @Bean public Queue newManagerSagaSuccessQueue() { return new Queue(QUEUE_NEW_MANAGER_SAGA_SUCCESS, true); }
+    @Bean public Queue updateAccountStatusSagaSuccessQueue() { return new Queue(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA_SUCCESS, true); }
 
     // ---- Bindings de sucesso SAGA ----
     @Bean public Binding bindingCreateAccountSagaSuccess(Queue createAccountSagaSuccessQueue, DirectExchange sagaExchange) {
@@ -121,12 +129,16 @@ public class RabbitConfig {
     @Bean public Binding bindingNewManagerSagaSuccess(Queue newManagerSagaSuccessQueue, DirectExchange sagaExchange) {
         return BindingBuilder.bind(newManagerSagaSuccessQueue).to(sagaExchange).with(QUEUE_NEW_MANAGER_SAGA_SUCCESS);
     }
+    @Bean public Binding bindingUpdateAccountStatusSagaSuccess(Queue updateAccountStatusSagaSuccessQueue, DirectExchange sagaExchange) {
+        return BindingBuilder.bind(updateAccountStatusSagaSuccessQueue).to(sagaExchange).with(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA_SUCCESS);
+    }
 
     // ---- Filas de falha SAGA ----
     @Bean public Queue createAccountSagaFailureQueue() { return new Queue(QUEUE_CREATE_ACCOUNT_SAGA_FAILURE, true); }
     @Bean public Queue updateClientSagaFailureQueue() { return new Queue(QUEUE_UPDATE_CLIENT_SAGA_FAILURE, true); }
     @Bean public Queue deleteManagerSagaFailureQueue() { return new Queue(QUEUE_DELETE_MANAGER_SAGA_FAILURE, true); }
     @Bean public Queue newManagerSagaFailureQueue() { return new Queue(QUEUE_NEW_MANAGER_SAGA_FAILURE, true); }
+    @Bean public Queue updateAccountStatusSagaFailureQueue() { return new Queue(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA_FAILURE, true); }
 
     // ---- Bindings de falha SAGA ----
     @Bean public Binding bindingCreateAccountSagaFailure(Queue createAccountSagaFailureQueue, DirectExchange sagaExchange) {
@@ -140,6 +152,9 @@ public class RabbitConfig {
     }
     @Bean public Binding bindingNewManagerSagaFailure(Queue newManagerSagaFailureQueue, DirectExchange sagaExchange) {
         return BindingBuilder.bind(newManagerSagaFailureQueue).to(sagaExchange).with(QUEUE_NEW_MANAGER_SAGA_FAILURE);
+    }
+    @Bean public Binding bindingUpdateAccountStatusSagaFailure(Queue updateAccountStatusSagaFailureQueue, DirectExchange sagaExchange) {
+        return BindingBuilder.bind(updateAccountStatusSagaFailureQueue).to(sagaExchange).with(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA_FAILURE);
     }
 
     // ---------------- General Beans ----------------

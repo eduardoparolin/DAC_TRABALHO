@@ -1,11 +1,9 @@
 package com.dac.bank_account.command.saga;
 
 import com.dac.bank_account.command.entity.Account;
-import com.dac.bank_account.command.events.saga.AssignNewManagerSagaEvent;
-import com.dac.bank_account.command.events.saga.CreateAccountSagaEvent;
-import com.dac.bank_account.command.events.saga.ReassignManagerSagaEvent;
-import com.dac.bank_account.command.events.saga.UpdateLimitSagaEvent;
-import com.dac.bank_account.command.saga.events.*;
+import com.dac.bank_account.command.events.saga.*;
+import com.dac.bank_account.command.saga.events.failed.*;
+import com.dac.bank_account.command.saga.events.success.*;
 import com.dac.bank_account.command.service.AccountCommandService;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -39,6 +37,22 @@ public class AccountSagaHandler {
                     "saga.exchange",
                     "create.account.saga.failure",
                     new AccountCreationFailedSagaEvent(event.getClientId(), e.getMessage()));
+        }
+    }
+
+    @RabbitListener(queues = "update.status.saga")
+    public void handleUpdateStatusSaga(UpdateStatusSagaEvent event) {
+        try {
+            Account account = accountCommandService.updateAccountStatus(event.getClientId(), event.getIsApproved());
+            rabbitTemplate.convertAndSend(
+                    "saga.exchange",
+                    "update.status.saga.success",
+                    new AccountStatusUpdatedSagaEvent(account.getClientId(), account.getStatus().name()));
+        } catch (Exception e) {
+            rabbitTemplate.convertAndSend(
+                    "saga.exchange",
+                    "update.status.saga.failure",
+                    new AccountStatusUpdateFailedSagaEvent(event.getClientId(), e.getMessage()));
         }
     }
 
