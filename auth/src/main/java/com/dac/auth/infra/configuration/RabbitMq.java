@@ -12,6 +12,7 @@ public class RabbitMq {
 
     private final String queueName = "user-queue";
 
+    @Bean
     public Queue queue() {
         return new Queue(queueName, true);
     }
@@ -23,7 +24,7 @@ public class RabbitMq {
 
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory,
-                                         Jackson2JsonMessageConverter messageConverter) {
+            Jackson2JsonMessageConverter messageConverter) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter);
         return template;
