@@ -1,11 +1,10 @@
 package com.dac.bank_account.command.entity;
 
+import com.dac.bank_account.enums.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +25,8 @@ public class Account {
     private BigDecimal balance;
     private BigDecimal limitAmount;
     private Long managerId;
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status;
 
     @OneToMany(mappedBy = "sourceAccountNumber", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
