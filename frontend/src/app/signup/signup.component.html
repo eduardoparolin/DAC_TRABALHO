@@ -5,6 +5,14 @@
     }
     <form class="example-form">
       <mat-form-field class="form-full-width">
+        <mat-label>Nome Completo</mat-label>
+        <input type="text" matInput [formControl]="nameFormControl"
+               placeholder="Ex. José da Silva">
+        @if (nameFormControl.hasError('required')) {
+          <mat-error>Nome é <strong>obrigatório</strong></mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
         <mat-label>Email</mat-label>
         <input type="email" matInput [formControl]="emailFormControl"
                placeholder="Ex. pat@example.com">
@@ -16,14 +24,76 @@
         }
       </mat-form-field>
       <mat-form-field class="form-full-width">
-        <mat-label>Senha</mat-label>
-        <input type="password" matInput [formControl]="passwordFormControl">
-        @if (!passwordFormControl.hasError('required')) {
-          <mat-error>Digite uma senha válida</mat-error>
+        <mat-label>CPF</mat-label>
+        <input type="text" mask="999.999.999-99" matInput [formControl]="cpfFormControl"
+               placeholder="Ex. 000.000.000-00">
+        @if (cpfFormControl.hasError('required')) {
+          <mat-error>CPF é <strong>obrigatório</strong></mat-error>
         }
-        @if (passwordFormControl.hasError('required')) {
-          <mat-error>Senha é <strong>obrigatória</strong></mat-error>
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Telefone</mat-label>
+        <input type="text" mask="(99) 99999-9999" matInput [formControl]="phoneFormControl"
+               placeholder="Ex. (99) 99999-9999">
+        @if (phoneFormControl.hasError('required')) {
+          <mat-error>Telefone é <strong>obrigatório</strong></mat-error>
         }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>CEP</mat-label>
+        <input type="text" mask="99999-999" matInput [formControl]="cepFormControl"
+               placeholder="Ex. 99999-999">
+        @if (cepFormControl.hasError('required')) {
+          <mat-error>CEP é <strong>obrigatório</strong></mat-error>
+        }
+        @if (service.cepLoading()) {
+          <mat-spinner [diameter]="18" matSuffix style="margin-right: 10px"></mat-spinner>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Rua</mat-label>
+        <input type="text" matInput [formControl]="ruaFormControl"
+               placeholder="Ex. Rua das ruas">
+        @if (ruaFormControl.hasError('required')) {
+          <mat-error>Rua é <strong>obrigatório</strong></mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Bairro</mat-label>
+        <input type="text" matInput [formControl]="bairroFormControl"
+               placeholder="Ex. Vista Feliz">
+        @if (bairroFormControl.hasError('required')) {
+          <mat-error>Bairro é <strong>obrigatório</strong></mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Cidade</mat-label>
+        <input type="text" matInput [formControl]="cidadeFormControl"
+               placeholder="Ex. Curitiba">
+        @if (cidadeFormControl.hasError('required')) {
+          <mat-error>Cidade é <strong>obrigatório</strong></mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Estado</mat-label>
+        <input type="text" matInput [formControl]="estadoFormControl"
+               placeholder="Ex. Paraná">
+        @if (estadoFormControl.hasError('required')) {
+          <mat-error>Estado é <strong>obrigatório</strong></mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Número</mat-label>
+        <input type="text" matInput [formControl]="numeroFormControl"
+               placeholder="Ex. 100">
+        @if (numeroFormControl.hasError('required')) {
+          <mat-error>Número é <strong>obrigatório</strong></mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
+        <mat-label>Complemento</mat-label>
+        <input type="text" matInput [formControl]="complementoFormControl"
+               placeholder="Ex. Casa 10">
       </mat-form-field>
     </form>
     <button [disabled]="service.loading()" mat-raised-button (click)="signup()">Criar Conta</button>
