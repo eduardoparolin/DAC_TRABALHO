@@ -5,5 +5,5 @@ import com.dac.auth.dto.auth.AuthResponseDTO;
 
 public interface AuthService {
     AuthResponseDTO login(AuthRequestDTO dto);
-    void logout();
+    void logout(String authorizationHeader);
 }

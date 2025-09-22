@@ -1,5 +1,8 @@
 package com.dac.auth.infra.configuration.security;
 
+import com.dac.auth.exception.custom.ApiException;
+import com.dac.auth.infra.repository.RevokedTokenRepository;
+import com.dac.auth.model.RevokedToken;
 import com.dac.auth.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -7,12 +10,14 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -21,6 +26,7 @@ import java.util.List;
 public class TokenService {
     private static final String TOKEN_PREFIX = "Bearer";
     private static final String ROLES_CLAIM = "roles";
+    private final RevokedTokenRepository revokedTokenRepository;
 
     @Value("${jwt.expiration}")
     private String expiration;
@@ -48,6 +54,7 @@ public class TokenService {
 
     public UsernamePasswordAuthenticationToken isValid(String token) {
         if (token != null) {
+
             Claims body = Jwts.parser()
                     .setSigningKey(getSigningKey())
                     .build()
@@ -65,4 +72,28 @@ public class TokenService {
         }
         return null;
     }
+
+    public void invalidateToken(String token) {
+        Date expirationDate = extractExpiration(token);
+
+        RevokedToken revoked = new RevokedToken(
+                null,
+                token,
+                expirationDate.toInstant(),
+                Instant.now()
+        );
+
+        revokedTokenRepository.save(revoked);
+    }
+
+    public Date extractExpiration(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token.replace(TOKEN_PREFIX, "").trim())
+                .getBody();
+
+        return claims.getExpiration();
+    }
+
 }
