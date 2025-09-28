@@ -1,13 +1,13 @@
-import {effect, inject, Injectable, signal} from '@angular/core';
-import {User} from './user.model';
-import {Router} from '@angular/router';
+import { effect, inject, Injectable, signal } from '@angular/core';
+import { User } from './user.model';
+import { Router } from '@angular/router';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SessionService {
   user = signal<User | null>(null);
-  meClient = signal<User & {balance: number} | null>(null);
+  meClient = signal<(User & { balance: number }) | null>(null);
   router = inject(Router);
   constructor() {
     effect(() => {
@@ -15,7 +15,7 @@ export class SessionService {
         if (this.user()?.isAdmin()) {
           this.router.navigate(['/dashboard-admin']);
         } else if (this.user()?.isManager()) {
-          this.router.navigate(['/clientes']);
+          this.router.navigate(['/aprovacao-clientes']);
         } else {
           this.router.navigate(['/depositar']);
         }
@@ -26,7 +26,10 @@ export class SessionService {
     const localStorageUser = localStorage.getItem('user');
     if (localStorageUser) {
       this.user.set(User.fromJson(JSON.parse(localStorageUser)));
-      this.meClient.set({...User.fromJson(JSON.parse(localStorageUser)), balance: 1000} as any);
+      this.meClient.set({
+        ...User.fromJson(JSON.parse(localStorageUser)),
+        balance: 1000,
+      } as any);
     }
   }
 
@@ -34,7 +37,7 @@ export class SessionService {
     localStorage.setItem('user', JSON.stringify(response));
     const user = User.fromJson(response);
     this.user.set(user);
-    this.meClient.set({...user, balance: Math.random() * 1000} as any);
+    this.meClient.set({ ...user, balance: Math.random() * 1000 } as any);
     return user;
   }
 
