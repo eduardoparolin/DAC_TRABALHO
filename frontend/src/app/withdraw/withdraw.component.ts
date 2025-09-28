@@ -16,9 +16,12 @@ export class WithdrawComponent {
   service = inject(WithdrawService);
   valueFormControl = new FormControl<null | number>(0, Validators.required);
 
-  withdraw(){
+  async withdraw(){
     if (this.valueFormControl.valid && this.valueFormControl.value){
-      this.service.withdraw(this.valueFormControl.value);
+      const result = await this.service.withdraw(this.valueFormControl.value);
+      if (result) {
+        this.valueFormControl.reset();
+      }
     }
   }
 }
