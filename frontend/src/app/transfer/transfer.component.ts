@@ -16,7 +16,13 @@ export class TransferComponent {
   valueFormControl = new FormControl<null | number>(0, Validators.required);
   accountNumberFormControl = new FormControl<null | string>(null, Validators.required);
 
-  transfer() {
-
+  async transfer() {
+    if (this.valueFormControl.valid && this.valueFormControl.value){
+      const result = await this.service.transfer(this.valueFormControl.value);
+      if (result) {
+        this.valueFormControl.reset();
+        this.accountNumberFormControl.reset();
+      }
+    }
   }
 }
