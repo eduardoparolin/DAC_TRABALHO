@@ -65,8 +65,10 @@ export class NewEditManagerDialogComponent implements OnInit {
       this.emailFormControl.valid &&
       this.passwordFormControl.valid
     ) {
-      this.dialog.close();
-      this._snackBar.open('Gerente Editado com Sucesso');
+      const dialogRef = this.dialog.close();
+      this.dialog.afterClosed().subscribe(() => {
+        this._snackBar.open('Gerente Editado com Sucesso');
+      });
     }
   }
 }
