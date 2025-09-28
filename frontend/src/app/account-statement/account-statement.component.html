@@ -1,4 +1,4 @@
-<div class="statement-dates-container">
+<!-- <div class="statement-dates-container">
   <mat-form-field>
     <mat-label>Selecione um intervalo de tempo</mat-label>
     <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
@@ -16,7 +16,7 @@
       <mat-error>Data final inválida</mat-error>
     }
   </mat-form-field>
-</div>
+</div> -->
 <!--['DATE_TIME', 'OPERATION', 'ORIGIN', 'DESTINATION', 'VALUE']-->
 <section class="example-container mat-elevation-z8" tabindex="0">
   @for (table of tables; track table) {
@@ -59,7 +59,9 @@
 
       <mat-header-row *matHeaderRowDef="displayedColumns;"></mat-header-row>
 
-      <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"
+        [ngClass]="getRowClass(row)">
+      </mat-row>
 
 <!--      <mat-footer-row *matFooterRowDef="displayedColumns;"></mat-footer-row>-->
     </mat-table>
