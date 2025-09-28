@@ -27,23 +27,31 @@ export class ManagersComponent implements OnInit {
   }
 
   deleteManager(id: number) {
-    this._snackBar.open('Gerente removido com sucesso');
-    this.dialog.open(ConfirmationDialogComponent, { width: '250px' });
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, { width: '250px' });
+    dialogRef.afterClosed().subscribe(() => {
+      this._snackBar.open('Gerente removido com sucesso');
+    });
   }
 
   newManager() {
-    this.dialog.open(NewEditManagerDialogComponent, {
+    const dialogRef = this.dialog.open(NewEditManagerDialogComponent, {
       data: {
         manager: null,
       },
     });
+    dialogRef.afterClosed().subscribe(() => {
+      this._snackBar.open('Gerente criado com sucesso');
+    });
   }
 
   editManager(manager: Manager) {
-    this.dialog.open(NewEditManagerDialogComponent, {
+    const dialogRef = this.dialog.open(NewEditManagerDialogComponent, {
       data: {
         manager: manager,
       },
+    });
+    dialogRef.afterClosed().subscribe(() => {
+      this._snackBar.open('Gerente editado com sucesso');
     });
   }
 }
