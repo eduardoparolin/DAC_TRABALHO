@@ -7,6 +7,7 @@ import { HttpClientMockService } from '../utils/http-client-mock.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../utils/confirmation-dialog/confirmation-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import {RejectClientDialogComponent} from './components/reject-client-dialog/reject-client-dialog.component';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,8 @@ export class ClientApprovalService {
   clients = signal<Client[]>([]);
   private _snackBar = inject(MatSnackBar);
 
-  constructor() {}
+  constructor() {
+  }
 
   async getAllClients() {
     const clientsResponse = await lastValueFrom(
@@ -37,6 +39,10 @@ export class ClientApprovalService {
   }
 
   rejectClient(clientId: string) {
-    this.dialog.open(ConfirmationDialogComponent, {});
+    this.dialog.open(RejectClientDialogComponent, {
+      data: {
+        id: clientId
+      }
+    });
   }
 }
