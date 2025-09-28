@@ -3,6 +3,7 @@ import {PersonIdentificationComponent} from '../person-identification/person-ide
 import {MatMenuModule} from '@angular/material/menu';
 import {SessionService} from '../session/session.service';
 import {RouterLink, RouterLinkActive} from '@angular/router';
+import {CurrencyPipe} from '@angular/common';
 
 @Component({
   selector: 'app-top-menu',
@@ -10,7 +11,8 @@ import {RouterLink, RouterLinkActive} from '@angular/router';
     PersonIdentificationComponent,
     MatMenuModule,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    CurrencyPipe
   ],
   templateUrl: './top-menu.component.html',
   styleUrl: './top-menu.component.scss'

@@ -7,6 +7,7 @@ import {Router} from '@angular/router';
 })
 export class SessionService {
   user = signal<User | null>(null);
+  meClient = signal<User & {balance: number} | null>(null);
   router = inject(Router);
   constructor() {
     effect(() => {
@@ -23,6 +24,7 @@ export class SessionService {
     const localStorageUser = localStorage.getItem('user');
     if (localStorageUser) {
       this.user.set(User.fromJson(JSON.parse(localStorageUser)));
+      this.meClient.set({...User.fromJson(JSON.parse(localStorageUser)), balance: 1000} as any);
     }
   }
 
@@ -30,11 +32,13 @@ export class SessionService {
     localStorage.setItem('user', JSON.stringify(response));
     const user = User.fromJson(response);
     this.user.set(user);
+    this.meClient.set({...user, balance: Math.random() * 1000} as any);
     return user;
   }
 
   logout() {
     localStorage.removeItem('user');
     this.user.set(null);
+    this.meClient.set(null);
   }
 }
