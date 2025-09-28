@@ -14,8 +14,10 @@ export class SessionService {
       if (this.user() != null) {
         if (this.user()?.isAdmin()) {
           this.router.navigate(['/dashboard-admin']);
-        } else {
+        } else if (this.user()?.isManager()) {
           this.router.navigate(['/clientes']);
+        } else {
+          this.router.navigate(['/depositar']);
         }
       } else {
         this.router.navigate(['/login']);

@@ -27,7 +27,7 @@
   <app-person-identification [matMenuTriggerFor]="menu">
     <mat-menu #menu="matMenu">
       @if (sessionService.user()?.isClient() ?? false) {
-        <button mat-menu-item (click)="openEditClientDialog()">Editar Perfil</button>
+        <button mat-menu-item (click)="openEditClientDialog()">Ver Perfil</button>
       }
       <button mat-menu-item (click)="logout()">Sair</button>
     </mat-menu>

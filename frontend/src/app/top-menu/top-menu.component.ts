@@ -4,6 +4,8 @@ import {MatMenuModule} from '@angular/material/menu';
 import {SessionService} from '../session/session.service';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {CurrencyPipe} from '@angular/common';
+import {MatDialog} from '@angular/material/dialog';
+import {EditProfileComponent} from '../edit-profile/edit-profile.component';
 
 @Component({
   selector: 'app-top-menu',
@@ -19,11 +21,12 @@ import {CurrencyPipe} from '@angular/common';
 })
 export class TopMenuComponent {
   sessionService = inject(SessionService);
+  dialog = inject(MatDialog);
   logout() {
     this.sessionService.logout();
   }
 
   openEditClientDialog() {
-
+    this.dialog.open(EditProfileComponent);
   }
 }
