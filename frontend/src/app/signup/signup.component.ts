@@ -1,11 +1,19 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {MatButton} from '@angular/material/button';
-import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
-import {MatProgressBar} from '@angular/material/progress-bar';
-import {FormControl, ReactiveFormsModule, Validators} from '@angular/forms';
-import {SignupService} from './signup.service';
+import { Component, inject, OnInit } from '@angular/core';
+import { MatButton } from '@angular/material/button';
+import {
+  MatError,
+  MatFormField,
+  MatInput,
+  MatLabel,
+  MatSuffix,
+} from '@angular/material/input';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SignupService } from './signup.service';
 import { NgxMaskDirective } from 'ngx-mask';
-import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-signup',
@@ -22,11 +30,15 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
     MatProgressSpinner,
   ],
   templateUrl: './signup.component.html',
-  styleUrl: './signup.component.scss'
+  styleUrl: './signup.component.scss',
 })
 export class SignupComponent implements OnInit {
   service = inject(SignupService);
-  emailFormControl = new FormControl('', [Validators.required, Validators.email]);
+  private router = inject(Router);
+  emailFormControl = new FormControl('', [
+    Validators.required,
+    Validators.email,
+  ]);
   cpfFormControl = new FormControl('', [Validators.required]);
   phoneFormControl = new FormControl('', [Validators.required]);
   ruaFormControl = new FormControl('', [Validators.required]);
@@ -35,13 +47,16 @@ export class SignupComponent implements OnInit {
   estadoFormControl = new FormControl('', [Validators.required]);
   numeroFormControl = new FormControl('', [Validators.required]);
   complementoFormControl = new FormControl('', []);
-  cepFormControl = new FormControl('', [Validators.required, Validators.minLength(8)]);
+  cepFormControl = new FormControl('', [
+    Validators.required,
+    Validators.minLength(8),
+  ]);
   nameFormControl = new FormControl('', [Validators.required]);
 
   ngOnInit(): void {
     this.cepFormControl.valueChanges.subscribe(() => {
       if (this.cepFormControl.invalid) return;
-      this.service.fetchAddress(this.cepFormControl.value!).then(address => {
+      this.service.fetchAddress(this.cepFormControl.value!).then((address) => {
         console.log(address);
         if (address) {
           this.ruaFormControl.setValue(address.street);
@@ -50,10 +65,10 @@ export class SignupComponent implements OnInit {
           this.estadoFormControl.setValue(address.state);
         }
       });
-    })
+    });
   }
 
   signup() {
-
+    this.router.navigate(['/login']);
   }
 }
