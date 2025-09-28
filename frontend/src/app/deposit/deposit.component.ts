@@ -15,9 +15,12 @@ export class DepositComponent {
   service = inject(DepositService);
   valueFormControl = new FormControl<null | number>(0, Validators.required);
 
-  deposit(){
+  async deposit(){
     if (this.valueFormControl.valid && this.valueFormControl.value){
-      this.service.deposit(this.valueFormControl.value);
+      let result = await this.service.deposit(this.valueFormControl.value);
+      if (result) {
+        this.valueFormControl.reset();
+      }
     }
   }
 }

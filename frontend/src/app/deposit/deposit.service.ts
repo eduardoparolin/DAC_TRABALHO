@@ -1,25 +1,29 @@
 import {inject, Injectable} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {ConfirmationDialogComponent} from '../utils/confirmation-dialog/confirmation-dialog.component';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {lastValueFrom} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DepositService {
   dialog = inject(MatDialog);
+  private _snackBar = inject(MatSnackBar);
 
   constructor() { }
 
-  deposit(amount: number): void {
+  async deposit(amount: number): Promise<boolean> {
     const ref = this.dialog.open(ConfirmationDialogComponent);
-    ref.afterClosed().subscribe(result => {
-      if (result === 'confirm') {
-        this.processDeposit(amount);
-      }
-    });
+    const afterClosed = await lastValueFrom(ref.afterClosed());
+    if (afterClosed) {
+      await this.processDeposit(amount);
+      return true;
+    }
+    return false;
   }
 
   private processDeposit(amount: number): void {
-    console.log(`Deposited amount: ${amount}`);
+    this._snackBar.open(`Depósito confirmado: ${amount}`, "Ok");
   }
 }
