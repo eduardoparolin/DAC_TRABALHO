@@ -17,7 +17,7 @@ export class SessionService {
         } else if (this.user()?.isManager()) {
           this.router.navigate(['/aprovacao-clientes']);
         } else {
-          this.router.navigate(['/depositar']);
+          this.router.navigate(['/extrato']);
         }
       } else {
         this.router.navigate(['/login']);
