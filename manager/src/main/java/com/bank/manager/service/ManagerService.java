@@ -1,7 +1,7 @@
 package com.bank.manager.service;
 
-import com.bank.manager.dto.ManagerDTO;
-import com.bank.manager.entity.Manager;
+import com.bank.manager.ManagerDTO;
+import com.bank.manager.model.Manager;
 import com.bank.manager.repository.ManagerRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +22,9 @@ public class ManagerService {
     public ManagerDTO create(ManagerDTO dto) {
         Manager manager = new Manager();
         manager.setCpf(dto.cpf());
-        manager.setNome(dto.nome());
+        manager.setName(dto.name());
         manager.setEmail(dto.email());
-        manager.setTelefone(dto.telefone());
-        manager.setTipo(dto.tipo());
+        manager.setType(dto.type());
 
         Manager saved = repository.save(manager);
         return toDTO(saved);
@@ -39,18 +38,25 @@ public class ManagerService {
                 .toList();
     }
 
-    // READ - find by cpf
-    public Optional<ManagerDTO> findByCpf(String cpf) {
-        return repository.findById(cpf).map(this::toDTO);
+    public ManagerDTO getByCpf(String cpf) {
+        return ManagerDTO.fromEntity(findByCpf(cpf));
+    }
+
+    public Manager findByCpf(String cpf) {
+        Optional<Manager> manager = repository.findById(cpf);
+        if(manager.isEmpty()) {
+            throw new RuntimeException("Manager not found with cpf: " + cpf);
+        }
+        return manager.get();
     }
 
     // UPDATE
     public Optional<ManagerDTO> update(String cpf, ManagerDTO dto) {
         return repository.findById(cpf).map(manager -> {
-            manager.setNome(dto.nome());
-            manager.setEmail(dto.email());
-            manager.setTelefone(dto.telefone());
-            manager.setTipo(dto.tipo());
+            manager.getCpf();
+            manager.getName();
+            manager.getEmail();
+            manager.getType();
 
             Manager updated = repository.save(manager);
             return toDTO(updated);
@@ -66,10 +72,9 @@ public class ManagerService {
     private ManagerDTO toDTO(Manager manager) {
         return new ManagerDTO(
                 manager.getCpf(),
-                manager.getNome(),
+                manager.getName(),
                 manager.getEmail(),
-                manager.getTelefone(),
-                manager.getTipo()
+                manager.getType()
         );
     }
 }
