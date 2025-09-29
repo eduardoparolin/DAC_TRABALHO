@@ -39,12 +39,6 @@ import { CommonModule } from '@angular/common';
           <strong>Limite:</strong>
           {{ data.limit | currency : 'BRL' : 'symbol' : '1.2-2' }}
         </div>
-        <div class="detail-row">
-          <strong>CPF do Gerente:</strong> {{ data.cpfManager }}
-        </div>
-        <div class="detail-row">
-          <strong>Nome do Gerente:</strong> {{ data.nameManager }}
-        </div>
       </div>
     </div>
     <div mat-dialog-actions>

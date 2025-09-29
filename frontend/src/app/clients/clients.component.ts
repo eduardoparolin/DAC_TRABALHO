@@ -35,9 +35,6 @@ export class ClientsComponent {
     'ACCOUNT_NUMBER',
     'BALANCE',
     'LIMIT',
-    'CPF_MANAGER',
-    'NAME_MANAGER',
-    'NAME_MANAGER',
   ];
   filterControl = new FormControl();
   sessionService = inject(SessionService);
