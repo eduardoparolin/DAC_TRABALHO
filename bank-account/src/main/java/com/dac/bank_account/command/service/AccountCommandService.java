@@ -32,7 +32,7 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public Account createAccount(Long clientId, Double salary, Long managerId) {
+    public void createAccount(Long clientId, Double salary, Long managerId) {
         Account account = new Account();
         account.setClientId(clientId);
         account.setAccountNumber(generateAccountNumber());
@@ -52,11 +52,10 @@ public class AccountCommandService {
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
         eventPublisher.publishEvent("bank.account", event);
 
-        return account;
     }
 
     @Transactional("commandTransactionManager")
-    public Account updateAccountStatus(Long clientId, Boolean approved) {
+    public void updateAccountStatus(Long clientId, Boolean approved) {
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
@@ -69,8 +68,6 @@ public class AccountCommandService {
 
         AccountStatusChangedEvent event = accountMapper.accountToStatusChangedEvent(account);
         eventPublisher.publishEvent("bank.account", event);
-
-        return account;
     }
 
     @Transactional("commandTransactionManager")
@@ -142,7 +139,7 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public Account setLimit(Long clientId, Double salary) {
+    public void setLimit(Long clientId, Double salary) {
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
@@ -155,9 +152,6 @@ public class AccountCommandService {
 
         AccountLimitChangedEvent event = accountMapper.accountToLimitChangedEvent(account);
         eventPublisher.publishEvent("bank.account", event);
-
-
-        return account;
     }
 
     @Transactional("commandTransactionManager")
@@ -172,7 +166,7 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public Account assignAccountToNewManager(Long oldManagerId, Long newManagerId) {
+    public void assignAccountToNewManager(Long oldManagerId, Long newManagerId) {
         Account account = accountCommandRepository.
                 findFirstByManagerIdAndBalanceGreaterThanOrderByBalanceAsc(oldManagerId, BigDecimal.ZERO)
                 .orElseThrow(() -> new ResourceNotFoundException("No account with positive balance found for the given old manager ID: " + oldManagerId));
@@ -182,9 +176,6 @@ public class AccountCommandService {
 
         AssignedNewManager event = accountMapper.toAssignedNewManager(account.getAccountNumber(), newManagerId);
         eventPublisher.publishEvent("bank.account", event);
-
-        return account;
-
     }
 
     public String generateAccountNumber() {

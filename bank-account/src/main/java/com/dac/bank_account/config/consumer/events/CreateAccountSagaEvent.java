@@ -1,12 +1,12 @@
-package com.dac.bank_account.command.saga.events.success;
+package com.dac.bank_account.config.consumer.events;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AccountCreatedSagaEvent {
-    private Long accountId;
+public class CreateAccountSagaEvent {
     private Long clientId;
+    private Double salary;
     private Long managerId;
 }
