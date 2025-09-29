@@ -5,7 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 public final class ClientSpecifications {
 
-    private ClientSpecifications() {}
+    private ClientSpecifications() { }
 
     public static Specification<Client> hasCpf(String cpfDigits) {
         if (cpfDigits == null || cpfDigits.isBlank()) return null;
@@ -19,7 +19,7 @@ public final class ClientSpecifications {
 
     public static Specification<Client> nameContains(String nome) {
         if (nome == null || nome.isBlank()) return null;
-        String like = "%" + nome.toLowerCase().trim() + "%";
+        String like = "%" + nome.trim().toLowerCase() + "%";
         return (root, q, cb) -> cb.like(cb.lower(root.get("nome")), like);
     }
 

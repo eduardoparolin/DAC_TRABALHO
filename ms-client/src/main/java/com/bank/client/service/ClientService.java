@@ -80,7 +80,6 @@ public class ClientService {
         repo.deleteById(id);
     }
 
-    /** Busca paginada/filtrada por cpf, email e nome (contém, case-insensitive). */
     public PageResponse<ClientResponse> search(String cpf, String email, String nome, int page, int size, String sort) {
         String cpfDigits = normalizeCpf(cpf);
         Specification<Client> spec = null;
