@@ -35,6 +35,7 @@ import { Router } from '@angular/router';
 export class SignupComponent implements OnInit {
   service = inject(SignupService);
   private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
   emailFormControl = new FormControl('', [
     Validators.required,
     Validators.email,
@@ -69,6 +70,25 @@ export class SignupComponent implements OnInit {
   }
 
   signup() {
-    this.router.navigate(['/login']);
+    const formControls = [
+      this.emailFormControl,
+      this.cpfFormControl,
+      this.phoneFormControl,
+      this.ruaFormControl,
+      this.bairroFormControl,
+      this.cidadeFormControl,
+      this.estadoFormControl,
+      this.numeroFormControl,
+      this.cepFormControl,
+      this.nameFormControl,
+    ];
+
+    formControls.forEach((control) => control.markAsTouched());
+
+    const isFormValid = formControls.every((control) => control.valid);
+
+    if (isFormValid) {
+      this.router.navigate(['/login']);
+    }
   }
 }
