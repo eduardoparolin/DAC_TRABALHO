@@ -6,7 +6,7 @@ import com.bank.client.entities.Client;
 
 public final class ClientMapper {
 
-    private ClientMapper() { /* util class */ }
+    private ClientMapper() { /* utility class */ }
 
     public static Client toEntity(ClientRequest req) {
         if (req == null) return null;
