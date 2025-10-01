@@ -23,16 +23,8 @@ public class RabbitConfig {
 
     // ---------------- SAGA ----------------
     public static final String SAGA_EXCHANGE = "saga.exchange";
-
-    // Filas de comando
-    public static final String QUEUE_CREATE_ACCOUNT_SAGA = "create.account.saga";
-    public static final String QUEUE_UPDATE_CLIENT_SAGA = "update.client.saga";
-    public static final String QUEUE_DELETE_MANAGER_SAGA = "delete.manager.saga";
-    public static final String QUEUE_NEW_MANAGER_SAGA = "new.manager.saga";
-    public static final String QUEUE_UPDATE_ACCOUNT_STATUS_SAGA = "update.status.saga";
-
-    // Fila única de resultado
-    public static final String QUEUE_ACCOUNT_RESULT = "account-result-queue";
+    public static final String QUEUE_ACCOUNT_SAGA = "account-saga-queue";   // única fila de entrada
+    public static final String QUEUE_ACCOUNT_RESULT = "account-result-queue"; // fila de saída
 
     // ---------------- CQRS Beans ----------------
     @Bean
@@ -74,33 +66,25 @@ public class RabbitConfig {
         return new DirectExchange(SAGA_EXCHANGE);
     }
 
-    // ---- Filas de comando SAGA ----
-    @Bean public Queue createAccountSagaQueue() { return new Queue(QUEUE_CREATE_ACCOUNT_SAGA, true); }
-    @Bean public Queue updateClientSagaQueue() { return new Queue(QUEUE_UPDATE_CLIENT_SAGA, true); }
-    @Bean public Queue deleteManagerSagaQueue() { return new Queue(QUEUE_DELETE_MANAGER_SAGA, true); }
-    @Bean public Queue newManagerSagaQueue() { return new Queue(QUEUE_NEW_MANAGER_SAGA, true); }
-    @Bean public Queue updateAccountStatusSagaQueue() { return new Queue(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA, true); }
-
-    // ---- Binding de comando SAGA ----
-    @Bean public Binding bindingCreateAccountSaga(Queue createAccountSagaQueue, DirectExchange sagaExchange) {
-        return BindingBuilder.bind(createAccountSagaQueue).to(sagaExchange).with(QUEUE_CREATE_ACCOUNT_SAGA);
-    }
-    @Bean public Binding bindingUpdateClientSaga(Queue updateClientSagaQueue, DirectExchange sagaExchange) {
-        return BindingBuilder.bind(updateClientSagaQueue).to(sagaExchange).with(QUEUE_UPDATE_CLIENT_SAGA);
-    }
-    @Bean public Binding bindingDeleteManagerSaga(Queue deleteManagerSagaQueue, DirectExchange sagaExchange) {
-        return BindingBuilder.bind(deleteManagerSagaQueue).to(sagaExchange).with(QUEUE_DELETE_MANAGER_SAGA);
-    }
-    @Bean public Binding bindingNewManagerSaga(Queue newManagerSagaQueue, DirectExchange sagaExchange) {
-        return BindingBuilder.bind(newManagerSagaQueue).to(sagaExchange).with(QUEUE_NEW_MANAGER_SAGA);
-    }
-    @Bean public Binding bindingUpdateAccountStatusSaga(Queue updateAccountStatusSagaQueue, DirectExchange sagaExchange) {
-        return BindingBuilder.bind(updateAccountStatusSagaQueue).to(sagaExchange).with(QUEUE_UPDATE_ACCOUNT_STATUS_SAGA);
+    @Bean
+    public Queue accountSagaQueue() {
+        return new Queue(QUEUE_ACCOUNT_SAGA, true);
     }
 
-    // ---- Fila única de resultado ----
-    @Bean public Queue accountResultQueue() { return new Queue(QUEUE_ACCOUNT_RESULT, true); }
+    @Bean
+    public Binding bindingAccountSaga(Queue accountSagaQueue, DirectExchange sagaExchange) {
+        return BindingBuilder.bind(accountSagaQueue).to(sagaExchange).with(QUEUE_ACCOUNT_SAGA);
+    }
 
+    @Bean
+    public Binding bindingAccountResult(Queue accountResultQueue, DirectExchange sagaExchange) {
+        return BindingBuilder.bind(accountResultQueue).to(sagaExchange).with(QUEUE_ACCOUNT_RESULT);
+    }
+
+    @Bean
+    public Queue accountResultQueue() {
+        return new Queue(QUEUE_ACCOUNT_RESULT, true);
+    }
 
     // ---------------- General Beans ----------------
     @Bean
