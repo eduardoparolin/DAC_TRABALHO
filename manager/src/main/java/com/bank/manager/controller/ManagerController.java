@@ -1,6 +1,7 @@
 package com.bank.manager.controller;
 
-import com.bank.manager.ManagerDTO;
+import com.bank.manager.dto.ManagerDTO;
+import com.bank.manager.dto.ManagerUpdateDTO;
 import com.bank.manager.service.ManagerService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,11 +23,9 @@ public class ManagerController {
         return ResponseEntity.ok(service.findAll());
     }
 
-    // POST /gerentes
     @PostMapping
     public ResponseEntity<ManagerDTO> create(@RequestBody ManagerDTO dto) {
         ManagerDTO saved = service.create(dto);
-        //Retorna status http 201 para resultado de sucesso criação
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
@@ -35,19 +34,14 @@ public class ManagerController {
         return ResponseEntity.ok(service.getByCpf(cpf));
     }
 
-    // PUT /gerentes/{cpf}
     @PutMapping("/{cpf}")
-    public ResponseEntity<ManagerDTO> update(@PathVariable String cpf, @RequestBody ManagerDTO dto) {
-        return service.update(cpf,dto)
-                .map(ResponseEntity::ok) // Se existe -> 200
-                .orElse(ResponseEntity.notFound().build()); // se não existe -> 404
+    public ResponseEntity<ManagerDTO> update(@PathVariable String cpf, @RequestBody ManagerUpdateDTO dto) {
+        return ResponseEntity.ok(service.update(cpf,dto));
     }
 
-    // DELETE /gerentes/{cpf}
     @DeleteMapping("/{cpf}")
     public ResponseEntity<Void> delete(@PathVariable String cpf) {
         service.deleteByCpf(cpf);
-        // 204 No Content é apropriado para deleção bem-sucedida sem ccorpo
         return ResponseEntity.noContent().build();
     }
 }

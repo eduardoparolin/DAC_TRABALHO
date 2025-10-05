@@ -1,4 +1,4 @@
-package com.bank.manager;
+package com.bank.manager.dto;
 
 //SEPARANDO ENTITY E DTO PARA MELHORES PRATICAS DE DESACOPLAMENTO
 
