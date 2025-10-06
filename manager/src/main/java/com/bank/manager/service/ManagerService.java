@@ -1,24 +1,24 @@
 package com.bank.manager.service;
 
-import com.bank.manager.ManagerDTO;
+import com.bank.manager.dto.ManagerDTO;
+import com.bank.manager.dto.ManagerUpdateDTO;
+import com.bank.manager.exception.custom.ApiException;
 import com.bank.manager.model.Manager;
 import com.bank.manager.repository.ManagerRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ManagerService {
 
     private final ManagerRepository repository;
 
-    // Injeção via construtor → melhor prática
-    public ManagerService(ManagerRepository repository) {
-        this.repository = repository;
-    }
-
-    // CREATE
     public ManagerDTO create(ManagerDTO dto) {
         Manager manager = new Manager();
         manager.setCpf(dto.cpf());
@@ -27,14 +27,13 @@ public class ManagerService {
         manager.setType(dto.type());
 
         Manager saved = repository.save(manager);
-        return toDTO(saved);
+        return ManagerDTO.fromEntity(saved);
     }
 
-    // READ - find all
     public List<ManagerDTO> findAll() {
         return repository.findAll()
                 .stream()
-                .map(this::toDTO)
+                .map(ManagerDTO::fromEntity)
                 .toList();
     }
 
@@ -43,38 +42,46 @@ public class ManagerService {
     }
 
     public Manager findByCpf(String cpf) {
-        Optional<Manager> manager = repository.findById(cpf);
+        Optional<Manager> manager = repository.findByCpf(cpf);
         if(manager.isEmpty()) {
-            throw new RuntimeException("Manager not found with cpf: " + cpf);
+            throw new ApiException("Manager not found with cpf: " + cpf, HttpStatus.NOT_FOUND);
         }
         return manager.get();
     }
 
-    // UPDATE
-    public Optional<ManagerDTO> update(String cpf, ManagerDTO dto) {
-        return repository.findById(cpf).map(manager -> {
-            manager.getCpf();
-            manager.getName();
-            manager.getEmail();
-            manager.getType();
-
-            Manager updated = repository.save(manager);
-            return toDTO(updated);
-        });
+    public ManagerDTO update(String cpf, ManagerUpdateDTO dto) {
+        Manager existingManager = findByCpf(cpf);
+        Manager updatedManager = updateValidValues(existingManager, dto);
+        return ManagerDTO.fromEntity(repository.save(updatedManager));
     }
 
-    // DELETE
+    private Manager updateValidValues(Manager manager, ManagerUpdateDTO dto) {
+        if(Objects.nonNull(dto.name())) {
+            manager.setName(dto.name());
+        }
+
+        if(Objects.nonNull(dto.email())) {
+            manager.setEmail(dto.email());
+        }
+
+        if(Objects.nonNull(dto.type())) {
+            manager.setType(dto.type());
+        }
+
+        return manager;
+    }
+
+    public Manager findById(Long id) {
+        Optional<Manager> opManager = repository.findById(id);
+        if(opManager.isEmpty()) {
+            throw new ApiException("Manager not found with id: " + id, HttpStatus.NOT_FOUND);
+        }
+        return opManager.get();
+    }
+
     public void deleteByCpf(String cpf) {
-        repository.deleteById(cpf);
+        Manager manager = findByCpf(cpf);
+        repository.delete(manager);
     }
 
-    // Helper de conversão Entity -> DTO
-    private ManagerDTO toDTO(Manager manager) {
-        return new ManagerDTO(
-                manager.getCpf(),
-                manager.getName(),
-                manager.getEmail(),
-                manager.getType()
-        );
-    }
 }
