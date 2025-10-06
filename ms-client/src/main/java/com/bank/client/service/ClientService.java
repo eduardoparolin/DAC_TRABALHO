@@ -12,6 +12,10 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.bank.client.events.ClienteCreatedEvent;
+import com.bank.client.events.ClienteUpdatedEvent;
+import com.bank.client.events.ClienteEventPublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,6 +32,9 @@ public class ClientService {
         this.repo = repo;
     }
 
+    @Autowired(required = false)
+    private ClienteEventPublisher publisher;
+
     @Transactional
     public ClientResponse create(ClientRequest req) {
         String cpf = normalizeCpf(req.getCpf());
@@ -41,6 +48,11 @@ public class ClientService {
         e.setTelefone(req.getTelefone());
         e.setSalario(round2(req.getSalario()));
         e = repo.save(e);
+        if (publisher != null) {
+            publisher.publishCreated(new ClienteCreatedEvent(
+                    e.getId(), e.getNome(), e.getEmail(), e.getCpf(), e.getSalario()
+            ));
+        }
         return toResponse(e);
     }
 
@@ -71,6 +83,12 @@ public class ClientService {
         e.setTelefone(req.getTelefone());
         e.setSalario(round2(req.getSalario()));
         e = repo.save(e);
+        if (publisher != null) {
+            publisher.publishUpdated(new ClienteUpdatedEvent(
+                    e.getId(), e.getNome(), e.getEmail(), e.getCpf(), e.getSalario()
+            ));
+        }
+
         return toResponse(e);
     }
 
