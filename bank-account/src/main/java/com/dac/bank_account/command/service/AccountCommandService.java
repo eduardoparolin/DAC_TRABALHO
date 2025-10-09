@@ -9,6 +9,7 @@ import com.dac.bank_account.command.events.cqrs.*;
 import com.dac.bank_account.enums.AccountStatus;
 import com.dac.bank_account.enums.TransactionType;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
+import com.dac.bank_account.exception.AccountAlreadyExistsException;
 import com.dac.bank_account.exception.InsufficientFundsException;
 import com.dac.bank_account.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,10 @@ public class AccountCommandService {
 
     @Transactional("commandTransactionManager")
     public void createAccount(Long clientId, Double salary, Long managerId) {
+
+        if(accountCommandRepository.findByClientId(clientId).isPresent()) {
+            throw new AccountAlreadyExistsException("Account already exists for client id: " + clientId);
+        }
         Account account = new Account();
         account.setClientId(clientId);
         account.setAccountNumber(generateAccountNumber());
