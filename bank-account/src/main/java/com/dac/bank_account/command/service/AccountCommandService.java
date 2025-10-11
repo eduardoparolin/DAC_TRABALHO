@@ -17,8 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class AccountCommandService {
@@ -160,7 +162,11 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void reassignManager(Long oldManagerId, Long newManagerId) {
+    public void reassignManager(Long oldManagerId) {
+        Long newManagerId = accountCommandRepository.findManagerWithLeastAccounts();
+        if (newManagerId == null){
+            throw new ResourceNotFoundException("Not found new manager to reassign accounts");
+        }
         int updated = accountCommandRepository.updateManagerForAccounts(oldManagerId, newManagerId);
         if (updated == 0) {
             throw new ResourceNotFoundException("No accounts found for the given old manager ID: " + oldManagerId);
@@ -171,11 +177,51 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void assignAccountToNewManager(Long oldManagerId, Long newManagerId) {
-        Account account = accountCommandRepository.
-                findFirstByManagerIdAndBalanceGreaterThanOrderByBalanceAsc(oldManagerId, BigDecimal.ZERO)
-                .orElseThrow(() -> new ResourceNotFoundException("No account with positive balance found for the given old manager ID: " + oldManagerId));
+    public void assignAccountToNewManager(Long newManagerId) {
 
+        Map<Long, Long> managerAccountsCount = accountCommandRepository.findManagerAccountCountsRaw().stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        if(managerAccountsCount.isEmpty()){
+            return;
+        }
+
+        if(managerAccountsCount.size() == 1){
+            Long onlyManagerId = managerAccountsCount.keySet().iterator().next();
+            Long count = managerAccountsCount.get(onlyManagerId);
+
+            if(count <= 1){
+                return;
+            }
+        }
+
+        boolean allManagerHaveOneAccount = managerAccountsCount.values().stream()
+                .allMatch(count -> count == 1);
+
+        if(allManagerHaveOneAccount){
+            return;
+        }
+
+        Long oldManagerId = accountCommandRepository.findManagerWithMostAccountsAndLowestBalance();
+
+        if(oldManagerId == null){
+            return;
+        }
+
+        Optional<Account> accountToTransfer = accountCommandRepository.findAll()
+                .stream()
+                .filter(a -> a.getManagerId().equals(oldManagerId))
+                .filter(a -> a.getStatus().equals(AccountStatus.ATIVA))
+                .findFirst();
+
+        if(accountToTransfer.isEmpty()){
+            return;
+        }
+
+        Account account = accountToTransfer.get();
         account.setManagerId(newManagerId);
         accountCommandRepository.save(account);
 

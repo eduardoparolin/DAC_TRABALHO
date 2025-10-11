@@ -18,7 +18,7 @@ public class DeleteManagerHandler implements AccountMessageHandler {
     @Override
     public void handle(AccountSagaEvent event){
         try {
-            accountCommandService.reassignManager(event.getOldManagerId(), event.getNewManagerId());
+            accountCommandService.reassignManager(event.getOldManagerId());
             accountProducer.sendSuccessResult(AccountAction.DELETE_MANAGER);
         } catch (Exception e) {
             accountProducer.sendFailureResult(AccountAction.DELETE_MANAGER, e.getMessage());
