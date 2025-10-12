@@ -35,8 +35,12 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void createAccount(Long clientId, Double salary, Long managerId) {
+    public Long createAccount(Long clientId, Double salary) {
 
+        Long managerId = accountCommandRepository.findManagerWithLeastAccounts();
+        if (managerId == null){
+            throw new ResourceNotFoundException("Not found manager to assign account");
+        }
         if(accountCommandRepository.findByClientId(clientId).isPresent()) {
             throw new AccountAlreadyExistsException("Account already exists for client id: " + clientId);
         }
@@ -59,6 +63,7 @@ public class AccountCommandService {
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
         eventPublisher.publishEvent("bank.account", event);
 
+        return account.getManagerId();
     }
 
     @Transactional("commandTransactionManager")
@@ -162,11 +167,7 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void reassignManager(Long oldManagerId) {
-        Long newManagerId = accountCommandRepository.findManagerWithLeastAccounts();
-        if (newManagerId == null){
-            throw new ResourceNotFoundException("Not found new manager to reassign accounts");
-        }
+    public void reassignManager(Long oldManagerId, Long  newManagerId) {
         int updated = accountCommandRepository.updateManagerForAccounts(oldManagerId, newManagerId);
         if (updated == 0) {
             throw new ResourceNotFoundException("No accounts found for the given old manager ID: " + oldManagerId);

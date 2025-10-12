@@ -18,13 +18,17 @@ public class AccountProducer {
     private final String MESSAGE_SOURCE = "account";
     private final String RESULT_QUEUE = "account-result-queue";
 
-    public void sendSuccessResult(AccountAction action){
+    public void sendSuccessResult(AccountAction action, Long managerId){
         log.info("Processamento de {} concluído com sucesso.", action);
         Map<String,Object> result = new HashMap<>();
         result.put("source", MESSAGE_SOURCE);
         result.put("action", action.name() + "_RESULT");
         result.put("status", "SUCCESS");
         result.put("error", null);
+
+        if(managerId != null){
+            result.put("managerId", managerId);
+        }
 
         rabbitTemplate.convertAndSend(RESULT_QUEUE, result);
     }

@@ -19,7 +19,7 @@ public class AccountConsumer {
         try {
             AccountMessageHandler handler = messageHandlerFactory.getStrategy(event.getAction());
             handler.handle(event);
-            accountProducer.sendSuccessResult(event.getAction());
+            accountProducer.sendSuccessResult(event.getAction(), event.getManagerId());
         } catch (Exception e) {
             accountProducer.sendFailureResult(event.getAction(), e.getMessage());
         }
