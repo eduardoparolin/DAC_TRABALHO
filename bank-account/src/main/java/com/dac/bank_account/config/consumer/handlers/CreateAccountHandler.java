@@ -14,6 +14,7 @@ public class CreateAccountHandler implements AccountMessageHandler {
 
     @Override
     public void handle(AccountSagaEvent event) {
-        accountCommandService.createAccount(event.getClientId(), event.getSalary(), event.getManagerId());
+        Long managerId = accountCommandService.createAccount(event.getClientId(), event.getSalary());
+        event.setManagerId(managerId);
     }
 }

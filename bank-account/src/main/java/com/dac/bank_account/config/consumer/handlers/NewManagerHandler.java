@@ -14,6 +14,6 @@ public class NewManagerHandler implements AccountMessageHandler {
 
     @Override
     public void handle(AccountSagaEvent event){
-        accountCommandService.assignAccountToNewManager(event.getOldManagerId(), event.getNewManagerId());
+        accountCommandService.assignAccountToNewManager(event.getNewManagerId());
     }
 }

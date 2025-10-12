@@ -8,6 +8,7 @@ public record AccountResponseDTO (
         Double saldo,
         Double limite,
         String gerente,
-        String criacao
+        String criacao,
+        String status
 ){
 }

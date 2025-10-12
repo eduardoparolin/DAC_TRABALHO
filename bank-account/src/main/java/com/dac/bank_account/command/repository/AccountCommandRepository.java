@@ -4,8 +4,7 @@ import com.dac.bank_account.command.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 public interface AccountCommandRepository extends JpaRepository<Account, Long> {
@@ -19,6 +18,33 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
     @Query("UPDATE Account a SET a.managerId = :newManagerId WHERE a.managerId = :oldManagerId")
     int updateManagerForAccounts(Long oldManagerId, Long newManagerId);
 
-    Optional<Account> findFirstByManagerIdAndBalanceGreaterThanOrderByBalanceAsc(Long managerId, BigDecimal zero);
+    @Query(
+            value = """
+        SELECT managerId
+        FROM account
+        GROUP BY managerId
+        ORDER BY COUNT(*) DESC, SUM(balance) ASC
+        LIMIT 1
+    """,
+            nativeQuery = true
+    )
+    Long findManagerWithMostAccountsAndLowestBalance();
 
+
+    @Query("SELECT a.managerId, COUNT(a) FROM Account a GROUP BY a.managerId")
+    List<Object[]> findManagerAccountCountsRaw();
+
+    @Query(
+            value = """
+            SELECT managerId
+            FROM account
+            GROUP BY managerId
+            ORDER BY COUNT(*) ASC
+            LIMIT 1
+            """,
+            nativeQuery = true
+    )
+    Long findManagerWithLeastAccounts();
 }
+
+

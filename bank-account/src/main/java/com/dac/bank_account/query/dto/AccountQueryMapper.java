@@ -57,7 +57,8 @@ public class AccountQueryMapper {
                 account.getBalance().doubleValue(),
                 account.getLimitAmount().doubleValue(),
                 account.getManagerId().toString(),
-                brazilTime.format(formatter)
+                brazilTime.format(formatter),
+                account.getStatus().toString()
         );
     }
 
