@@ -1,123 +1,33 @@
-version: "3.9"
-
-name: multi-stack
+name: dac
 
 networks:
   backend:
   frontend:
 
 services:
-  # ---------- Spring Boot services ----------
-  spring-a:
-    build:
-      context: ./spring-a
-      dockerfile: Dockerfile
-    image: spring-a:latest
-    container_name: spring-a
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      JAVA_OPTS: "-Xms256m -Xmx512m"
+  # ---------- MongoDB ----------
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb
     ports:
-      - "8081:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
+      - "27017:27017"
     networks: [backend]
-
-  spring-b:
-    build:
-      context: ./spring-b
-      dockerfile: Dockerfile
-    image: spring-b:latest
-    container_name: spring-b
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      JAVA_OPTS: "-Xms256m -Xmx512m"
-    ports:
-      - "8082:8080"
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/27017"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 10
+
+  # ---------- RabbitMQ ----------
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI
     networks: [backend]
-
-  spring-c:
-    build:
-      context: ./spring-c
-      dockerfile: Dockerfile
-    image: spring-c:latest
-    container_name: spring-c
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      JAVA_OPTS: "-Xms256m -Xmx512m"
-    ports:
-      - "8083:8080"
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "rabbitmqctl", "status"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 10
-    networks: [backend]
-
-  spring-d:
-    build:
-      context: ./spring-d
-      dockerfile: Dockerfile
-    image: spring-d:latest
-    container_name: spring-d
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      JAVA_OPTS: "-Xms256m -Xmx512m"
-    ports:
-      - "8084:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-    networks: [backend]
-
-  # ---------- Node.js service ----------
-  node-api:
-    build:
-      context: ./node-api
-      dockerfile: Dockerfile
-    image: node-api:latest
-    container_name: node-api
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-    ports:
-      - "3000:3000"
-    depends_on:
-      spring-a:
-        condition: service_healthy
-      spring-b:
-        condition: service_healthy
-      spring-c:
-        condition: service_healthy
-      spring-d:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:3000/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-    networks: [backend, frontend]
-
-  # ---------- Angular app (built and served by Nginx) ----------
-  angular-app:
-    build:
-      context: ./angular-app
-      dockerfile: Dockerfile
-    image: angular-app:latest
-    container_name: angular-app
-    ports:
-      - "4200:80" # serve on localhost:4200 via Nginx
-    depends_on:
-      node-api:
-        condition: service_healthy
-    networks: [frontend]
