@@ -1,33 +1,56 @@
 package com.bank.client.dto;
 
-import com.bank.client.validation.Cpf;
-import com.bank.client.validation.TelefoneBr;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClientRequest {
-    @NotBlank @Size(max = 120)
-    private String nome;
+    @NotBlank(message = "Nome é obrigatório")
+    @Size(max = 120, message = "Nome deve ter no máximo 120 caracteres")
+    private String name;
 
-    @NotBlank @Email @Size(max = 150)
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Email deve ser válido")
+    @Size(max = 150, message = "Email deve ter no máximo 150 caracteres")
     private String email;
 
-    // troca o @Pattern por @Cpf (aceita com/sem máscara e valida DV)
-    @NotBlank
-    @Cpf(allowFormatted = true)
+    @NotBlank(message = "CPF é obrigatório")
+    @Pattern(regexp = "\\d{11}", message = "CPF deve conter 11 dígitos numéricos")
     private String cpf;
 
-    // mantém @Size e adiciona validação brasileira
-    @Size(max = 20)
-    @TelefoneBr(allowFormatted = true)
-    private String telefone;
+    @Size(max = 20, message = "Telefone deve ter no máximo 20 caracteres")
+    private String phone;
 
-    @NotNull @DecimalMin("0.00")
-    private BigDecimal salario;
+    @NotNull(message = "Salário é obrigatório")
+    @DecimalMin(value = "0.00", message = "Salário deve ser maior ou igual a zero")
+    private BigDecimal salary;
 
-    public String getNome() { return nome; } public void setNome(String nome) { this.nome = nome; }
-    public String getEmail() { return email; } public void setEmail(String email) { this.email = email; }
-    public String getCpf() { return cpf; } public void setCpf(String cpf) { this.cpf = cpf; }
-    public String getTelefone() { return telefone; } public void setTelefone(String telefone) { this.telefone = telefone; }
-    public BigDecimal getSalario() { return salario; } public void setSalario(BigDecimal salario) { this.salario = salario; }
+    @NotBlank(message = "Logradouro é obrigatório")
+    @Size(max = 200, message = "Logradouro deve ter no máximo 200 caracteres")
+    private String street;
+
+    @NotBlank(message = "Número é obrigatório")
+    @Size(max = 10, message = "Número deve ter no máximo 10 caracteres")
+    private String number;
+
+    @Size(max = 100, message = "Complemento deve ter no máximo 100 caracteres")
+    private String complement;
+
+    @NotBlank(message = "CEP é obrigatório")
+    @Pattern(regexp = "\\d{8}", message = "CEP deve conter 8 dígitos numéricos")
+    private String zipCode;
+
+    @NotBlank(message = "Cidade é obrigatória")
+    @Size(max = 100, message = "Cidade deve ter no máximo 100 caracteres")
+    private String city;
+
+    @NotBlank(message = "Estado é obrigatório")
+    @Pattern(regexp = "[A-Z]{2}", message = "Estado deve ser uma sigla de 2 letras maiúsculas")
+    private String state;
 }

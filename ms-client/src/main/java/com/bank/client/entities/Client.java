@@ -1,34 +1,75 @@
 package com.bank.client.entities;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "client")
 public class Client {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable=false, length=120)
-    private String nome;
+    @Column(nullable = false, length = 120)
+    private String name;
 
-    @Column(nullable=false, length=150)
+    @Column(nullable = false, length = 150)
     private String email;
 
-    @Column(nullable=false, length=11)
+    @Column(nullable = false, length = 11, unique = true)
     private String cpf;
 
-    @Column(length=20)
-    private String telefone;
+    @Column(length = 20)
+    private String phone;
 
-    @Column(nullable=false, precision=14, scale=2)
-    private BigDecimal salario;
+    @Column(nullable = false, precision = 14, scale = 2)
+    private BigDecimal salary;
 
-    public Long getId() { return id; } public void setId(Long id) { this.id = id; }
-    public String getNome() { return nome; } public void setNome(String nome) { this.nome = nome; }
-    public String getEmail() { return email; } public void setEmail(String email) { this.email = email; }
-    public String getCpf() { return cpf; } public void setCpf(String cpf) { this.cpf = cpf; }
-    public String getTelefone() { return telefone; } public void setTelefone(String telefone) { this.telefone = telefone; }
-    public BigDecimal getSalario() { return salario; } public void setSalario(BigDecimal salario) { this.salario = salario; }
+    @Enumerated(EnumType.STRING)
+    private ClientStatus status;
+
+    @Column(length = 500)
+    private String rejectionReason;
+
+    @Column(nullable = false, length = 200)
+    private String street;
+
+    @Column(nullable = false, length = 10)
+    private String number;
+
+    @Column(length = 100)
+    private String complement;
+
+    @Column(nullable = false, length = 8)
+    private String zipCode;
+
+    @Column(nullable = false, length = 100)
+    private String city;
+
+    @Column(nullable = false, length = 2)
+    private String state;
+
+    @Column(unique = true)
+    private Long accountId;
+
+    private Long managerId;
+
+    private OffsetDateTime creationDate;
+
+    private OffsetDateTime approvalDate;
+
+    public enum ClientStatus {
+        AGUARDANDO_APROVACAO,
+        APROVADO,
+        REJEITADO
+    }
 }
-

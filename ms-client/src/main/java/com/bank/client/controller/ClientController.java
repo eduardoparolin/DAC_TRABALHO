@@ -1,7 +1,9 @@
 package com.bank.client.controller;
 
+import com.bank.client.dto.ClientReportResponse;
 import com.bank.client.dto.ClientRequest;
 import com.bank.client.dto.ClientResponse;
+import com.bank.client.dto.RejectClientRequest;
 import com.bank.client.service.ClientService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +24,10 @@ public class ClientController {
 
     @PostMapping
     public ResponseEntity<ClientResponse> create(@Valid @RequestBody ClientRequest req,
-                                                 UriComponentsBuilder uriBuilder) {
+            UriComponentsBuilder uriBuilder) {
         ClientResponse res = service.create(req);
-        // manter coerência com o prefixo singular:
         return ResponseEntity.created(
-                uriBuilder.path("/cliente/{id}").buildAndExpand(res.getId()).toUri()
-        ).body(res);
+                uriBuilder.path("/cliente/{id}").buildAndExpand(res.getId()).toUri()).body(res);
     }
 
     @GetMapping
@@ -40,17 +40,6 @@ public class ClientController {
         return service.getById(id);
     }
 
-    @GetMapping("/search")
-    public com.bank.client.dto.PageResponse<ClientResponse> search(
-            @RequestParam(required = false) String cpf,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String nome,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "nome,asc") String sort) {
-        return service.search(cpf, email, nome, page, size, sort);
-    }
-
     @PutMapping("/{id}")
     public ClientResponse update(@PathVariable Long id, @Valid @RequestBody ClientRequest req) {
         return service.update(id, req);
@@ -60,5 +49,37 @@ public class ClientController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/report")
+    public List<ClientReportResponse> getClientsReport() {
+        return service.getClientsReport();
+    }
+
+    @GetMapping("/manager/{managerId}")
+    public List<ClientReportResponse> getClientsByManager(
+            @PathVariable Long managerId,
+            @RequestParam(required = false) String cpf,
+            @RequestParam(required = false) String name) {
+        return service.getClientsByManager(managerId, cpf, name);
+    }
+
+    @PostMapping("/{id}/reject")
+    public ClientResponse rejectClient(
+            @PathVariable Long id,
+            @Valid @RequestBody RejectClientRequest request) {
+        return service.rejectClient(id, request);
+    }
+
+    @PostMapping("/{id}/approve")
+    public ClientResponse approveClient(@PathVariable Long id) {
+        return service.approveClient(id);
+    }
+
+    @GetMapping("/status/{status}")
+    public List<ClientReportResponse> getClientsByStatus(
+            @PathVariable String status,
+            @RequestParam(required = false) Long managerId) {
+        return service.getClientsByStatus(status, managerId);
     }
 }
