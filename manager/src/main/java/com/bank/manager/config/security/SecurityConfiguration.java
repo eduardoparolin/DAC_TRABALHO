@@ -1,4 +1,4 @@
-package com.bank.manager.config;
+package com.bank.manager.config.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
