@@ -1,8 +1,9 @@
 package com.bank.client.service;
 
+import com.bank.client.dto.ClientReportResponse;
 import com.bank.client.dto.ClientRequest;
 import com.bank.client.dto.ClientResponse;
-import com.bank.client.dto.PageResponse;
+import com.bank.client.dto.RejectClientRequest;
 import com.bank.client.entities.Client;
 import com.bank.client.exception.DuplicateResourceException;
 import com.bank.client.exception.NotFoundException;
@@ -12,13 +13,9 @@ import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.bank.client.events.ClienteCreatedEvent;
-import com.bank.client.events.ClienteUpdatedEvent;
 import com.bank.client.events.ClienteEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -37,23 +34,28 @@ public class ClientService {
 
     @Transactional
     public ClientResponse create(ClientRequest req) {
-        String cpf = normalizeCpf(req.getCpf());
-        if (repo.existsByCpf(cpf)) throw new DuplicateResourceException("CPF já cadastrado");
-        if (repo.existsByEmail(req.getEmail())) throw new DuplicateResourceException("Email já cadastrado");
+        if (repo.existsByCpf(req.getCpf()))
+            throw new DuplicateResourceException("CPF já cadastrado");
+        if (repo.existsByEmail(req.getEmail()))
+            throw new DuplicateResourceException("Email já cadastrado");
 
-        Client e = new Client();
-        e.setNome(req.getNome());
-        e.setEmail(req.getEmail());
-        e.setCpf(cpf); // normalizado
-        e.setTelefone(req.getTelefone());
-        e.setSalario(round2(req.getSalario()));
-        e = repo.save(e);
-        if (publisher != null) {
-            publisher.publishCreated(new ClienteCreatedEvent(
-                    e.getId(), e.getNome(), e.getEmail(), e.getCpf(), e.getSalario()
-            ));
-        }
-        return toResponse(e);
+        Client client = new Client();
+        client.setName(req.getName());
+        client.setEmail(req.getEmail());
+        client.setCpf(req.getCpf());
+        client.setPhone(req.getPhone());
+        client.setSalary(req.getSalary());
+        client.setStreet(req.getStreet());
+        client.setNumber(req.getNumber());
+        client.setComplement(req.getComplement());
+        client.setZipCode(req.getZipCode());
+        client.setCity(req.getCity());
+        client.setState(req.getState());
+        client.setStatus(Client.ClientStatus.AGUARDANDO_APROVACAO);
+        client.setCreationDate(OffsetDateTime.now());
+
+        client = repo.save(client);
+        return toResponse(client);
     }
 
     public List<ClientResponse> list() {
@@ -61,89 +63,160 @@ public class ClientService {
     }
 
     public ClientResponse getById(Long id) {
-        Client e = repo.findById(id).orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + id));
-        return toResponse(e);
+        Client client = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + id));
+        return toResponse(client);
     }
 
     @Transactional
     public ClientResponse update(Long id, ClientRequest req) {
-        Client e = repo.findById(id).orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + id));
-        String cpf = normalizeCpf(req.getCpf());
+        Client client = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + id));
 
-        if (!Objects.equals(e.getCpf(), cpf) && repo.existsByCpf(cpf)) {
-            throw new DuplicateResourceException("CPF já cadastrado");
+        if (!Objects.equals(client.getCpf(), req.getCpf())) {
+            throw new IllegalArgumentException("CPF não pode ser alterado");
         }
-        if (!Objects.equals(e.getEmail(), req.getEmail()) && repo.existsByEmail(req.getEmail())) {
+
+        if (!Objects.equals(client.getEmail(), req.getEmail()) && repo.existsByEmail(req.getEmail())) {
             throw new DuplicateResourceException("Email já cadastrado");
         }
 
-        e.setNome(req.getNome());
-        e.setEmail(req.getEmail());
-        e.setCpf(cpf);
-        e.setTelefone(req.getTelefone());
-        e.setSalario(round2(req.getSalario()));
-        e = repo.save(e);
-        if (publisher != null) {
-            publisher.publishUpdated(new ClienteUpdatedEvent(
-                    e.getId(), e.getNome(), e.getEmail(), e.getCpf(), e.getSalario()
-            ));
-        }
+        client.setName(req.getName());
+        client.setEmail(req.getEmail());
+        client.setPhone(req.getPhone());
+        client.setSalary(req.getSalary());
+        client.setStreet(req.getStreet());
+        client.setNumber(req.getNumber());
+        client.setComplement(req.getComplement());
+        client.setZipCode(req.getZipCode());
+        client.setCity(req.getCity());
+        client.setState(req.getState());
 
-        return toResponse(e);
+        client = repo.save(client);
+        return toResponse(client);
     }
 
     @Transactional
     public void delete(Long id) {
-        if (!repo.existsById(id)) throw new NotFoundException("Cliente não encontrado: " + id);
+        if (!repo.existsById(id))
+            throw new NotFoundException("Cliente não encontrado: " + id);
         repo.deleteById(id);
     }
 
-    public PageResponse<ClientResponse> search(String cpf, String email, String nome, int page, int size, String sort) {
-        String cpfDigits = normalizeCpf(cpf);
-        Specification<Client> spec = null;
-        spec = ClientSpecifications.and(spec, ClientSpecifications.hasCpf(cpfDigits));
-        spec = ClientSpecifications.and(spec, ClientSpecifications.hasEmail(email));
-        spec = ClientSpecifications.and(spec, ClientSpecifications.nameContains(nome));
+    // R16
+    public List<ClientReportResponse> getClientsReport() {
+        Sort sort = Sort.by("name").ascending();
+        List<Client> clients = repo.findAll(sort);
 
-        Sort sortObj = parseSort(sort, "nome,asc");
-        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1), sortObj);
-
-        Page<Client> clients = (spec == null) ? repo.findAll(pageable) : repo.findAll(spec, pageable);
-
-        List<ClientResponse> content = clients.getContent().stream()
-                .map(this::toResponse)
+        return clients.stream()
+                .map(this::toReportResponse)
                 .collect(Collectors.toList());
-
-        return new PageResponse<>(
-                content,
-                clients.getNumber(),
-                clients.getSize(),
-                clients.getTotalElements(),
-                clients.getTotalPages(),
-                sortObj.toString()
-        );
     }
 
-    // ==== helpers ====
-    private ClientResponse toResponse(Client e) {
-        return new ClientResponse(e.getId(), e.getNome(), e.getEmail(), e.getCpf(), e.getTelefone(), e.getSalario());
+    // R13
+    public List<ClientReportResponse> getClientsByManager(Long managerId, String cpf, String name) {
+        String cpfDigits = normalizeCpf(cpf);
+
+        Specification<Client> spec = ClientSpecifications.hasManagerId(managerId);
+        spec = ClientSpecifications.and(spec, ClientSpecifications.hasCpf(cpfDigits));
+        spec = ClientSpecifications.and(spec, ClientSpecifications.nameContains(name));
+
+        Sort sort = Sort.by("name").ascending();
+        List<Client> clients = repo.findAll(spec, sort);
+
+        return clients.stream()
+                .map(this::toReportResponse)
+                .collect(Collectors.toList());
+    }
+
+    // R11
+    @Transactional
+    public ClientResponse rejectClient(Long clientId, RejectClientRequest request) {
+        Client client = repo.findById(clientId)
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
+
+        client.setStatus(Client.ClientStatus.REJEITADO);
+        client.setRejectionReason(request.getRejectionReason());
+        client.setApprovalDate(OffsetDateTime.now());
+
+        client = repo.save(client);
+        // TODO: Chamar Mailer para Notificar Cliente
+        return toResponse(client);
+    }
+
+    // R10
+    @Transactional
+    public ClientResponse approveClient(Long clientId) {
+        Client client = repo.findById(clientId)
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
+
+        client.setStatus(Client.ClientStatus.APROVADO);
+        client.setApprovalDate(OffsetDateTime.now());
+
+        client = repo.save(client);
+        // TODO: Publicar evento RabbitMQ para ms-conta criar conta, senha e enviar
+        // e-mail
+        return toResponse(client);
+    }
+
+    // R9
+    public List<ClientReportResponse> getClientsByStatus(String status, Long managerId) {
+        Client.ClientStatus clientStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                clientStatus = Client.ClientStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Status inválido: " + status);
+            }
+        }
+
+        Specification<Client> spec = ClientSpecifications.hasStatus(clientStatus);
+        spec = ClientSpecifications.and(spec, ClientSpecifications.hasManagerId(managerId));
+
+        Sort sort = Sort.by("creationDate").ascending();
+        List<Client> clients = repo.findAll(spec, sort);
+
+        return clients.stream()
+                .map(this::toReportResponse)
+                .collect(Collectors.toList());
+    }
+
+    private ClientResponse toResponse(Client client) {
+        ClientResponse response = new ClientResponse();
+        response.setId(client.getId());
+        response.setName(client.getName());
+        response.setEmail(client.getEmail());
+        response.setCpf(client.getCpf());
+        response.setPhone(client.getPhone());
+        response.setSalary(client.getSalary());
+        response.setAccountId(client.getAccountId());
+        response.setStatus(client.getStatus() != null ? client.getStatus().name() : null);
+        response.setRejectionReason(client.getRejectionReason());
+        response.setManagerId(client.getManagerId());
+        response.setCreationDate(client.getCreationDate());
+        response.setApprovalDate(client.getApprovalDate());
+        response.setStreet(client.getStreet());
+        response.setNumber(client.getNumber());
+        response.setComplement(client.getComplement());
+        response.setZipCode(client.getZipCode());
+        response.setCity(client.getCity());
+        response.setState(client.getState());
+        return response;
+    }
+
+    private ClientReportResponse toReportResponse(Client e) {
+        return new ClientReportResponse(
+                e.getCpf(),
+                e.getName(),
+                e.getEmail(),
+                e.getSalary(),
+                e.getAccountId(),
+                e.getManagerId());
     }
 
     private String normalizeCpf(String value) {
-        if (value == null) return null;
-        return value.replaceAll("\\D", ""); // mantém só dígitos
-    }
-
-    private BigDecimal round2(BigDecimal v) {
-        if (v == null) return null;
-        return v.setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private Sort parseSort(String sort, String fallback) {
-        String s = (sort == null || sort.isBlank()) ? fallback : sort;
-        String[] parts = s.split(",", 2);
-        String prop = parts[0].trim();
-        String dir = parts.length > 1 ? parts[1].trim() : "asc";
-        return "desc".equalsIgnoreCase(dir) ? Sort.by(prop).descending() : Sort.by(prop).ascending();
+        if (value == null)
+            return null;
+        return value.replaceAll("\\D", "");
     }
 }
