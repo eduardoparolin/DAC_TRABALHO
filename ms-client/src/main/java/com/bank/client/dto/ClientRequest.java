@@ -1,5 +1,6 @@
 package com.bank.client.dto;
 
+import com.bank.client.enums.ClientAction;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,6 +12,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClientRequest {
+
+    @NotBlank
+    private ClientAction action;
+
+    @NotNull
+    private Long id;
+
+    @NotBlank
+    private String rejectionReason;
+
     @NotBlank(message = "Nome é obrigatório")
     @Size(max = 120, message = "Nome deve ter no máximo 120 caracteres")
     private String name;
