@@ -10,11 +10,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMq {
 
-  private final String queueName = "client-queue";
+  private final String SAGA_QUEUE = "client-queue";
+  private final String SAGA_RESULT_QUEUE = "client-result-queue";
 
   @Bean
-  public Queue queue() {
-    return new Queue(queueName, true);
+  public Queue clientQueue() {
+    return new Queue(SAGA_QUEUE, true);
+  }
+
+  @Bean
+  public Queue clientResultQueue() {
+    return new Queue(SAGA_RESULT_QUEUE, true);
   }
 
   @Bean
