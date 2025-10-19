@@ -1,9 +1,6 @@
 package com.bank.client.service;
 
-import com.bank.client.dto.ClientReportResponse;
-import com.bank.client.dto.ClientRequest;
-import com.bank.client.dto.ClientResponse;
-import com.bank.client.dto.RejectClientRequest;
+import com.bank.client.dto.*;
 import com.bank.client.entities.Client;
 import com.bank.client.exception.DuplicateResourceException;
 import com.bank.client.exception.NotFoundException;
@@ -33,7 +30,7 @@ public class ClientService {
     private ClienteEventPublisher publisher;
 
     @Transactional
-    public ClientResponse create(ClientRequest req) {
+    public Long create(ClientRequest req) {
         if (repo.existsByCpf(req.getCpf()))
             throw new DuplicateResourceException("CPF já cadastrado");
         if (repo.existsByEmail(req.getEmail()))
@@ -55,7 +52,7 @@ public class ClientService {
         client.setCreationDate(OffsetDateTime.now());
 
         client = repo.save(client);
-        return toResponse(client);
+        return client.getId();
     }
 
     public List<ClientResponse> list() {
@@ -69,13 +66,9 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientResponse update(Long id, ClientRequest req) {
-        Client client = repo.findById(id)
-                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + id));
-
-        if (!Objects.equals(client.getCpf(), req.getCpf())) {
-            throw new IllegalArgumentException("CPF não pode ser alterado");
-        }
+    public void update(ClientRequest req) {
+        Client client = repo.findById(req.getId())
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + req.getId()));
 
         if (!Objects.equals(client.getEmail(), req.getEmail()) && repo.existsByEmail(req.getEmail())) {
             throw new DuplicateResourceException("Email já cadastrado");
@@ -92,8 +85,7 @@ public class ClientService {
         client.setCity(req.getCity());
         client.setState(req.getState());
 
-        client = repo.save(client);
-        return toResponse(client);
+        repo.save(client);
     }
 
     @Transactional
@@ -131,24 +123,31 @@ public class ClientService {
 
     // R11
     @Transactional
-    public ClientResponse rejectClient(Long clientId, RejectClientRequest request) {
+    public void rejectClient(Long clientId, String reason) {
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
 
+        if(client.getStatus().equals(Client.ClientStatus.APROVADO)){
+            throw new IllegalArgumentException("Cliente ja aprovado");
+        }
+
         client.setStatus(Client.ClientStatus.REJEITADO);
-        client.setRejectionReason(request.getRejectionReason());
+        client.setRejectionReason(reason);
         client.setApprovalDate(OffsetDateTime.now());
 
         client = repo.save(client);
         // TODO: Chamar Mailer para Notificar Cliente
-        return toResponse(client);
     }
 
     // R10
     @Transactional
-    public ClientResponse approveClient(Long clientId) {
+    public void approveClient(Long clientId) {
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
+
+        if(client.getStatus().equals(Client.ClientStatus.REJEITADO)){
+            throw new IllegalArgumentException("Cliente ja rejeitdo");
+        }
 
         client.setStatus(Client.ClientStatus.APROVADO);
         client.setApprovalDate(OffsetDateTime.now());
@@ -156,7 +155,6 @@ public class ClientService {
         client = repo.save(client);
         // TODO: Publicar evento RabbitMQ para ms-conta criar conta, senha e enviar
         // e-mail
-        return toResponse(client);
     }
 
     // R9
