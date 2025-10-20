@@ -1,6 +1,5 @@
-package com.bank.manager.config;
+package com.dac.bank_account.config.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

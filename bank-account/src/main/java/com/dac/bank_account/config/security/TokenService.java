@@ -1,4 +1,4 @@
-package com.bank.manager.config;
+package com.dac.bank_account.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -11,8 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 
 @Service
