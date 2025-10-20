@@ -30,7 +30,7 @@ public class ClientService {
     private ClienteEventPublisher publisher;
 
     @Transactional
-    public Long create(ClientRequest req) {
+    public Long create(ClientCreateDTO req) {
         if (repo.existsByCpf(req.getCpf()))
             throw new DuplicateResourceException("CPF já cadastrado");
         if (repo.existsByEmail(req.getEmail()))
@@ -66,9 +66,9 @@ public class ClientService {
     }
 
     @Transactional
-    public void update(ClientRequest req) {
-        Client client = repo.findById(req.getId())
-                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + req.getId()));
+    public void update(ClientUpdateDTO req) {
+        Client client = repo.findById(req.getClientId())
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + req.getClientId()));
 
         if (!Objects.equals(client.getEmail(), req.getEmail()) && repo.existsByEmail(req.getEmail())) {
             throw new DuplicateResourceException("Email já cadastrado");
@@ -123,7 +123,9 @@ public class ClientService {
 
     // R11
     @Transactional
-    public void rejectClient(Long clientId, String reason) {
+    public void rejectClient(ClientRejectDTO req) {
+        Long clientId = req.getClientId();
+        String reason = req.getRejectionReason();
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
 
@@ -135,13 +137,16 @@ public class ClientService {
         client.setRejectionReason(reason);
         client.setApprovalDate(OffsetDateTime.now());
 
-        client = repo.save(client);
+        repo.save(client);
         // TODO: Chamar Mailer para Notificar Cliente
     }
 
     // R10
     @Transactional
-    public void approveClient(Long clientId) {
+    public void approveClient(ClientApproveDTO req) {
+        Long clientId = req.getClientId();
+        Long managerId = req.getManagerId();
+        Long accountNumber = req.getAccountNumber();
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
 
@@ -150,9 +155,11 @@ public class ClientService {
         }
 
         client.setStatus(Client.ClientStatus.APROVADO);
+        client.setManagerId(managerId);
+        client.setAccountId(accountNumber);
         client.setApprovalDate(OffsetDateTime.now());
 
-        client = repo.save(client);
+        repo.save(client);
         // TODO: Publicar evento RabbitMQ para ms-conta criar conta, senha e enviar
         // e-mail
     }
