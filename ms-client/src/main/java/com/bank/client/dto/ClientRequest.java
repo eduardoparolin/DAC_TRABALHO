@@ -12,56 +12,20 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClientRequest {
-
-    @NotBlank
     private ClientAction action;
-
-    @NotNull
-    private Long id;
-
-    @NotBlank
+    private Long clientId;
     private String rejectionReason;
-
-    @NotBlank(message = "Nome é obrigatório")
-    @Size(max = 120, message = "Nome deve ter no máximo 120 caracteres")
     private String name;
-
-    @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email deve ser válido")
-    @Size(max = 150, message = "Email deve ter no máximo 150 caracteres")
     private String email;
-
-    @NotBlank(message = "CPF é obrigatório")
-    @Pattern(regexp = "\\d{11}", message = "CPF deve conter 11 dígitos numéricos")
     private String cpf;
-
-    @Size(max = 20, message = "Telefone deve ter no máximo 20 caracteres")
     private String phone;
-
-    @NotNull(message = "Salário é obrigatório")
-    @DecimalMin(value = "0.00", message = "Salário deve ser maior ou igual a zero")
     private BigDecimal salary;
-
-    @NotBlank(message = "Logradouro é obrigatório")
-    @Size(max = 200, message = "Logradouro deve ter no máximo 200 caracteres")
     private String street;
-
-    @NotBlank(message = "Número é obrigatório")
-    @Size(max = 10, message = "Número deve ter no máximo 10 caracteres")
     private String number;
-
-    @Size(max = 100, message = "Complemento deve ter no máximo 100 caracteres")
     private String complement;
-
-    @NotBlank(message = "CEP é obrigatório")
-    @Pattern(regexp = "\\d{8}", message = "CEP deve conter 8 dígitos numéricos")
     private String zipCode;
-
-    @NotBlank(message = "Cidade é obrigatória")
-    @Size(max = 100, message = "Cidade deve ter no máximo 100 caracteres")
     private String city;
-
-    @NotBlank(message = "Estado é obrigatório")
-    @Pattern(regexp = "[A-Z]{2}", message = "Estado deve ser uma sigla de 2 letras maiúsculas")
     private String state;
+    private Long managerId;
+    private Long accountNumber;
 }
