@@ -1,5 +1,6 @@
 package com.dac.bank_account.config.consumer.handlers;
 
+import com.dac.bank_account.command.dto.request.CreateAccountDTO;
 import com.dac.bank_account.command.service.AccountCommandService;
 import com.dac.bank_account.config.consumer.handlers.interfaces.AccountMessageHandler;
 import com.dac.bank_account.config.consumer.AccountSagaEvent;
@@ -14,7 +15,11 @@ public class CreateAccountHandler implements AccountMessageHandler {
 
     @Override
     public void handle(AccountSagaEvent event) {
-        Long managerId = accountCommandService.createAccount(event.getClientId(), event.getSalary());
+        CreateAccountDTO dto = new CreateAccountDTO(
+                event.getClientId(),
+                event.getSalary()
+        );
+        Long managerId = accountCommandService.createAccount(dto);
         event.setManagerId(managerId);
     }
 }

@@ -1,5 +1,6 @@
 package com.dac.bank_account.config.consumer.handlers;
 
+import com.dac.bank_account.command.dto.request.DeleteManagerDTO;
 import com.dac.bank_account.command.service.AccountCommandService;
 import com.dac.bank_account.config.consumer.handlers.interfaces.AccountMessageHandler;
 import com.dac.bank_account.config.consumer.AccountSagaEvent;
@@ -15,6 +16,10 @@ public class DeleteManagerHandler implements AccountMessageHandler {
 
     @Override
     public void handle(AccountSagaEvent event) {
-        accountCommandService.reassignManager(event.getOldManagerId(), event.getNewManagerId());
+        DeleteManagerDTO dto = new DeleteManagerDTO(
+                event.getOldManagerId(),
+                event.getNewManagerId()
+        );
+        accountCommandService.reassignManager(dto);
     }
 }

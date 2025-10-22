@@ -1,6 +1,7 @@
 package com.dac.bank_account.command.service;
 
 import com.dac.bank_account.command.dto.*;
+import com.dac.bank_account.command.dto.request.*;
 import com.dac.bank_account.command.dto.response.MovementResponseDTO;
 import com.dac.bank_account.command.dto.response.TransferResponseDTO;
 import com.dac.bank_account.command.entity.Account;
@@ -35,8 +36,9 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public Long createAccount(Long clientId, Double salary) {
-
+    public Long createAccount(CreateAccountDTO dto) {
+        Long clientId = dto.getClientId();
+        Double salary = dto.getSalary();
         Long managerId = accountCommandRepository.findManagerWithLeastAccounts();
         if (managerId == null){
             throw new ResourceNotFoundException("Not found manager to assign account");
@@ -67,7 +69,9 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void updateAccountStatus(Long clientId, Boolean approved) {
+    public void updateAccountStatus(UpdateStatusDTO dto) {
+        Long clientId = dto.getClientId();
+        Boolean approved = dto.getIsApproved();
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
@@ -151,7 +155,9 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void setLimit(Long clientId, Double salary) {
+    public void setLimit(UpdateLimitDTO dto) {
+        Long clientId = dto.getClientId();
+        Double salary = dto.getSalary();
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
@@ -167,7 +173,9 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void reassignManager(Long oldManagerId, Long  newManagerId) {
+    public void reassignManager(DeleteManagerDTO dto) {
+        Long oldManagerId = dto.getOldManagerId();
+        Long newManagerId = dto.getNewManagerId();
         int updated = accountCommandRepository.updateManagerForAccounts(oldManagerId, newManagerId);
         if (updated == 0) {
             throw new ResourceNotFoundException("No accounts found for the given old manager ID: " + oldManagerId);
@@ -178,7 +186,8 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void assignAccountToNewManager(Long newManagerId) {
+    public void assignAccountToNewManager(NewManagerDTO dto) {
+        Long newManagerId = dto.getNewManagerId();
 
         Map<Long, Long> managerAccountsCount = accountCommandRepository.findManagerAccountCountsRaw().stream()
                 .collect(Collectors.toMap(
