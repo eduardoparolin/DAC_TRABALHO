@@ -221,11 +221,7 @@ public class AccountCommandService {
             return;
         }
 
-        Optional<Account> accountToTransfer = accountCommandRepository.findAll()
-                .stream()
-                .filter(a -> a.getManagerId().equals(oldManagerId))
-                .filter(a -> a.getStatus().equals(AccountStatus.ATIVA))
-                .findFirst();
+        Optional<Account> accountToTransfer = accountCommandRepository.findFirstByManagerIdAndStatus(oldManagerId, AccountStatus.ATIVA);
 
         if(accountToTransfer.isEmpty()){
             return;
