@@ -1,0 +1,42 @@
+version: '3.9'
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  manager-data:
+
+services:
+  # ---------- PostgreSQL ----------
+  postgres:
+    image: postgres:15
+    container_name: ms-manager-postgres
+    environment:
+      POSTGRES_DB: manager_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5433:5432"
+    volumes:
+      - manager-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------- Manager Service ----------
+  manager-service:
+    build: .
+    container_name: ms-manager
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "8090:8090"
+    networks:
+      - backend
