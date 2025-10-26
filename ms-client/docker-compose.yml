@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ms-cliente-postgres
+    environment:
+      POSTGRES_USER: cliente
+      POSTGRES_PASSWORD: cliente123
+      POSTGRES_DB: cliente_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - cliente-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+networks:
+  backend:
+    external: true
+
+volumes:
+  cliente-postgres-data:
