@@ -2,20 +2,262 @@ name: dac
 
 networks:
   backend:
-    external: true
+    driver: bridge
   frontend:
+    driver: bridge
+
+volumes:
+  auth-mongo-data:
+  client-postgres-data:
+  bank-account-postgres-command-data:
+  bank-account-postgres-query-data:
+  manager-postgres-data:
+  orchestrator-postgres-data:
 
 services:
-
+  # ---------- RabbitMQ ----------
   rabbitmq:
     image: rabbitmq:4-management
     container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
-    networks: [backend]
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: 1234
+    networks:
+      - backend
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 10s
       timeout: 5s
       retries: 10
+
+  # ---------- Auth MongoDB ----------
+  auth-mongo:
+    image: mongo:8.0
+    container_name: ms-auth-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 1234
+      MONGO_INITDB_DATABASE: users
+    volumes:
+      - auth-mongo-data:/data/db
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Auth Service ----------
+  auth-service:
+    build: ./auth
+    container_name: ms-auth
+    depends_on:
+      auth-mongo:
+        condition: service_healthy
+    env_file:
+      - ./auth/.env
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+
+  # ---------- Client PostgreSQL ----------
+  client-postgres:
+    image: postgres:16
+    container_name: ms-client-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: msclient
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - client-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Client Service ----------
+  client-service:
+    build: ./ms-client
+    container_name: ms-client
+    depends_on:
+      client-postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ./ms-client/.env
+    ports:
+      - "8086:8086"
+    networks:
+      - backend
+
+  # ---------- Bank Account PostgreSQL Command DB ----------
+  bank-account-postgres-command:
+    image: postgres:16
+    container_name: bank-account-postgres-command
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_DB: command_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - bank-account-postgres-command-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Bank Account PostgreSQL Query DB ----------
+  bank-account-postgres-query:
+    image: postgres:16
+    container_name: bank-account-postgres-query
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: query_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - bank-account-postgres-query-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Bank Account Service ----------
+  bank-account-service:
+    build: ./bank-account
+    container_name: ms-bank-account
+    depends_on:
+      bank-account-postgres-command:
+        condition: service_healthy
+      bank-account-postgres-query:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ./bank-account/.env
+    ports:
+      - "8081:8081"
+    networks:
+      - backend
+
+  # ---------- Manager PostgreSQL ----------
+  manager-postgres:
+    image: postgres:16
+    container_name: ms-manager-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: manager_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - manager-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Manager Service ----------
+  manager-service:
+    build: ./manager
+    container_name: ms-manager
+    depends_on:
+      manager-postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ./manager/.env
+    ports:
+      - "8084:8084"
+    networks:
+      - backend
+
+  # ---------- Orchestrator PostgreSQL ----------
+  orchestrator-postgres:
+    image: postgres:16
+    container_name: ms-orchestrator-postgres
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: saga_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - orchestrator-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Orchestrator Service ----------
+  orchestrator-service:
+    build: ./orchestrator
+    container_name: ms-orchestrator
+    depends_on:
+      orchestrator-postgres:
+        condition: service_healthy
+    env_file:
+      - ./orchestrator/.env
+    ports:
+      - "8085:8085"
+    networks:
+      - backend
+
+  # ---------- API Gateway ----------
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      - auth-service
+      - client-service
+      - bank-account-service
+      - manager-service
+      - orchestrator-service
+    env_file:
+      - ./api-gateway/.env
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+      - frontend
+
+  # ---------- Frontend ----------
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    depends_on:
+      - api-gateway
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "4200:4200"
+    networks:
+      - frontend

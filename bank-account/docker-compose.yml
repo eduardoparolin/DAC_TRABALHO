@@ -5,47 +5,60 @@ networks:
     external: true
 
 volumes:
-  pgdata1:
-  pgdata2:
+  bank-account-postgres-command-data:
+  bank-account-postgres-query-data:
 
 services:
-  postgres1:
-    image: postgres:15
-    container_name: postgres1
+  # ---------- PostgreSQL Command DB ----------
+  postgres-command:
+    image: postgres:16
+    container_name: bank-account-postgres-command
+    ports:
+      - "5431:5432"
     environment:
       POSTGRES_DB: command_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-    ports:
-      - "5431:5432"
     volumes:
-      - pgdata1:/var/lib/postgresql/data
+      - bank-account-postgres-command-data:/var/lib/postgresql/data
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
-  postgres2:
-    image: postgres:15
-    container_name: postgres2
+  # ---------- PostgreSQL Query DB ----------
+  postgres-query:
+    image: postgres:16
+    container_name: bank-account-postgres-query
+    ports:
+      - "5435:5432"
     environment:
       POSTGRES_DB: query_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-    ports:
-      - "5435:5432"
     volumes:
-      - pgdata2:/var/lib/postgresql/data
+      - bank-account-postgres-query-data:/var/lib/postgresql/data
     networks:
       - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
+  # ---------- Bank Account Service ----------
   bank-account-service:
     build: .
     container_name: ms-bank-account
     depends_on:
-      - postgres1
-      - postgres2
+      - postgres-command
+      - postgres-query
     env_file:
       - .env
     ports:
-      - "8082:8082"
+      - "8081:8081"
     networks:
       - backend

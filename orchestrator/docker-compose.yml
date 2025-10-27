@@ -2,24 +2,24 @@ version: '3.9'
 
 networks:
   backend:
-    external: true 
+    external: true  # Usa a rede compartilhada com o DAC
 
 volumes:
-  manager-postgres-data:
+  orchestrator-postgres-data:
 
 services:
   # ---------- PostgreSQL ----------
   postgres:
     image: postgres:16
-    container_name: ms-manager-postgres
+    container_name: ms-orchestrator-postgres
     ports:
-      - "5433:5432"
+      - "5434:5432"
     environment:
-      POSTGRES_DB: manager_db
+      POSTGRES_DB: saga_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
+      POSTGRES_PASSWORD: 1234
     volumes:
-      - manager-postgres-data:/var/lib/postgresql/data
+      - orchestrator-postgres-data:/var/lib/postgresql/data
     networks:
       - backend
     healthcheck:
@@ -28,15 +28,15 @@ services:
       timeout: 5s
       retries: 10
 
-  # ---------- Manager Service ----------
-  manager-service:
+  # ---------- Orchestrator Service ----------
+  orchestrator-service:
     build: .
-    container_name: ms-manager
+    container_name: ms-orchestrator
     depends_on:
       - postgres
     env_file:
       - .env
     ports:
-      - "8084:8084"
+      - "8085:8085"
     networks:
       - backend
