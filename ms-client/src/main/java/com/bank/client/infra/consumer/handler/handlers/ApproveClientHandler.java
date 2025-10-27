@@ -1,5 +1,6 @@
 package com.bank.client.infra.consumer.handler.handlers;
 
+import com.bank.client.dto.ClientApproveDTO;
 import com.bank.client.dto.ClientRequest;
 import com.bank.client.infra.consumer.handler.interfaces.ClientMessageHandler;
 import com.bank.client.service.ClientService;
@@ -14,6 +15,11 @@ public class ApproveClientHandler implements ClientMessageHandler {
 
     @Override
     public void handle(ClientRequest event){
-        clientService.approveClient(event.getId());
+        ClientApproveDTO dto = new ClientApproveDTO(
+                event.getClientId(),
+                event.getManagerId(),
+                event.getAccountNumber()
+        );
+        clientService.approveClient(dto);
     }
 }
