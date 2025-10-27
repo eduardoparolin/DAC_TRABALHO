@@ -1,23 +1,42 @@
 version: '3.9'
 
-services:
-  postgres:
-    image: postgres:15
-    container_name: ms-cliente-postgres
-    environment:
-      POSTGRES_USER: cliente
-      POSTGRES_PASSWORD: cliente123
-      POSTGRES_DB: cliente_db
-    ports:
-      - "5434:5432"
-    volumes:
-      - cliente-postgres-data:/var/lib/postgresql/data
-    networks:
-      - backend
-
 networks:
   backend:
     external: true
 
 volumes:
-  cliente-postgres-data:
+  client-postgres-data:
+
+services:
+  # ---------- PostgreSQL ----------
+  postgres:
+    image: postgres:16
+    container_name: ms-client-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: msclient
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 96101204
+    volumes:
+      - client-postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Client Service ----------
+  client-service:
+    build: .
+    container_name: ms-client
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - "8086:8086"
+    networks:
+      - backend
