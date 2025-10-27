@@ -1,5 +1,6 @@
 package com.bank.client.infra.consumer.handler.handlers;
 
+import com.bank.client.dto.ClientCreateDTO;
 import com.bank.client.dto.ClientRequest;
 import com.bank.client.infra.consumer.handler.interfaces.ClientMessageHandler;
 import com.bank.client.service.ClientService;
@@ -14,7 +15,20 @@ public class CreateClientHandler implements ClientMessageHandler {
 
     @Override
     public void handle(ClientRequest event) {
-        Long clientId = clientService.create(event);
-        event.setId(clientId);
+        ClientCreateDTO dto = new ClientCreateDTO(
+                event.getName(),
+                event.getEmail(),
+                event.getCpf(),
+                event.getPhone(),
+                event.getSalary(),
+                event.getStreet(),
+                event.getNumber(),
+                event.getComplement(),
+                event.getZipCode(),
+                event.getCity(),
+                event.getState()
+        );
+        Long clientId = clientService.create(dto);
+        event.setClientId(clientId);
     }
 }

@@ -1,5 +1,6 @@
 package com.bank.client.infra.consumer.handler.handlers;
 
+import com.bank.client.dto.ClientRejectDTO;
 import com.bank.client.dto.ClientRequest;
 import com.bank.client.infra.consumer.handler.interfaces.ClientMessageHandler;
 import com.bank.client.service.ClientService;
@@ -14,6 +15,10 @@ public class RejectClientHandler implements ClientMessageHandler {
 
     @Override
     public void handle(ClientRequest event) {
-        clientService.rejectClient(event.getId(), event.getRejectionReason());
+        ClientRejectDTO dto = new ClientRejectDTO(
+                event.getClientId(),
+                event.getRejectionReason()
+        );
+        clientService.rejectClient(dto);
     }
 }
