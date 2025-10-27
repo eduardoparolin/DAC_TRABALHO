@@ -1,0 +1,42 @@
+version: '3.9'
+
+networks:
+  backend:
+    external: true  # Usa a rede compartilhada com o DAC
+
+volumes:
+  auth-mongo-data:
+
+services:
+  # ---------- MongoDB ----------
+  mongo:
+    image: mongo:8.0
+    container_name: ms-auth-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: users
+    volumes:
+      - auth-mongo-data:/data/db
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------- Auth Service ----------
+  auth-service:
+    build: .
+    container_name: ms-auth
+    depends_on:
+      - mongo
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
