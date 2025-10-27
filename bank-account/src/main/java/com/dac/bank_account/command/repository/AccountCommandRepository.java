@@ -1,6 +1,7 @@
 package com.dac.bank_account.command.repository;
 
 import com.dac.bank_account.command.entity.Account;
+import com.dac.bank_account.enums.AccountStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -45,6 +46,8 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
             nativeQuery = true
     )
     Long findManagerWithLeastAccounts();
+
+    Optional<Account> findFirstByManagerIdAndStatus(Long managerId, AccountStatus status);
 }
 
 
