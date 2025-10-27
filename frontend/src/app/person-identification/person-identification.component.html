@@ -1,0 +1,9 @@
+<div class="person-container">
+  <div class="photo-circle">
+    <mat-icon>person</mat-icon>
+  </div>
+  <div class="info-column">
+    <div class="person-name">{{sessionService.user()?.name}}</div>
+    <div class="person-role">{{sessionService.user()?.type | userType}}</div>
+  </div>
+</div>

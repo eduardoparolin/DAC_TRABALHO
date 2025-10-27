@@ -1,5 +1,8 @@
-<button mat-raised-button [routerLink]="'login'">Login</button>
-<button mat-raised-button [routerLink]="'clients'">Clientes</button>
-<button mat-raised-button [routerLink]="'accounts'">Contas</button>
-<button mat-raised-button [routerLink]="'managers'">Gerentes</button>
+<!--<button mat-raised-button [routerLink]="'login'">Login</button>-->
+<!--<button mat-raised-button [routerLink]="'clientes'">Clientes</button>-->
+<!--<button mat-raised-button [routerLink]="'contas'">Contas</button>-->
+<!--<button mat-raised-button [routerLink]="'gestores'">Gerentes</button>-->
+@if (sessionService.user() != null) {
+  <app-top-menu></app-top-menu>
+}
 <router-outlet />

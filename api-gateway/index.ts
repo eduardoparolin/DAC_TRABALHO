@@ -1,12 +1,15 @@
 import { Hono } from "hono";
+import { config } from "dotenv";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { authRoutes } from "./routes/authRoutes";
-import { customerRoutes } from "./routes/customerRoutes";
-import { accountRoutes } from "./routes/accountRoutes";
-import { managerRoutes } from "./routes/managerRoutes";
 import { authMiddleware } from "./middleware/auth";
+import { authRoutes } from "./routes/authRoutes/authRoutes";
+import { customerRoutes } from "./routes/customerRoutes/customerRoutes";
+import { accountRoutes } from "./routes/accountsRoutes/accountRoutes";
+import { managerRoutes } from "./routes/managerRoutes/managerRoutes";
+
+config();
 
 const app = new Hono();
 app.use("*", cors());
@@ -14,14 +17,14 @@ app.use("*", logger());
 
 app.get("/", (c) => c.text("Bantads API Gateway"));
 
+// app.use("/clientes/*", authMiddleware);
+// app.use("/contas/*", authMiddleware);
+// app.use("/gerentes/*", authMiddleware);
+
 app.route("/auth", authRoutes);
 app.route("/clientes", customerRoutes);
 app.route("/contas", accountRoutes);
 app.route("/gerentes", managerRoutes);
-
-app.use("/clientes/*", authMiddleware);
-app.use("/contas/*", authMiddleware);
-app.use("/gerentes/*", authMiddleware);
 
 app.onError((err, c) => {
   console.error("Gateway Error:", err);

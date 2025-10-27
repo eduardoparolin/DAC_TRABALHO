@@ -1,6 +1,20 @@
 {
-  "cpf": "000.000.000-00",
-  "nome": "Eduardo Parolin",
-  "email": "eduardo@nuvex.tech",
-  "tipo": "AAA"
+  "admin": {
+    "cpf": "000.000.000-01",
+    "nome": "Eduardo Admin",
+    "email": "eduardo+admin@nuvex.tech",
+    "tipo": "ADMIN"
+  },
+  "manager": {
+    "cpf": "000.000.000-02",
+    "nome": "Eduardo Manager",
+    "email": "eduardo+manager@nuvex.tech",
+    "tipo": "MANAGER"
+  },
+  "client": {
+    "cpf": "000.000.000-03",
+    "nome": "Eduardo Client",
+    "email": "eduardo+client@nuvex.tech",
+    "tipo": "CLIENT"
+  }
 }

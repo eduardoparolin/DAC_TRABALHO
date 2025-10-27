@@ -1,1 +1,75 @@
-<p>clients works!</p>
+@if (sessionService.user()?.isManager()) {
+<div>
+  <mat-form-field>
+    <mat-label>Filtrar por CPF ou Nome</mat-label>
+    <input
+      matInput
+      [formControl]="filterControl"
+      (keyup)="applyFilter($event)"
+      placeholder="Ex. Nome, CPF, E-mail"
+    />
+  </mat-form-field>
+  @if (service.filteredClients().length != service.clients().length) {
+  <button mat-button (click)="clearFilter()">Limpar filtro</button>
+  }
+</div>
+}
+<table
+  mat-table
+  [dataSource]="this.service.filteredClients()"
+  class="mat-elevation-z8"
+>
+  <ng-container matColumnDef="CPF">
+    <th mat-header-cell *matHeaderCellDef>CPF</th>
+    <td mat-cell *matCellDef="let element">{{ element.cpf }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="NAME">
+    <th mat-header-cell *matHeaderCellDef>Nome</th>
+    <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="EMAIL">
+    <th mat-header-cell *matHeaderCellDef>E-mail</th>
+    <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="WAGE">
+    <th mat-header-cell *matHeaderCellDef>Salário</th>
+    <td mat-cell *matCellDef="let element">{{ element.wage }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="PHONE">
+    <th mat-header-cell *matHeaderCellDef>Telefone</th>
+    <td mat-cell *matCellDef="let element">{{ element.phone }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="ACCOUNT_NUMBER">
+    <th mat-header-cell *matHeaderCellDef>Número da Conta</th>
+    <td mat-cell *matCellDef="let element">{{ element.accountNumber }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="BALANCE">
+    <th mat-header-cell *matHeaderCellDef>Saldo</th>
+    <td mat-cell *matCellDef="let element">{{ element.balance }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="LIMIT">
+    <th mat-header-cell *matHeaderCellDef>Limite</th>
+    <td mat-cell *matCellDef="let element">{{ element.limit }}</td>
+  </ng-container>
+
+  @if (sessionService.user()?.isManager()) {
+  <ng-container matColumnDef="ACTIONS">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let element">
+      <mat-icon (click)="openClientDetails(element)" style="cursor: pointer"
+        >open_in_new</mat-icon
+      >
+    </td>
+  </ng-container>
+  }
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>

@@ -1,0 +1,35 @@
+<div
+  class="container">
+  <div class="navigation">
+    @if (sessionService.user()?.isAdmin() ?? false) {
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'dashboard-admin'">Dashboard</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'gerentes'">Gerentes</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
+    }
+    @else if (sessionService.user()?.isManager() ?? false) {
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'aprovacao-clientes'">Aprovações</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'busca-clientes'">Busca</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'top-3-clientes'">Melhores 3</div>
+    }
+    @else if (sessionService.user()?.isClient() ?? false) {
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'depositar'">Deposito</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'sacar'">Saque</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'transferir'">Transferência</div>
+      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'extrato'">Extrato</div>
+      @if ((sessionService.meClient()?.balance ?? 0) < 0) {
+        <div class="balance negative">Saldo: {{ sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2' }}</div>
+      } @else {
+        <div class="balance">Saldo: {{ sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2' }}</div>
+      }
+    }
+  </div>
+  <app-person-identification [matMenuTriggerFor]="menu">
+    <mat-menu #menu="matMenu">
+      @if (sessionService.user()?.isClient() ?? false) {
+        <button mat-menu-item (click)="openEditClientDialog()">Ver Perfil</button>
+      }
+      <button mat-menu-item (click)="logout()">Sair</button>
+    </mat-menu>
+  </app-person-identification>
+</div>

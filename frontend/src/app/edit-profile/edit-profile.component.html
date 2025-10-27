@@ -1,0 +1,31 @@
+<div class="profile-title">Perfil</div>
+@if (!editing()) {
+  <div class="profile">
+    <div>Nome: {{sessionService.meClient()?.name}}</div>
+    <div>CPF: {{sessionService.meClient()?.cpf}}</div>
+    <div>E-mail: {{sessionService.meClient()?.email}}</div>
+    <div>Nome do Gerente: {{'Josias'}}</div>
+    <div>Salário: {{0 | currency:'BRL':'symbol':'1.2-2'}}</div>
+    <div>Saldo: {{sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2'}}</div>
+    <div>Limite: {{0 | currency:'BRL':'symbol':'1.2-2'}}</div>
+    <button mat-raised-button (click)="this.setEditing()">Editar</button>
+  </div>
+}
+
+@if (editing()) {
+  <div class="profile">
+    <mat-form-field>
+      <mat-label>Nome</mat-label>
+      <input matInput [formControl]="nameControl" placeholder="Ex. Josue da Silva">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>E-mail</mat-label>
+      <input matInput [formControl]="emailControl" placeholder="Ex. arlindo@gmail.com">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Salário</mat-label>
+      <input matInput [formControl]="wageControl" placeholder="Ex. 10000">
+    </mat-form-field>
+    <button mat-raised-button (click)="editing.set(false)">Salvar</button>
+  </div>
+}

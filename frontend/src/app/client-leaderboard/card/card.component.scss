@@ -1,0 +1,45 @@
+.place-card {
+  width: 30vw;
+  height: 33vh;
+  background: #637a7e;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: white;
+
+  .saldo {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    .valor {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+  }
+
+  .place {
+    width: 100px;
+    height: 100px;
+    font-size: 100px;
+  }
+
+  .first-place {
+    color: gold;
+  }
+
+  .second-place {
+    color: silver;
+  }
+
+  .third-place {
+    color: saddlebrown;
+  }
+}

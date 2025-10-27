@@ -23,8 +23,8 @@ public class RabbitConfig {
 
     // ---------------- SAGA ----------------
     public static final String SAGA_EXCHANGE = "saga.exchange";
-    public static final String QUEUE_ACCOUNT_SAGA = "account-saga-queue";   // única fila de entrada
-    public static final String QUEUE_ACCOUNT_RESULT = "account-result-queue"; // fila de saída
+    public static final String QUEUE_ACCOUNT_SAGA = "account-saga-queue";
+    public static final String QUEUE_ACCOUNT_RESULT = "account-result-queue";
 
     // ---------------- CQRS Beans ----------------
     @Bean

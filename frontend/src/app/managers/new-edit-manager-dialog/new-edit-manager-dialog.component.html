@@ -1,0 +1,46 @@
+<div style="padding: 10px">
+  <form class="manager-form-container">
+    <mat-form-field class="form-full-width">
+      <mat-label>CPF</mat-label>
+      <input type="text" matInput [formControl]="cpfFormControl"
+             placeholder="Ex. 000.000.000-00">
+      @if (cpfFormControl.hasError('required')) {
+        <mat-error>CPF é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Nome</mat-label>
+      <input type="text" matInput [formControl]="nameFormControl"
+             placeholder="Ex. João da Silva">
+      @if (nameFormControl.hasError('required')) {
+        <mat-error>Nome é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Email</mat-label>
+      <input type="email" matInput [formControl]="emailFormControl"
+             placeholder="Ex. pat@example.com">
+      @if (emailFormControl.hasError('email') && !emailFormControl.hasError('required')) {
+        <mat-error>Digite um email válido</mat-error>
+      }
+      @if (emailFormControl.hasError('required')) {
+        <mat-error>Email é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Senha</mat-label>
+      <input type="password" matInput [formControl]="passwordFormControl">
+      @if (!passwordFormControl.hasError('required')) {
+        <mat-error>Digite uma senha válida</mat-error>
+      }
+      @if (passwordFormControl.hasError('required')) {
+        <mat-error>Senha é <strong>obrigatória</strong></mat-error>
+      }
+    </mat-form-field>
+  </form>
+  <div class="manager-save-cancel">
+    <button mat-button (click)="cancel()">Cancelar</button>
+    <button mat-raised-button (click)="save()">Salvar</button>
+
+  </div>
+</div>

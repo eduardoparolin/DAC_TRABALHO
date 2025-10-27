@@ -1,0 +1,15 @@
+<div class="leaderboard">
+  @if (service.clients().length > 0) {
+    <app-card [place]="0" [client]="service.clients()[0]"></app-card>
+  } @else {
+    <p>Nenhum cliente encontrado</p>
+  }
+  <div class="second-row">
+    @if (service.clients().length >= 2) {
+      <app-card [place]="1" [client]="service.clients()[1]"></app-card>
+    }
+    @if (service.clients().length >= 3) {
+      <app-card [place]="2" [client]="service.clients()[2]"></app-card>
+    }
+  </div>
+</div>

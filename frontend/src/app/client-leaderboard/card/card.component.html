@@ -1,0 +1,10 @@
+<div class="place-card">
+  <mat-icon class="place" [ngClass]="{'first-place': place() === 0, 'second-place': place() === 1, 'third-place': place() === 2}">emoji_events</mat-icon>
+  <div>CPF: {{ client().cpf }}</div>
+  <div>Nome: {{ client().name }}</div>
+  <div>Cidade: {{ client().city }}</div>
+  <div>Estado: {{ client().state }}</div>
+  <div class="saldo">Saldo
+    <div class="valor">{{client().balance | currency: 'BRL'}}</div>
+  </div>
+</div>

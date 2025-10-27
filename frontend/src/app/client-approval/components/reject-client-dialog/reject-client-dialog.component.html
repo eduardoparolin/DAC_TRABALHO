@@ -1,0 +1,25 @@
+<div class="modal-container">
+  <h2> Recusar Cliente </h2>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label> Motivo da Recusa ...</mat-label>
+    <textarea
+      matInput
+      rows="4"
+      [(ngModel)]="whyRejected"
+      placeholder="Escreva mais detalhes..."
+    ></textarea>
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-button
+            (click)="onCancel()">
+      Cancelar
+    </button>
+    <button mat-raised-button
+            (click)="onConfirm()"
+            [disabled]="!whyRejected">
+      Confirmar
+    </button>
+  </div>
+</div>
