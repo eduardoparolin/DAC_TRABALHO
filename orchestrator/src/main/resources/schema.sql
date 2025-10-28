@@ -1,4 +1,5 @@
--- Initial schema for saga storage
+CREATE SCHEMA IF NOT EXISTS orchestrator;
+
 CREATE TABLE IF NOT EXISTS saga (
   saga_id varchar(100) PRIMARY KEY,
   status varchar(50) NOT NULL,

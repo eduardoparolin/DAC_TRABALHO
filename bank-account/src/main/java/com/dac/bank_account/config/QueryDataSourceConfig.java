@@ -17,11 +17,7 @@ import java.util.Properties;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(
-        basePackages = "com.dac.bank_account.query.repository",
-        entityManagerFactoryRef = "queryEntityManagerFactory",
-        transactionManagerRef = "queryTransactionManager"
-)
+@EnableJpaRepositories(basePackages = "com.dac.bank_account.query.repository", entityManagerFactoryRef = "queryEntityManagerFactory", transactionManagerRef = "queryTransactionManager")
 @EntityScan(basePackages = "com.dac.bank_account.entity")
 public class QueryDataSourceConfig {
 
@@ -44,9 +40,10 @@ public class QueryDataSourceConfig {
         em.setJpaVendorAdapter(vendorAdapter);
 
         Properties props = new Properties();
-        props.put("hibernate.hbm2ddl.auto", "update");
+        props.put("hibernate.hbm2ddl.auto", "true");
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         props.put("hibernate.show_sql", "true");
+        props.put("hibernate.default_schema", "query_account");
 
         em.setJpaProperties(props);
 

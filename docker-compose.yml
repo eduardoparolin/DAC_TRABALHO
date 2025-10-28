@@ -8,11 +8,8 @@ networks:
 
 volumes:
   auth-mongo-data:
-  client-postgres-data:
-  bank-account-postgres-command-data:
-  bank-account-postgres-query-data:
-  manager-postgres-data:
-  orchestrator-postgres-data:
+  shared-postgres-data:
+  rabbitmq-data:
 
 services:
   # ---------- RabbitMQ ----------
@@ -25,6 +22,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: 1234
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
     networks:
       - backend
     healthcheck:
@@ -67,22 +66,22 @@ services:
     networks:
       - backend
 
-  # ---------- Client PostgreSQL ----------
-  client-postgres:
-    image: postgres:16
-    container_name: ms-client-postgres
+  # ---------- Shared PostgreSQL ----------
+  shared-postgres:
+    image: postgres:17
+    container_name: shared-postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
-      POSTGRES_DB: msclient
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: sharedpostgres
     volumes:
-      - client-postgres-data:/var/lib/postgresql/data
+      - shared-postgres-data:/var/lib/postgresql/data
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sharedpostgres"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -92,7 +91,7 @@ services:
     build: ./ms-client
     container_name: ms-client
     depends_on:
-      client-postgres:
+      shared-postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -103,54 +102,12 @@ services:
     networks:
       - backend
 
-  # ---------- Bank Account PostgreSQL Command DB ----------
-  bank-account-postgres-command:
-    image: postgres:16
-    container_name: bank-account-postgres-command
-    ports:
-      - "5431:5432"
-    environment:
-      POSTGRES_DB: command_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-    volumes:
-      - bank-account-postgres-command-data:/var/lib/postgresql/data
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  # ---------- Bank Account PostgreSQL Query DB ----------
-  bank-account-postgres-query:
-    image: postgres:16
-    container_name: bank-account-postgres-query
-    ports:
-      - "5435:5432"
-    environment:
-      POSTGRES_DB: query_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-    volumes:
-      - bank-account-postgres-query-data:/var/lib/postgresql/data
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   # ---------- Bank Account Service ----------
   bank-account-service:
     build: ./bank-account
     container_name: ms-bank-account
     depends_on:
-      bank-account-postgres-command:
-        condition: service_healthy
-      bank-account-postgres-query:
+      shared-postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -161,32 +118,12 @@ services:
     networks:
       - backend
 
-  # ---------- Manager PostgreSQL ----------
-  manager-postgres:
-    image: postgres:16
-    container_name: ms-manager-postgres
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_DB: manager_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-    volumes:
-      - manager-postgres-data:/var/lib/postgresql/data
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   # ---------- Manager Service ----------
   manager-service:
     build: ./manager
     container_name: ms-manager
     depends_on:
-      manager-postgres:
+      shared-postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -197,32 +134,12 @@ services:
     networks:
       - backend
 
-  # ---------- Orchestrator PostgreSQL ----------
-  orchestrator-postgres:
-    image: postgres:16
-    container_name: ms-orchestrator-postgres
-    ports:
-      - "5434:5432"
-    environment:
-      POSTGRES_DB: saga_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-    volumes:
-      - orchestrator-postgres-data:/var/lib/postgresql/data
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   # ---------- Orchestrator Service ----------
   orchestrator-service:
     build: ./orchestrator
     container_name: ms-orchestrator
     depends_on:
-      orchestrator-postgres:
+      shared-postgres:
         condition: service_healthy
     env_file:
       - ./orchestrator/.env
