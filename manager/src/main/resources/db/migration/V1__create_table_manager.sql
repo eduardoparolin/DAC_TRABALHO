@@ -1,4 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS manager;
 
 CREATE TABLE manager.manager (
      id BIGSERIAL PRIMARY KEY,

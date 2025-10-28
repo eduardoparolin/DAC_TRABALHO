@@ -1,5 +1,0 @@
-CREATE SCHEMA IF NOT EXISTS command_account;
-CREATE SCHEMA IF NOT EXISTS query_account;
-
-
-

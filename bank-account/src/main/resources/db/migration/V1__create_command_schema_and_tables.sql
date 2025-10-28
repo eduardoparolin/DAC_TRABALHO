@@ -1,7 +1,4 @@
--- V1__create_account_and_transaction_tables.sql
 
-CREATE SCHEMA IF NOT EXISTS command_account;
-CREATE SCHEMA IF NOT EXISTS query_account;
 
 CREATE TABLE IF NOT EXISTS command_account.account (
     id            BIGSERIAL PRIMARY KEY,
