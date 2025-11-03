@@ -1,5 +1,10 @@
-import { Client } from '../clients/client.model';
-import { User, UserType } from '../session/user.model';
+import { Client, ClientJson } from '../clients/client.model';
+import { User, UserType, UserJson } from '../session/user.model';
+
+export interface ManagerJson extends UserJson {
+  clientes?: ClientJson[];
+  telefone?: string;
+}
 
 export class Manager extends User {
   clientList: Client[] = [];
@@ -19,19 +24,19 @@ export class Manager extends User {
     this.phone = phone;
   }
 
-  static override fromJson(json: any): Manager {
+  static override fromJson(json: ManagerJson): Manager {
     const clients =
-      (json['clientes'] as any[])?.map((clientJson) =>
+      json.clientes?.map((clientJson) =>
         Client.fromJson(clientJson)
       ) ?? [];
     return new Manager(
-      json['id'],
-      json['nome'],
-      json['email'],
-      json['cpf'],
-      json['tipo'],
+      json.id,
+      json.nome,
+      json.email,
+      json.cpf,
+      json.tipo,
       clients,
-      json['phone']
+      json.telefone ?? ''
     );
   }
 

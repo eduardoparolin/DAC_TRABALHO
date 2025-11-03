@@ -1,6 +1,6 @@
 import {inject, Injectable, signal} from '@angular/core';
 import {AdminDashboardManager} from './admin-dashboard-manager.model';
-import {HttpClientMockService} from '../utils/http-client-mock.service';
+import {HttpClient} from '@angular/common/http';
 import {lastValueFrom} from 'rxjs';
 import {GetManagersAdminDashboardResponse, GetManagersResponse} from '../managers/manager.types';
 import {environment} from '../../environments/environment';
@@ -10,7 +10,7 @@ import {environment} from '../../environments/environment';
 })
 export class DashboardService {
   dashboardData = signal<AdminDashboardManager[]>([]);
-  http = inject(HttpClientMockService);
+  http = inject(HttpClient);
 
   constructor() { }
 

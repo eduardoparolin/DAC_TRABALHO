@@ -1,5 +1,5 @@
 import {inject, Injectable, signal} from '@angular/core';
-import {HttpClientMockService} from '../utils/http-client-mock.service';
+import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {lastValueFrom} from 'rxjs';
 import {ClientResponse} from './clients.types';
@@ -11,7 +11,7 @@ import {Client} from './client.model';
 export class ClientsService {
   clients = signal<Client[]>([]);
   filteredClients = signal<Client[]>([]);
-  http = inject(HttpClientMockService);
+  http = inject(HttpClient);
   constructor() { }
 
   getClients(filtros: 'para_aprovar' | 'adm_relatorio_clientes' | 'melhores_clientes') {

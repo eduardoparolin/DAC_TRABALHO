@@ -2,6 +2,8 @@ import {inject, Injectable, signal} from '@angular/core';
 import {lastValueFrom} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {Address} from './address';
+import {environment} from '../../environments/environment';
+import {ErrorHandlerService} from '../utils/error-handler.service';
 
 export type ViaCepResponse = {
   cep: string;
@@ -16,6 +18,22 @@ export type ViaCepResponse = {
   siafi: string;
 };
 
+export interface SignupData {
+  nome: string;
+  email: string;
+  cpf: string;
+  telefone: string;
+  endereco: {
+    cep: string;
+    rua: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    numero: string;
+    complemento: string;
+  };
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,6 +41,7 @@ export class SignupService {
   loading = signal(false);
   cepLoading = signal(false);
   http = inject(HttpClient);
+  errorHandler = inject(ErrorHandlerService);
   constructor() { }
 
 
@@ -35,16 +54,27 @@ export class SignupService {
           `https://viacep.com.br/ws/${cep}/json/`
         )
       ).catch(() => {
-        alert('Erro ao buscar o CEP.');
+        this.errorHandler.handleError('Erro ao buscar o CEP.');
         return null;
       });
       if (data) {
         address = Address.fromViaCepResponse(data);
       } else {
-        alert('CEP não encontrado.');
+        this.errorHandler.handleWarning('CEP não encontrado.');
       }
       this.cepLoading.set(false);
     }
     return address;
+  }
+
+  async signup(data: SignupData): Promise<void> {
+    this.loading.set(true);
+    try {
+      await lastValueFrom(
+        this.http.post(`${environment.baseUrl}/cadastro`, data)
+      );
+    } finally {
+      this.loading.set(false);
+    }
   }
 }

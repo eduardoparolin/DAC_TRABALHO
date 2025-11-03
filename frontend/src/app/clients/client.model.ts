@@ -1,4 +1,16 @@
-import { User, UserType } from '../session/user.model';
+import { User, UserType, UserJson } from '../session/user.model';
+
+export interface ClientJson extends UserJson {
+  saldo: number;
+  limite: number;
+  salario: number;
+  cidade?: string;
+  estado?: string;
+  telefone?: string;
+  numero_conta?: string;
+  gerente?: string;
+  gerente_nome?: string;
+}
 
 export class Client extends User {
   balance: number;
@@ -39,22 +51,22 @@ export class Client extends User {
     this.nameManager = nameManager || '';
   }
 
-  static override fromJson(json: any): Client {
+  static override fromJson(json: ClientJson): Client {
     return new Client(
       json.id,
-      json['nome'],
+      json.nome,
       json.email,
       json.cpf,
-      json.type,
-      json['saldo'],
-      json['limite'],
-      json['salario'],
-      json['cidade'],
-      json['estado'],
-      json['telefone'],
-      json['numero_conta'],
-      json['gerente'],
-      json['gerente_nome']
+      json.tipo,
+      json.saldo,
+      json.limite,
+      json.salario,
+      json.cidade,
+      json.estado,
+      json.telefone,
+      json.numero_conta,
+      json.gerente,
+      json.gerente_nome
     );
   }
 }

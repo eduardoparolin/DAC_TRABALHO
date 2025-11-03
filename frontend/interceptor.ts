@@ -1,24 +1,35 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-// import { AuthService } from './authentication/auth.service';
 import { catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  if (req.url.includes('login') || req.url.includes('signup')) {
+  if (req.url.includes('login') || req.url.includes('signup') || req.url.includes('viacep')) {
     return next(req);
   }
 
-  // const authService = inject(AuthService);
   const router = inject(Router);
 
-  const authToken = '';
+  const userDataString = localStorage.getItem('user');
+  let authToken = '';
+
+  if (userDataString) {
+    try {
+      const userData = JSON.parse(userDataString);
+      authToken = userData.token || userData.id || '';
+    } catch (error) {
+      console.error('Error parsing user data from localStorage', error);
+    }
+  }
+
   const authReq = req.clone({
     setHeaders: { Authorization: `Bearer ${authToken}` },
   });
+
   return next(authReq).pipe(
     catchError((error) => {
       if (error.status === 401 || error.status === 403) {
+        localStorage.removeItem('user');
         router.navigate(['/login']);
       }
       return throwError(() => error);

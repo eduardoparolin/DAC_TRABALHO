@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { HttpClientMockService } from '../utils/http-client-mock.service';
+import { HttpClient } from '@angular/common/http';
 import { GetManagersResponse } from './manager.types';
 import { Manager } from './manager.model';
 
@@ -9,8 +9,7 @@ import { Manager } from './manager.model';
   providedIn: 'root',
 })
 export class ManagersService {
-  // http = inject(HttpClient);
-  http = inject(HttpClientMockService);
+  http = inject(HttpClient);
   managers = signal<Manager[]>([]);
 
   constructor() {}

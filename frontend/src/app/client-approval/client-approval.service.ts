@@ -3,7 +3,7 @@ import { Client } from '../clients/client.model';
 import { lastValueFrom } from 'rxjs';
 import { ClientResponse } from '../clients/clients.types';
 import { environment } from '../../environments/environment';
-import { HttpClientMockService } from '../utils/http-client-mock.service';
+import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../utils/confirmation-dialog/confirmation-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -13,7 +13,7 @@ import {RejectClientDialogComponent} from './components/reject-client-dialog/rej
   providedIn: 'root',
 })
 export class ClientApprovalService {
-  http = inject(HttpClientMockService);
+  http = inject(HttpClient);
   dialog = inject(MatDialog);
   clients = signal<Client[]>([]);
   private _snackBar = inject(MatSnackBar);
