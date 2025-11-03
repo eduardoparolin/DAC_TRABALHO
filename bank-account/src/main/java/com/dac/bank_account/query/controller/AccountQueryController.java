@@ -55,4 +55,10 @@ public class AccountQueryController {
         AccountResponseDTO dto = accountQueryService.getClientAccount(idCliente);
         return ResponseEntity.ok(dto);
     }
+
+    @GetMapping("{idGerente}/gerente/contasAtivas")
+    public ResponseEntity<ManagerAccountsResponseDTO> getActiveAccountsByManager(@PathVariable String idGerente){
+        ManagerAccountsResponseDTO dto = accountQueryService.getActiveAccountsByManager(idGerente);
+        return ResponseEntity.ok(dto);
+    }
 }

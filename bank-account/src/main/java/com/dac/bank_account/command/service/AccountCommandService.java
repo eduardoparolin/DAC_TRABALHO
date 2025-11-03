@@ -88,8 +88,8 @@ public class AccountCommandService {
 
     @Transactional("commandTransactionManager")
     public MovementResponseDTO deposit(String accountNumber, Double amount) {
-        Account account = accountCommandRepository.findByAccountNumber(accountNumber)
-                        .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+        Account account = getAccountByNumber(accountNumber);
+
         account.deposit(BigDecimal.valueOf(amount));
 
         var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.DEPOSITO, BigDecimal.valueOf(amount), null);
@@ -105,8 +105,7 @@ public class AccountCommandService {
 
     @Transactional("commandTransactionManager")
     public MovementResponseDTO withdraw(String accountNumber, Double amount) {
-        Account account = accountCommandRepository.findByAccountNumber(accountNumber)
-                        .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+        Account account = getAccountByNumber(accountNumber);
 
         if(amount > account.getBalance().doubleValue() + account.getLimitAmount().doubleValue()) {
             throw new InsufficientFundsException("Insufficient funds for withdrawal in account number: " + accountNumber);
@@ -127,10 +126,8 @@ public class AccountCommandService {
 
     @Transactional("commandTransactionManager")
     public TransferResponseDTO transfer(String sourceAccountNumber, Double amount, String targetAccountNumber) {
-        Account source = accountCommandRepository.findByAccountNumber(sourceAccountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Source account not found with account number: " + sourceAccountNumber));
-        Account target = accountCommandRepository.findByAccountNumber(targetAccountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Target account not found with account number: " + targetAccountNumber));
+        Account source = getAccountByNumber(sourceAccountNumber);
+        Account target = getAccountByNumber(targetAccountNumber);
 
         if(amount > source.getBalance().doubleValue() + source.getLimitAmount().doubleValue()) {
             throw new InsufficientFundsException("Insufficient funds for transfer in account number: " + sourceAccountNumber);
@@ -237,11 +234,21 @@ public class AccountCommandService {
 
     public String generateAccountNumber() {
         Random random = new Random();
+
         String number;
+
         do {
             number = String.valueOf(1000 + random.nextInt(9000));
         } while (accountCommandRepository.existsByAccountNumber(number));
+
         return number;
+    }
+
+    public Account getAccountByNumber(String accountNumber) {
+        Account acc = accountCommandRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+
+        return acc;
     }
 
 }
