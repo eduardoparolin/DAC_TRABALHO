@@ -41,6 +41,7 @@ services:
       MONGO_INITDB_DATABASE: users
     volumes:
       - auth-mongo-data:/data/db
+      - ./mongo-init/:/docker-entrypoint-initdb.d/
     networks:
       - backend
     healthcheck:
