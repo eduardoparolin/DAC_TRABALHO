@@ -1,5 +1,6 @@
 package com.dac.bank_account.query.repository;
 
+import com.dac.bank_account.enums.AccountStatus;
 import com.dac.bank_account.query.entity.AccountView;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
@@ -10,4 +11,5 @@ public interface AccountQueryRepository extends JpaRepository<AccountView, Long>
     List<AccountView> findByManagerId(Long managerId);
     List<AccountView> findTop3ByManagerIdOrderByBalanceDesc(Long managerId);
     Optional<AccountView> findByClientId(Long clientId);
+    List<AccountView> findByManagerIdAndStatus(Long managerId, AccountStatus status);
 }
