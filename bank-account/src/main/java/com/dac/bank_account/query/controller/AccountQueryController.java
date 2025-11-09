@@ -1,9 +1,6 @@
 package com.dac.bank_account.query.controller;
 
-import com.dac.bank_account.query.dto.AccountResponseDTO;
-import com.dac.bank_account.query.dto.ManagerAccountsResponseDTO;
-import com.dac.bank_account.query.dto.StatementResponseDTO;
-import com.dac.bank_account.query.dto.BalanceResponseDTO;
+import com.dac.bank_account.query.dto.*;
 import com.dac.bank_account.query.service.AccountQueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,4 +52,20 @@ public class AccountQueryController {
         AccountResponseDTO dto = accountQueryService.getClientAccount(idCliente);
         return ResponseEntity.ok(dto);
     }
+
+    @PostMapping("/buscar")
+    public ResponseEntity<?> getAccounts(
+            @RequestBody AccountsRequestDTO request,
+            @RequestParam(name = "incluirTransacoes", required = false, defaultValue = "false") boolean incluirTransacoes){
+
+        if(incluirTransacoes){
+            List<StatementResponseDTO> accountsWithStatement =
+                    accountQueryService.getAccountsWithTransactions(request);
+            return ResponseEntity.ok(accountsWithStatement);
+        }else {
+            List<AccountResponseDTO> accounts =  accountQueryService.getAccounts(request);
+            return ResponseEntity.ok(accounts);
+        }
+    }
+
 }
