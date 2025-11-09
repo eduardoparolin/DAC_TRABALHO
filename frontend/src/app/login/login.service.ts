@@ -19,7 +19,7 @@ export class LoginService {
 
   async login(email: string, password: string) {
     this.loading.set(true);
-    await lastValueFrom(this.http.post<LoginResponse>(`${environment.baseUrl}/login`, {email, senha: password}))
+    await lastValueFrom(this.http.post<LoginResponse>(`${environment.baseUrl}/auth/login`, {email, password}))
       .then(async (response) => {
         this.loading.set(false);
         this.session.parseLoginResponse(response);

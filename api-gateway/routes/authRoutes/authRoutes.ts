@@ -10,7 +10,7 @@ const orchestratorServiceUrl =
 
 const loginSchema = z.object({
   email: z.email("Email inválido"),
-  senha: z.string().min(1, "Senha é obrigatória"),
+  password: z.string().min(1, "Senha é obrigatória"),
 });
 
 const signupSchema = z.object({
@@ -45,14 +45,14 @@ const logoutSchema = z.object({
 
 authRoutes.post("/login", zValidator("json", loginSchema), async (c) => {
   try {
-    const { email, senha } = c.req.valid("json");
+    const { email, password } = c.req.valid("json");
 
     const response = await fetch(`${authServiceUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, senha }),
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await response.text();
