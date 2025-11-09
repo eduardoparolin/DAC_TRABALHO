@@ -10,6 +10,9 @@ public class SagaResult {
   private Long clientId;
   private Long accountId;
   private Long transactionId;
+  private Long managerId;
+  private String accountNumber;
+  private String generatedPassword;
 
   public SagaResult() {
   }
@@ -76,5 +79,46 @@ public class SagaResult {
 
   public void setTransactionId(Long transactionId) {
     this.transactionId = transactionId;
+  }
+
+  public Long getManagerId() {
+    return managerId;
+  }
+
+  public void setManagerId(Long managerId) {
+    this.managerId = managerId;
+  }
+
+  public String getAccountNumber() {
+    return accountNumber;
+  }
+
+  public void setAccountNumber(String accountNumber) {
+    this.accountNumber = accountNumber;
+  }
+
+  public String getGeneratedPassword() {
+    return generatedPassword;
+  }
+
+  public void setGeneratedPassword(String generatedPassword) {
+    this.generatedPassword = generatedPassword;
+  }
+
+  @Override
+  public String toString() {
+    return "SagaResult{" +
+        "sagaId='" + sagaId + '\'' +
+        ", source='" + source + '\'' +
+        ", action='" + action + '\'' +
+        ", status='" + status + '\'' +
+        ", error='" + error + '\'' +
+        ", clientId=" + clientId +
+        ", accountId=" + accountId +
+        ", transactionId=" + transactionId +
+        ", managerId=" + managerId +
+        ", accountNumber='" + accountNumber + '\'' +
+        ", generatedPassword='" + generatedPassword + '\'' +
+        '}';
   }
 }

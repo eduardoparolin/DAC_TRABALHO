@@ -67,6 +67,10 @@ export class SignupComponent implements OnInit, OnDestroy {
     Validators.required,
     Validators.minLength(3)
   ]);
+  salaryFormControl = new FormControl(0, [
+    Validators.required,
+    Validators.min(0)
+  ]);
 
   ngOnInit(): void {
     this.cepFormControl.valueChanges
@@ -101,6 +105,7 @@ export class SignupComponent implements OnInit, OnDestroy {
       this.numeroFormControl,
       this.cepFormControl,
       this.nameFormControl,
+      this.salaryFormControl,
     ];
 
     formControls.forEach((control) => control.markAsTouched());
@@ -114,23 +119,21 @@ export class SignupComponent implements OnInit, OnDestroy {
 
     try {
       const signupData = {
-        nome: this.nameFormControl.value!,
+        name: this.nameFormControl.value!,
         email: this.emailFormControl.value!,
         cpf: this.cpfFormControl.value!.replace(/\D/g, ''),
-        telefone: this.phoneFormControl.value!.replace(/\D/g, ''),
-        endereco: {
-          cep: this.cepFormControl.value!.replace(/\D/g, ''),
-          rua: this.ruaFormControl.value!,
-          bairro: this.bairroFormControl.value!,
-          cidade: this.cidadeFormControl.value!,
-          estado: this.estadoFormControl.value!,
-          numero: this.numeroFormControl.value!,
-          complemento: this.complementoFormControl.value || ''
-        }
+        phone: this.phoneFormControl.value!.replace(/\D/g, ''),
+        salary: this.salaryFormControl.value!,
+        street: this.ruaFormControl.value!,
+        number: this.numeroFormControl.value!,
+        complement: this.complementoFormControl.value || '',
+        zipCode: this.cepFormControl.value!.replace(/\D/g, ''),
+        city: this.cidadeFormControl.value!,
+        state: this.estadoFormControl.value!,
       };
 
       await this.service.signup(signupData);
-      this.errorHandler.handleSuccess('Cadastro realizado com sucesso!');
+      this.errorHandler.handleSuccess('Cadastro iniciado com sucesso! Você receberá um email com suas credenciais.');
       this.router.navigate(['/login']);
     } catch (error) {
       this.errorHandler.handleError(error as Error);

@@ -5,11 +5,11 @@ enum UserType {
 }
 
 interface UserJson {
-  id: number;
+  id: number | string;
   nome: string;
   email: string;
   cpf: string;
-  tipo: UserType;
+  tipo: UserType | string;
 }
 
 class User {
@@ -28,7 +28,9 @@ class User {
   }
 
   static fromJson(json: UserJson): User {
-    return new User(json.id, json.nome, json.email, json.cpf, json.tipo);
+    const id = typeof json.id === 'string' ? parseInt(json.id, 10) : json.id;
+    const tipo = typeof json.tipo === 'string' ? UserType[json.tipo as keyof typeof UserType] : json.tipo;
+    return new User(id, json.nome, json.email, json.cpf, tipo);
   }
 
   isAdmin(): boolean {
@@ -44,4 +46,5 @@ class User {
   }
 }
 
-export { User, UserType, UserJson }
+export { User, UserType };
+export type { UserJson };

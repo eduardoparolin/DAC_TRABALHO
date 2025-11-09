@@ -29,9 +29,21 @@ public class SagaResultConsumer {
     sagaOrchestratorService.processResult(result);
   }
 
+  @RabbitListener(queues = "manager-result-queue")
+  public void handleManagerResult(SagaResult result) {
+    log.info("Received result from manager-result-queue: {}", result);
+    sagaOrchestratorService.processResult(result);
+  }
+
   @RabbitListener(queues = "transaction-result-queue")
   public void handleTransactionResult(SagaResult result) {
     log.info("Received result from transaction-result-queue: {}", result);
+    sagaOrchestratorService.processResult(result);
+  }
+
+  @RabbitListener(queues = "user-result-queue")
+  public void handleAuthResult(SagaResult result) {
+    log.info("Received result from user-result-queue: {}", result);
     sagaOrchestratorService.processResult(result);
   }
 }

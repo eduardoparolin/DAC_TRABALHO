@@ -49,4 +49,12 @@ export class SessionService {
     this.user.set(null);
     this.meClient.set(null);
   }
+
+  getUser(): User | null {
+    return this.user();
+  }
+
+  isAuthenticated(): boolean {
+    return this.user() !== null;
+  }
 }

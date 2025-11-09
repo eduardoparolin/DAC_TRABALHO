@@ -40,6 +40,17 @@
         }
       </mat-form-field>
       <mat-form-field class="form-full-width">
+        <mat-label>Salário</mat-label>
+        <input type="number" matInput [formControl]="salaryFormControl"
+               placeholder="Ex. 3000.00">
+        @if (salaryFormControl.hasError('required')) {
+          <mat-error>Salário é <strong>obrigatório</strong></mat-error>
+        }
+        @if (salaryFormControl.hasError('min')) {
+          <mat-error>Salário deve ser maior ou igual a zero</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="form-full-width">
         <mat-label>CEP</mat-label>
         <input type="text" mask="99999-999" matInput [formControl]="cepFormControl"
                placeholder="Ex. 99999-999">

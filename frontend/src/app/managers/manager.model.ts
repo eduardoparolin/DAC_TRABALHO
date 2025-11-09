@@ -29,12 +29,14 @@ export class Manager extends User {
       json.clientes?.map((clientJson) =>
         Client.fromJson(clientJson)
       ) ?? [];
+    const id = typeof json.id === 'string' ? parseInt(json.id, 10) : json.id;
+    const tipo = typeof json.tipo === 'string' ? UserType[json.tipo as keyof typeof UserType] : json.tipo;
     return new Manager(
-      json.id,
+      id,
       json.nome,
       json.email,
       json.cpf,
-      json.tipo,
+      tipo,
       clients,
       json.telefone ?? ''
     );

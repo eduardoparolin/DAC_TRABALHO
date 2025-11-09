@@ -20,9 +20,10 @@ public class AuthProducer {
     private final String MESSAGE_SOURCE = "auth";
     private final String RESULT_QUEUE = "user-result-queue";
 
-    public void sendFailResult(Action action, String error) {
+    public void sendFailResult(Action action, String sagaId, String error) {
         log.error("Uma exceção foi gerada: {}", error);
         Map<String, Object> result = new HashMap<>();
+        result.put("sagaId", sagaId);
         result.put("source", MESSAGE_SOURCE);
         result.put("action", action + "_RESULT");
         result.put("status", "FAIL");
@@ -31,9 +32,10 @@ public class AuthProducer {
         rabbitTemplate.convertAndSend(RESULT_QUEUE, result);
     }
 
-    public void sendSuccessResult(Action action) {
+    public void sendSuccessResult(Action action, String sagaId) {
         log.info("Processamento concluído com sucesso");
         Map<String, Object> result = new HashMap<>();
+        result.put("sagaId", sagaId);
         result.put("source", MESSAGE_SOURCE);
         result.put("action", action + "_RESULT");
         result.put("status", "SUCCESS");
