@@ -14,6 +14,7 @@ public class AuthPayload implements IAuthPayload{
     private String requestedById;
     private Action action;
     private String messageSource;
+    private String sagaId;
     private AuthPayloadData data;
     private SagaContext sagaContext;
 

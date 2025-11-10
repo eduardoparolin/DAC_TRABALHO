@@ -6,6 +6,9 @@ import com.dac.auth.dto.user.UserUpdateDTO;
 import com.dac.auth.enums.Role;
 import com.dac.auth.exception.custom.ApiException;
 import com.dac.auth.infra.configuration.security.AuthenticationService;
+import com.dac.auth.infra.email.EmailService;
+import com.dac.auth.infra.password.PasswordData;
+import com.dac.auth.infra.password.PasswordGenerator;
 import com.dac.auth.model.User;
 import com.dac.auth.infra.repository.UserRepository;
 import com.dac.auth.service.interfaces.AuthenticationFacade;
@@ -25,6 +28,8 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository repository;
     private final AuthenticationFacade authentication;
+    private final PasswordGenerator passwordGenerator;
+    private final EmailService emailService;
 
     @Override
     public UserDTO save(UserCreateDTO dto) {
@@ -39,12 +44,15 @@ public class UserServiceImpl implements UserService {
             throw new ApiException("Email em uso.", HttpStatus.BAD_REQUEST);
         }
 
-        User createUser = new User(
-                dto.getId(),
-                dto.getEmail(),
-                dto.getPassword(),
-                dto.getRole()
-        );
+        PasswordData passwordData = generateRandomPassword();
+        emailService.sendPasswordEmail(dto.getEmail(), passwordData.raw());
+
+        User createUser = User.builder()
+                .id(dto.getId())
+                .email(dto.getEmail())
+                .role(dto.getRole())
+                .password(passwordData.encoded())
+                .build();
 
         log.info("Usuario criado com sucesso");
         return UserDTO.fromEntity(repository.save(createUser));
@@ -108,5 +116,9 @@ public class UserServiceImpl implements UserService {
 
     private boolean validField(String field) {
         return !Objects.isNull(field) && !field.isEmpty();
+    }
+
+    private PasswordData generateRandomPassword() {
+        return passwordGenerator.generateRandomPassword();
     }
 }

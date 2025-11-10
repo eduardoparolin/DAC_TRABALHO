@@ -68,4 +68,9 @@ public class AccountQueryController {
         }
     }
 
+    @GetMapping("{idGerente}/gerente/contasAtivas")
+    public ResponseEntity<ManagerAccountsResponseDTO> getActiveAccountsByManager(@PathVariable String idGerente){
+        ManagerAccountsResponseDTO dto = accountQueryService.getActiveAccountsByManager(idGerente);
+        return ResponseEntity.ok(dto);
+    }
 }

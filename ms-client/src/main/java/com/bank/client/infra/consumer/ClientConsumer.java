@@ -20,9 +20,9 @@ public class ClientConsumer {
         try {
             ClientMessageHandler handler = clientMessageHandleFactory.getStrategy(event.getAction());
             handler.handle(event);
-            clientProducer.sendSuccessResult(event.getAction(), event.getClientId());
+            clientProducer.sendSuccessResult(event.getAction(), event.getClientId(), event.getSagaId());
         } catch (Exception ex) {
-            clientProducer.sendFailureResult(ex.getMessage(), event.getAction());
+            clientProducer.sendFailureResult(ex.getMessage(), event.getAction(), event.getSagaId());
         }
     }
 }

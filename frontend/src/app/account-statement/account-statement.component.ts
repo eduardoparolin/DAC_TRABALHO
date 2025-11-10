@@ -17,16 +17,18 @@ import {MatIcon, MatIconModule} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
 
+interface Operation {
+  dateTime: string;
+  operation: string;
+  origin: string;
+  destination: string;
+  value: number;
+}
+
 type Period = {
   date: Date;
   total: number;
-  operations: Array<{
-    dateTime: string;
-    operation: string;
-    origin: string;
-    destination: string;
-    value: number;
-  }>;
+  operations: Operation[];
 }
 
 @Component({
@@ -51,7 +53,7 @@ export class AccountStatementComponent {
     end: new FormControl<Date | null>(null),
   });
 
-  getRowClass(row: any): string {
+  getRowClass(row: Operation): string {
   if (row.operation === 'Saque' || (row.operation === 'Transferência' && row.value < 0)) {
     return 'red-row';
   }

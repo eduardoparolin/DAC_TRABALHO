@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import {
   MatError,
@@ -14,6 +14,9 @@ import { NgxMaskDirective } from 'ngx-mask';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { CustomValidators } from '../utils/validators';
+import { ErrorHandlerService } from '../utils/error-handler.service';
 
 @Component({
   selector: 'app-signup',
@@ -32,16 +35,24 @@ import { Router } from '@angular/router';
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.scss',
 })
-export class SignupComponent implements OnInit {
+export class SignupComponent implements OnInit, OnDestroy {
   service = inject(SignupService);
   private router = inject(Router);
-  private snackBar = inject(MatSnackBar);
+  private errorHandler = inject(ErrorHandlerService);
+  private destroy$ = new Subject<void>();
+
   emailFormControl = new FormControl('', [
     Validators.required,
     Validators.email,
   ]);
-  cpfFormControl = new FormControl('', [Validators.required]);
-  phoneFormControl = new FormControl('', [Validators.required]);
+  cpfFormControl = new FormControl('', [
+    Validators.required,
+    CustomValidators.cpf()
+  ]);
+  phoneFormControl = new FormControl('', [
+    Validators.required,
+    CustomValidators.phone()
+  ]);
   ruaFormControl = new FormControl('', [Validators.required]);
   bairroFormControl = new FormControl('', [Validators.required]);
   cidadeFormControl = new FormControl('', [Validators.required]);
@@ -50,26 +61,39 @@ export class SignupComponent implements OnInit {
   complementoFormControl = new FormControl('', []);
   cepFormControl = new FormControl('', [
     Validators.required,
-    Validators.minLength(8),
+    CustomValidators.cep()
   ]);
-  nameFormControl = new FormControl('', [Validators.required]);
+  nameFormControl = new FormControl('', [
+    Validators.required,
+    Validators.minLength(3)
+  ]);
+  salaryFormControl = new FormControl(0, [
+    Validators.required,
+    Validators.min(0)
+  ]);
 
   ngOnInit(): void {
-    this.cepFormControl.valueChanges.subscribe(() => {
-      if (this.cepFormControl.invalid) return;
-      this.service.fetchAddress(this.cepFormControl.value!).then((address) => {
-        console.log(address);
-        if (address) {
-          this.ruaFormControl.setValue(address.street);
-          this.bairroFormControl.setValue(address.neighborhood);
-          this.cidadeFormControl.setValue(address.city);
-          this.estadoFormControl.setValue(address.state);
-        }
+    this.cepFormControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        if (this.cepFormControl.invalid) return;
+        this.service.fetchAddress(this.cepFormControl.value!).then((address) => {
+          if (address) {
+            this.ruaFormControl.setValue(address.street);
+            this.bairroFormControl.setValue(address.neighborhood);
+            this.cidadeFormControl.setValue(address.city);
+            this.estadoFormControl.setValue(address.state);
+          }
+        });
       });
-    });
   }
 
-  signup() {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  async signup() {
     const formControls = [
       this.emailFormControl,
       this.cpfFormControl,
@@ -81,14 +105,38 @@ export class SignupComponent implements OnInit {
       this.numeroFormControl,
       this.cepFormControl,
       this.nameFormControl,
+      this.salaryFormControl,
     ];
 
     formControls.forEach((control) => control.markAsTouched());
 
     const isFormValid = formControls.every((control) => control.valid);
 
-    if (isFormValid) {
+    if (!isFormValid) {
+      this.errorHandler.handleError('Por favor, preencha todos os campos corretamente.');
+      return;
+    }
+
+    try {
+      const signupData = {
+        name: this.nameFormControl.value!,
+        email: this.emailFormControl.value!,
+        cpf: this.cpfFormControl.value!.replace(/\D/g, ''),
+        phone: this.phoneFormControl.value!.replace(/\D/g, ''),
+        salary: this.salaryFormControl.value!,
+        street: this.ruaFormControl.value!,
+        number: this.numeroFormControl.value!,
+        complement: this.complementoFormControl.value || '',
+        zipCode: this.cepFormControl.value!.replace(/\D/g, ''),
+        city: this.cidadeFormControl.value!,
+        state: this.estadoFormControl.value!,
+      };
+
+      await this.service.signup(signupData);
+      this.errorHandler.handleSuccess('Cadastro iniciado com sucesso! Você receberá um email com suas credenciais.');
       this.router.navigate(['/login']);
+    } catch (error) {
+      this.errorHandler.handleError(error as Error);
     }
   }
 }

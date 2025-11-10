@@ -1,5 +1,6 @@
 package com.dac.bank_account.query.service;
 
+import com.dac.bank_account.enums.AccountStatus;
 import com.dac.bank_account.exception.ResourceNotFoundException;
 import com.dac.bank_account.query.dto.*;
 import com.dac.bank_account.query.entity.AccountView;
@@ -28,16 +29,14 @@ public class AccountQueryService {
 
     @Transactional("queryTransactionManager")
     public BalanceResponseDTO getBalance(String accountNumber) {
-        AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+        AccountView account = getAccountByNumber(accountNumber);
 
         return accountQueryMapper.toBalanceResponseDTO(account);
     }
 
     @Transactional("queryTransactionManager")
     public StatementResponseDTO getStatement(String accountNumber) {
-        AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+        AccountView account = getAccountByNumber(accountNumber);
 
         List<TransactionView> transactions = transactionQueryRepository
                 .findBySourceAccountNumberOrTargetAccountNumber(accountNumber, accountNumber);
@@ -47,8 +46,7 @@ public class AccountQueryService {
 
     @Transactional("queryTransactionManager")
     public AccountResponseDTO getAccountDetails(String accountNumber) {
-        AccountView account = accountQueryRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+        AccountView account = getAccountByNumber(accountNumber);
 
         return accountQueryMapper.toAccountResponseDTO(account);
     }
@@ -106,10 +104,28 @@ public class AccountQueryService {
     }
 
     @Transactional("queryTransactionManager")
+    public ManagerAccountsResponseDTO getActiveAccountsByManager(String managerId) {
+        List<AccountView> accounts = accountQueryRepository.findByManagerIdAndStatus(Long.valueOf(managerId), AccountStatus.ATIVA);
+
+        if(accounts.isEmpty()) {
+            throw new ResourceNotFoundException("No active accounts found for manager with ID: " + managerId);
+        }
+
+        return accountQueryMapper.toManagerAccountsResponseDTO(managerId, accounts);
+    }
+
+    @Transactional("queryTransactionManager")
     public AccountResponseDTO getClientAccount(String clientId) {
         AccountView account = accountQueryRepository.findByClientId(Long.valueOf(clientId))
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found for client with ID: " + clientId));
 
         return accountQueryMapper.toAccountResponseDTO(account);
+    }
+
+    @Transactional("queryTransactionManager")
+    public AccountView getAccountByNumber(String accountNumber) {
+        AccountView acc = accountQueryRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+        return acc;
     }
 }

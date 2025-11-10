@@ -13,17 +13,17 @@ export class TransferService {
 
   constructor() { }
 
-  async transfer(amount: number): Promise<boolean> {
+  async transfer(amount: number, accountNumber: string): Promise<boolean> {
     const ref = this.dialog.open(ConfirmationDialogComponent);
     const afterClosed = await lastValueFrom(ref.afterClosed());
     if (afterClosed) {
-      await this.processTransfer(amount);
+      await this.processTransfer(amount, accountNumber);
       return true;
     }
     return false;
   }
 
-  private processTransfer(amount: number): void {
-    this._snackBar.open(`Transferência confirmada: ${amount}`, "Ok");
+  private processTransfer(amount: number, accountNumber: string): void {
+    this._snackBar.open(`Transferência confirmada: ${amount} para conta ${accountNumber}`, "Ok");
   }
 }

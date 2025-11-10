@@ -7,6 +7,7 @@ export type GetClientsResponse = Omit<LoginResponse, 'type'> & {
   "numero": string;
   "saldo": number;
   "limite": number;
+  "salario": number;
   "gerente": string;
   "criacao": string
 }

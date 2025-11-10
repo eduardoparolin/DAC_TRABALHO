@@ -1,5 +1,15 @@
 import {ViaCepResponse} from './signup.service';
 
+export interface AddressJson {
+  zipCode: string;
+  street: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  number: string;
+  complement?: string;
+}
+
 export class Address {
   zipCode: string;
   street: string;
@@ -27,18 +37,18 @@ export class Address {
     this.complement = complement;
   }
 
-  static fromJson(json?: { [key: string]: any }): Address {
+  static fromJson(json?: AddressJson): Address {
     if (json == null) {
       return Address.empty();
     }
     return new Address(
-      json['zipCode'],
-      json['street'],
-      json['neighborhood'],
-      json['city'],
-      json['state'],
-      json['number'],
-      json['complement']
+      json.zipCode,
+      json.street,
+      json.neighborhood,
+      json.city,
+      json.state,
+      json.number,
+      json.complement
     );
   }
 
@@ -46,7 +56,7 @@ export class Address {
     return new Address('', '', '', '', '', '', '');
   }
 
-  toJson(): { [key: string]: any } {
+  toJson(): AddressJson {
     return {
       zipCode: this.zipCode,
       street: this.street,

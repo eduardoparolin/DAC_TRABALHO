@@ -1,5 +1,5 @@
 import {inject, Injectable, signal} from '@angular/core';
-import {HttpClientMockService} from '../utils/http-client-mock.service';
+import {HttpClient} from '@angular/common/http';
 import {MatDialog} from '@angular/material/dialog';
 import {Client} from '../clients/client.model';
 import {lastValueFrom} from 'rxjs';
@@ -11,7 +11,7 @@ import {environment} from '../../environments/environment';
 })
 export class ClientLeaderboardService {
 
-  http = inject(HttpClientMockService);
+  http = inject(HttpClient);
   dialog = inject(MatDialog);
   clients = signal<Client[]>([]);
   constructor() { }

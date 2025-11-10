@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClientRequest {
+    private String sagaId;
     private ClientAction action;
     private Long clientId;
     private String rejectionReason;

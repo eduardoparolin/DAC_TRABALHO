@@ -10,6 +10,7 @@ import {
     MatRow, MatRowDef, MatTable
 } from "@angular/material/table";
 import { AccountsService } from './accounts.service';
+import { Client } from '../clients/client.model';
 
 @Component({
   selector: 'app-accounts',
@@ -39,11 +40,11 @@ export class AccountsComponent implements OnInit {
     this.service.ngOnInit();
   }
 
-  approveClient(element: any) {
-    this.service.approveClient(element.id);
+  approveClient(element: Client) {
+    this.service.approveClient(element.id.toString());
   }
 
-  rejectClient(element: any) {
-    this.service.rejectClient(element.id);
+  rejectClient(element: Client) {
+    this.service.rejectClient(element.id.toString());
   }
 }

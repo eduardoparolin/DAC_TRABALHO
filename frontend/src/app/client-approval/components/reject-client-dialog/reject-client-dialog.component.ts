@@ -5,6 +5,11 @@ import {MatButton} from '@angular/material/button';
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
 
+export interface RejectClientDialogData {
+  clientId?: number;
+  clientName?: string;
+}
+
 @Component({
   selector: 'app-reject-client-dialog',
   imports: [
@@ -23,7 +28,7 @@ export class RejectClientDialogComponent {
 constructor(
   private dialogRef: MatDialogRef<RejectClientDialogComponent>,
   private snackBar: MatSnackBar,
-@Inject(MAT_DIALOG_DATA) public data: any
+@Inject(MAT_DIALOG_DATA) public data: RejectClientDialogData
 ) {}
 
 onCancel(): void {
