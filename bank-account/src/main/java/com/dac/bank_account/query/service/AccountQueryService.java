@@ -74,6 +74,36 @@ public class AccountQueryService {
     }
 
     @Transactional("queryTransactionManager")
+    public List<AccountResponseDTO> getAccounts(AccountsRequestDTO request) {
+        List<String> accountNumbers = request.getAccountNumbers();
+
+        List<AccountView> accounts = accountQueryRepository.findByAccountNumberIn(accountNumbers);
+        if(accounts.isEmpty()) {
+            throw new ResourceNotFoundException("No accounts found for account number: " + accountNumbers);
+        }
+        return accountQueryMapper.toAccountResponseDTOList(accounts);
+    }
+
+    @Transactional("queryTransactionManager")
+    public List<StatementResponseDTO> getAccountsWithTransactions(AccountsRequestDTO request) {
+        List<String> accountNumbers = request.getAccountNumbers();
+
+        List<AccountView> accounts = accountQueryRepository.findByAccountNumberIn(accountNumbers);
+
+        if (accounts.isEmpty()) {
+            throw new ResourceNotFoundException("No accounts found for account number: " + accountNumbers);
+        }
+
+        return accounts.stream()
+                .map(account -> {
+                    List<TransactionView> transactions =
+                            transactionQueryRepository.findBySourceAccountNumberOrTargetAccountNumber(account.getAccountNumber(), account.getAccountNumber());
+                    return accountQueryMapper.toStatementResponseDTO(account, transactions);
+                })
+                .toList();
+    }
+
+    @Transactional("queryTransactionManager")
     public ManagerAccountsResponseDTO getActiveAccountsByManager(String managerId) {
         List<AccountView> accounts = accountQueryRepository.findByManagerIdAndStatus(Long.valueOf(managerId), AccountStatus.ATIVA);
 
@@ -84,6 +114,7 @@ public class AccountQueryService {
         return accountQueryMapper.toManagerAccountsResponseDTO(managerId, accounts);
     }
 
+    @Transactional("queryTransactionManager")
     public AccountResponseDTO getClientAccount(String clientId) {
         AccountView account = accountQueryRepository.findByClientId(Long.valueOf(clientId))
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found for client with ID: " + clientId));
@@ -91,6 +122,7 @@ public class AccountQueryService {
         return accountQueryMapper.toAccountResponseDTO(account);
     }
 
+    @Transactional("queryTransactionManager")
     public AccountView getAccountByNumber(String accountNumber) {
         AccountView acc = accountQueryRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
