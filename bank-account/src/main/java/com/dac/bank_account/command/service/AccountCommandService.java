@@ -29,21 +29,22 @@ public class AccountCommandService {
     private final AccountCommandMapper accountMapper;
     private final EventPublisher eventPublisher;
 
-    public AccountCommandService(AccountCommandRepository accountCommandRepository, AccountCommandMapper accountMapper, EventPublisher eventPublisher) {
+    public AccountCommandService(AccountCommandRepository accountCommandRepository, AccountCommandMapper accountMapper,
+            EventPublisher eventPublisher) {
         this.accountCommandRepository = accountCommandRepository;
         this.accountMapper = accountMapper;
         this.eventPublisher = eventPublisher;
     }
 
     @Transactional("commandTransactionManager")
-    public Long createAccount(CreateAccountDTO dto) {
+    public Account createAccount(CreateAccountDTO dto) {
         Long clientId = dto.getClientId();
         Double salary = dto.getSalary();
-        Long managerId = accountCommandRepository.findManagerWithLeastAccounts();
-        if (managerId == null){
-            throw new ResourceNotFoundException("Not found manager to assign account");
+        Long managerId = dto.getManagerId();
+        if (managerId == null) {
+            throw new ResourceNotFoundException("Manager ID not provided");
         }
-        if(accountCommandRepository.findByClientId(clientId).isPresent()) {
+        if (accountCommandRepository.findByClientId(clientId).isPresent()) {
             throw new AccountAlreadyExistsException("Account already exists for client id: " + clientId);
         }
         Account account = new Account();
@@ -54,18 +55,18 @@ public class AccountCommandService {
         account.setCreationDate(OffsetDateTime.now());
         account.setStatus(AccountStatus.PENDENTE);
 
-        if(salary >= 2000){
+        if (salary >= 2000) {
             account.setLimitAmount(BigDecimal.valueOf(salary / 2));
-        }else{
+        } else {
             account.setLimitAmount(BigDecimal.ZERO);
         }
 
-        accountCommandRepository.save(account);
+        account = accountCommandRepository.save(account);
 
         AccountCreatedEvent event = accountMapper.accountToCreatedEvent(account);
         eventPublisher.publishEvent("bank.account", event);
 
-        return account.getManagerId();
+        return account;
     }
 
     @Transactional("commandTransactionManager")
@@ -75,9 +76,9 @@ public class AccountCommandService {
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
-        if(approved){
+        if (approved) {
             account.setStatus(AccountStatus.ATIVA);
-        }else{
+        } else {
             account.setStatus(AccountStatus.REJEITADA);
         }
         accountCommandRepository.save(account);
@@ -92,11 +93,13 @@ public class AccountCommandService {
 
         account.deposit(BigDecimal.valueOf(amount));
 
-        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.DEPOSITO, BigDecimal.valueOf(amount), null);
+        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.DEPOSITO,
+                BigDecimal.valueOf(amount), null);
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
 
-        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, BigDecimal.valueOf(amount), transaction);
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, BigDecimal.valueOf(amount),
+                transaction);
 
         eventPublisher.publishEvent("bank.account", event);
 
@@ -107,17 +110,20 @@ public class AccountCommandService {
     public MovementResponseDTO withdraw(String accountNumber, Double amount) {
         Account account = getAccountByNumber(accountNumber);
 
-        if(amount > account.getBalance().doubleValue() + account.getLimitAmount().doubleValue()) {
-            throw new InsufficientFundsException("Insufficient funds for withdrawal in account number: " + accountNumber);
+        if (amount > account.getBalance().doubleValue() + account.getLimitAmount().doubleValue()) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds for withdrawal in account number: " + accountNumber);
         }
 
         account.withdraw(BigDecimal.valueOf(amount));
 
-        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.SAQUE, BigDecimal.valueOf(amount), null);
+        var transaction = accountMapper.toEntity(account.getAccountNumber(), TransactionType.SAQUE,
+                BigDecimal.valueOf(amount), null);
         account.getTransactions().add(transaction);
         accountCommandRepository.save(account);
 
-        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, BigDecimal.valueOf(amount), transaction);
+        MoneyTransactionEvent event = accountMapper.toMoneyTransactionEvent(account, BigDecimal.valueOf(amount),
+                transaction);
 
         eventPublisher.publishEvent("bank.account", event);
 
@@ -129,21 +135,24 @@ public class AccountCommandService {
         Account source = getAccountByNumber(sourceAccountNumber);
         Account target = getAccountByNumber(targetAccountNumber);
 
-        if(amount > source.getBalance().doubleValue() + source.getLimitAmount().doubleValue()) {
-            throw new InsufficientFundsException("Insufficient funds for transfer in account number: " + sourceAccountNumber);
+        if (amount > source.getBalance().doubleValue() + source.getLimitAmount().doubleValue()) {
+            throw new InsufficientFundsException(
+                    "Insufficient funds for transfer in account number: " + sourceAccountNumber);
         }
 
         source.withdraw(BigDecimal.valueOf(amount));
         target.deposit(BigDecimal.valueOf(amount));
 
-        var transaction = accountMapper.toEntity(source.getAccountNumber(), TransactionType.TRANSFERENCIA, BigDecimal.valueOf(amount), target.getAccountNumber());
+        var transaction = accountMapper.toEntity(source.getAccountNumber(), TransactionType.TRANSFERENCIA,
+                BigDecimal.valueOf(amount), target.getAccountNumber());
         source.getTransactions().add(transaction);
         target.getTransactions().add(transaction);
 
         accountCommandRepository.save(source);
         accountCommandRepository.save(target);
 
-        MoneyTransactionEvent event = accountMapper.toMoneyTransferEvent(source, target, BigDecimal.valueOf(amount), transaction);
+        MoneyTransactionEvent event = accountMapper.toMoneyTransferEvent(source, target, BigDecimal.valueOf(amount),
+                transaction);
 
         eventPublisher.publishEvent("bank.account", event);
 
@@ -158,9 +167,9 @@ public class AccountCommandService {
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
-        if(salary != null && salary >= 2000){
+        if (salary != null && salary >= 2000) {
             account.setLimitAmount(BigDecimal.valueOf(salary / 2));
-        }else{
+        } else {
             account.setLimitAmount(BigDecimal.ZERO);
         }
         accountCommandRepository.save(account);
@@ -178,7 +187,7 @@ public class AccountCommandService {
             throw new ResourceNotFoundException("No accounts found for the given old manager ID: " + oldManagerId);
         }
         RemovedManagerEvent event = accountMapper.toRemovedManagerEvent(oldManagerId, newManagerId);
-        eventPublisher.publishEvent("bank.account", event );
+        eventPublisher.publishEvent("bank.account", event);
 
     }
 
@@ -189,18 +198,17 @@ public class AccountCommandService {
         Map<Long, Long> managerAccountsCount = accountCommandRepository.findManagerAccountCountsRaw().stream()
                 .collect(Collectors.toMap(
                         row -> (Long) row[0],
-                        row -> (Long) row[1]
-                ));
+                        row -> (Long) row[1]));
 
-        if(managerAccountsCount.isEmpty()){
+        if (managerAccountsCount.isEmpty()) {
             return;
         }
 
-        if(managerAccountsCount.size() == 1){
+        if (managerAccountsCount.size() == 1) {
             Long onlyManagerId = managerAccountsCount.keySet().iterator().next();
             Long count = managerAccountsCount.get(onlyManagerId);
 
-            if(count <= 1){
+            if (count <= 1) {
                 return;
             }
         }
@@ -208,19 +216,20 @@ public class AccountCommandService {
         boolean allManagerHaveOneAccount = managerAccountsCount.values().stream()
                 .allMatch(count -> count == 1);
 
-        if(allManagerHaveOneAccount){
+        if (allManagerHaveOneAccount) {
             return;
         }
 
         Long oldManagerId = accountCommandRepository.findManagerWithMostAccountsAndLowestBalance();
 
-        if(oldManagerId == null){
+        if (oldManagerId == null) {
             return;
         }
 
-        Optional<Account> accountToTransfer = accountCommandRepository.findFirstByManagerIdAndStatus(oldManagerId, AccountStatus.ATIVA);
+        Optional<Account> accountToTransfer = accountCommandRepository.findFirstByManagerIdAndStatus(oldManagerId,
+                AccountStatus.ATIVA);
 
-        if(accountToTransfer.isEmpty()){
+        if (accountToTransfer.isEmpty()) {
             return;
         }
 
@@ -246,7 +255,8 @@ public class AccountCommandService {
 
     public Account getAccountByNumber(String accountNumber) {
         Account acc = accountCommandRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
 
         return acc;
     }

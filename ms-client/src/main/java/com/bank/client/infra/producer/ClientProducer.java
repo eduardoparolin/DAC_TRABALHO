@@ -18,13 +18,14 @@ public class ClientProducer {
     private final String MESSAGE_SOURCE = "client";
     private final String RESULT_QUEUE = "client-result-queue";
 
-    public void sendSuccessResult(ClientAction action, Long clientId) {
+    public void sendSuccessResult(ClientAction action, Long clientId, String sagaId) {
         log.info("Sending success result to queue");
         Map<String, Object> result = new HashMap<>();
         result.put("source", MESSAGE_SOURCE);
         result.put("action", action);
         result.put("status", "SUCCESS");
         result.put("error", null);
+        result.put("sagaId", sagaId);
 
         if(clientId != null){
             result.put("clientId", clientId);
@@ -32,13 +33,14 @@ public class ClientProducer {
         rabbitTemplate.convertAndSend(RESULT_QUEUE, result);
     }
 
-    public void sendFailureResult(String error, ClientAction action) {
+    public void sendFailureResult(String error, ClientAction action, String sagaId) {
         log.info("Sending failure result to queue");
         Map<String, Object> result = new HashMap<>();
         result.put("source", MESSAGE_SOURCE);
         result.put("action", action);
         result.put("status", "FAILURE");
         result.put("error", error);
+        result.put("sagaId", sagaId);
         rabbitTemplate.convertAndSend(RESULT_QUEUE, result);
     }
 }

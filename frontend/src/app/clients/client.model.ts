@@ -52,12 +52,14 @@ export class Client extends User {
   }
 
   static override fromJson(json: ClientJson): Client {
+    const id = typeof json.id === 'string' ? parseInt(json.id, 10) : json.id;
+    const tipo = typeof json.tipo === 'string' ? UserType[json.tipo as keyof typeof UserType] : json.tipo;
     return new Client(
-      json.id,
+      id,
       json.nome,
       json.email,
       json.cpf,
-      json.tipo,
+      tipo,
       json.saldo,
       json.limite,
       json.salario,

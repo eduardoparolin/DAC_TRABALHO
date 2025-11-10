@@ -4,5 +4,6 @@ public enum ClientAction {
     CREATE_CLIENT,
     UPDATE_CLIENT,
     APPROVE_CLIENT,
-    REJECT_CLIENT
+    REJECT_CLIENT,
+    DELETE_CLIENT
 }

@@ -3,7 +3,6 @@ package com.bank.manager.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-
 @Entity
 @Table(name = "manager")
 @Data
@@ -18,4 +17,7 @@ public class Manager {
 
     @Enumerated(EnumType.STRING)
     private ManagerType type;
+
+    @Column(name = "account_count")
+    private Integer accountCount = 0;
 }

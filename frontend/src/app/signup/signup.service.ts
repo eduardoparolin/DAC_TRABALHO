@@ -19,19 +19,17 @@ export type ViaCepResponse = {
 };
 
 export interface SignupData {
-  nome: string;
+  name: string;
   email: string;
   cpf: string;
-  telefone: string;
-  endereco: {
-    cep: string;
-    rua: string;
-    bairro: string;
-    cidade: string;
-    estado: string;
-    numero: string;
-    complemento: string;
-  };
+  phone: string;
+  salary: number;
+  street: string;
+  number: string;
+  complement?: string;
+  zipCode: string;
+  city: string;
+  state: string;
 }
 
 @Injectable({
@@ -71,7 +69,7 @@ export class SignupService {
     this.loading.set(true);
     try {
       await lastValueFrom(
-        this.http.post(`${environment.baseUrl}/cadastro`, data)
+        this.http.post(`${environment.baseUrl}/auth/signup`, data)
       );
     } finally {
       this.loading.set(false);

@@ -18,9 +18,14 @@ public class AccountProducer {
     private final String MESSAGE_SOURCE = "account";
     private final String RESULT_QUEUE = "account-result-queue";
 
-    public void sendSuccessResult(AccountAction action, Long managerId){
+    public void sendSuccessResult(String sagaId, AccountAction action, Long managerId){
+        sendSuccessResult(sagaId, action, managerId, null, null);
+    }
+
+    public void sendSuccessResult(String sagaId, AccountAction action, Long managerId, Long accountId, String accountNumber){
         log.info("Processamento de {} concluído com sucesso.", action);
         Map<String,Object> result = new HashMap<>();
+        result.put("sagaId", sagaId);
         result.put("source", MESSAGE_SOURCE);
         result.put("action", action.name() + "_RESULT");
         result.put("status", "SUCCESS");
@@ -29,13 +34,20 @@ public class AccountProducer {
         if(managerId != null){
             result.put("managerId", managerId);
         }
+        if(accountId != null){
+            result.put("accountId", accountId);
+        }
+        if(accountNumber != null){
+            result.put("accountNumber", accountNumber);
+        }
 
         rabbitTemplate.convertAndSend(RESULT_QUEUE, result);
     }
 
-    public void sendFailureResult(AccountAction action, String error){
+    public void sendFailureResult(String sagaId, AccountAction action, String error){
         log.error("Falha em {}: {}", action, error);
         Map<String,Object> result = new HashMap<>();
+        result.put("sagaId", sagaId);
         result.put("source", MESSAGE_SOURCE);
         result.put("action", action.name() + "_RESULT");
         result.put("status", "FAILURE");

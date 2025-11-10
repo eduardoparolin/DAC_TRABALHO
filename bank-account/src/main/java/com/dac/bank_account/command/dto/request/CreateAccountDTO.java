@@ -17,4 +17,6 @@ public class CreateAccountDTO {
     @NotNull
     @DecimalMin(value = "0.0")
     private Double salary;
+
+    private Long managerId;
 }
