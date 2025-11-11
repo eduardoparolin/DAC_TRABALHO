@@ -96,7 +96,8 @@ public class ManagerService {
                         manager.getId(),
                         manager.getCpf(),
                         manager.getName(),
-                        manager.getEmail()
+                        manager.getEmail(),
+                        manager.getType()
                 ))
                 .toList();
     }
