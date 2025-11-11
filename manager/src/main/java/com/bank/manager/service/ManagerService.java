@@ -2,6 +2,8 @@ package com.bank.manager.service;
 
 import com.bank.manager.dto.ManagerDTO;
 import com.bank.manager.dto.ManagerUpdateDTO;
+import com.bank.manager.dto.ManagersDTO;
+import com.bank.manager.dto.ManagersResponseDTO;
 import com.bank.manager.exception.custom.ApiException;
 import com.bank.manager.model.Manager;
 import com.bank.manager.repository.ManagerRepository;
@@ -9,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -82,6 +85,20 @@ public class ManagerService {
     public void deleteByCpf(String cpf) {
         Manager manager = findByCpf(cpf);
         repository.delete(manager);
+    }
+
+    public List<ManagersResponseDTO> getManagers(ManagersDTO request){
+        List<Long> managerIds = request.managerIds();
+        List<Manager> managers = repository.findByIdIn(managerIds);
+
+        return managers.stream()
+                .map(manager -> new ManagersResponseDTO(
+                        manager.getId(),
+                        manager.getCpf(),
+                        manager.getName(),
+                        manager.getEmail()
+                ))
+                .toList();
     }
 
 }

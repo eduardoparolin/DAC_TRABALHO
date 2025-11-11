@@ -2,6 +2,7 @@ package com.bank.client.controller;
 
 import com.bank.client.dto.ClientReportResponse;
 import com.bank.client.dto.ClientResponse;
+import com.bank.client.dto.ClientsRequestDTO;
 import com.bank.client.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -50,5 +51,10 @@ public class ClientController {
             @PathVariable String status,
             @RequestParam(required = false) Long managerId) {
         return service.getClientsByStatus(status, managerId);
+    }
+
+    @PostMapping("/clientes")
+    public ResponseEntity<List<ClientResponse>> getCliente(@RequestBody ClientsRequestDTO request) {
+        return ResponseEntity.ok(service.getClients(request));
     }
 }
