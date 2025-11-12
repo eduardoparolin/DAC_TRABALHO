@@ -20,10 +20,9 @@ public class MessageUpdateHandler<T extends IAuthPayload> implements MessageHand
     @Override
     public void handle(T data) {
         UserUpdateDTO user = new UserUpdateDTO(
-                data.getPassword(),
-                data.getRole()
+                data.getEmail()
         );
 
-        service.update(user, data.getIdUser(), data.getRequestedById());
+        service.update(user, data.getCpf());
     }
 }

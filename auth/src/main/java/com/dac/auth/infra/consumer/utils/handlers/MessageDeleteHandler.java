@@ -16,6 +16,6 @@ public class MessageDeleteHandler<T extends IAuthPayload> implements MessageHand
 
     @Override
     public void handle(T data) {
-        service.delete(data.getIdUser(), data.getRequestedById());
+        service.delete(data.getCpf(), data.getRequestedById());
     }
 }

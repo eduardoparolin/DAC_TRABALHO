@@ -31,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponseDTO(
                 token,
                 "Bearer",
+                user.getCpf(),
                 user.getRole()
         );
     }

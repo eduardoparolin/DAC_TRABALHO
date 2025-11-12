@@ -20,9 +20,9 @@ public class MessageCreateHandler<T extends IAuthPayload> implements MessageHand
     @Override
     public void handle(T data) {
         UserCreateDTO dto = new UserCreateDTO(
-                data.getIdUser(),
-                data.getEmail(),
-                data.getRole()
+            data.getCpf(),
+            data.getEmail(),
+            data.getRole()
         );
 
         service.save(dto);

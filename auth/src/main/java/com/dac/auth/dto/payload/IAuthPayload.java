@@ -6,7 +6,8 @@ import com.dac.auth.enums.Role;
 
 public interface IAuthPayload {
     Action getAction();
-    String getIdUser();
+    String getId();
+    String getCpf();
     String getEmail();
     String getPassword();
     Role getRole();

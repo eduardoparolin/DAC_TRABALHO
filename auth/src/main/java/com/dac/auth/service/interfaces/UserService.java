@@ -7,8 +7,8 @@ import com.dac.auth.model.User;
 
 public interface UserService {
     UserDTO save(UserCreateDTO user);
-    User findById(String id);
+    User findByCpf(String cpf);
     User findByEmail(String email);
-    UserDTO update(UserUpdateDTO user, String id, String requesterId);
+    UserDTO update(UserUpdateDTO user, String id);
     void delete(String id, String requesterId);
 }

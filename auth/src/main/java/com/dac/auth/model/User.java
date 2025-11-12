@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 
-@Document("User")
+@Document("user")
 @AllArgsConstructor
 @Getter
 @Setter
@@ -27,6 +27,7 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private Role role;
+    private String cpf;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

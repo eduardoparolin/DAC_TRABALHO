@@ -12,12 +12,14 @@ import lombok.NoArgsConstructor;
 public class UserDTO {
     private String id;
     private String email;
+    private String cpf;
     private Role role;
 
     public static UserDTO fromEntity(User user) {
         return new UserDTO(
                 user.getId(),
                 user.getEmail(),
+                user.getCpf(),
                 user.getRole()
         );
     }

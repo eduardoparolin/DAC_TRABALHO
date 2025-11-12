@@ -34,9 +34,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO save(UserCreateDTO dto) {
         log.info("Criando usuario");
-        User existingUser = repository.findById(dto.getId()).orElse(null);
+        User existingUser = repository.findByCpf(dto.getCpf()).orElse(null);
         if(Objects.nonNull(existingUser)) {
-            throw new ApiException("Usuario com ID já existente.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("Usuario com CPF já existente.", HttpStatus.BAD_REQUEST);
         }
 
         existingUser = repository.findByEmail(dto.getEmail()).orElse(null);
@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
         emailService.sendPasswordEmail(dto.getEmail(), passwordData.raw());
 
         User createUser = User.builder()
-                .id(dto.getId())
+                .cpf(dto.getCpf())
                 .email(dto.getEmail())
                 .role(dto.getRole())
                 .password(passwordData.encoded())
@@ -59,9 +59,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findById(String id) {
-        log.info("Buscando usuario com ID {}", id);
-        return repository.findById(id).orElseThrow(() -> new ApiException("Usuario com id "+id+" não encontrado", HttpStatus.NOT_FOUND));
+    public User findByCpf(String cpf) {
+        log.info("Buscando usuario com cpf {}", cpf);
+        return repository.findByCpf(cpf).orElseThrow(() -> new ApiException("Usuario com cpf "+cpf+" não encontrado", HttpStatus.NOT_FOUND));
     }
 
     @Override
@@ -71,18 +71,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO update(UserUpdateDTO dto, String id, String requesterId) {
+    public UserDTO update(UserUpdateDTO dto, String cpf) {
         log.info("Atualizando usuario");
-        User existingUser = findById(id);
+        User existingUser = findByCpf(cpf);
 
         if(Objects.isNull(existingUser)) {
             throw new ApiException("Usuario não encontrado.", HttpStatus.BAD_REQUEST);
-        }
-
-        User requester = findById(requesterId);
-
-        if(Role.ADMIN.equals(requester.getRole()) && Objects.nonNull(dto.getRole())) {
-            throw new ApiException("Apenas admnistradores podem alterar roles", HttpStatus.FORBIDDEN);
         }
 
         User updateUser = updateValidFields(existingUser, dto);
@@ -97,18 +91,14 @@ public class UserServiceImpl implements UserService {
         if(requesterId.equals(id)) {
             throw new ApiException("Usuário não pode deletar a si mesmo", HttpStatus.BAD_REQUEST);
         }
-        findById(id);
+        findByCpf(id);
         repository.deleteById(id);
         log.info("Usuario deletado com sucesso");
     }
 
     private User updateValidFields(User user, UserUpdateDTO dto) {
-        if(validField(dto.getPassword())) {
-            user.setPassword(dto.getPassword());
-        }
-
-        if(Objects.nonNull(dto.getRole()) && validField(dto.getRole().toString())) {
-          user.setRole(dto.getRole());
+        if(validField(dto.getEmail())) {
+            user.setPassword(dto.getEmail());
         }
 
         return user;

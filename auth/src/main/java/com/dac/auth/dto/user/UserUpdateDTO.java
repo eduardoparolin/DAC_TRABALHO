@@ -13,12 +13,9 @@ import lombok.NoArgsConstructor;
 @Data
 public class UserUpdateDTO {
     @NotBlank
-    private String password;
-
-    @NotNull
-    private Role role;
+    private String email;
 
     public static UserUpdateDTO fromEntity(User user) {
-        return new UserUpdateDTO(user.getPassword(), user.getRole());
+        return new UserUpdateDTO(user.getEmail());
     }
 }

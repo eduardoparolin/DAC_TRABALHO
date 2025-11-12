@@ -24,8 +24,8 @@
     </mat-form-field>
     <mat-form-field>
       <mat-label>Salário</mat-label>
-      <input matInput [formControl]="wageControl" placeholder="Ex. 10000">
+      <input matInput [formControl]="salaryControl" placeholder="Ex. 10000">
     </mat-form-field>
-    <button mat-raised-button (click)="editing.set(false)">Salvar</button>
+    <button mat-raised-button (click)="handleEdit()">Salvar</button>
   </div>
 }

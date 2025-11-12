@@ -19,8 +19,13 @@ public class AuthPayload implements IAuthPayload{
     private SagaContext sagaContext;
 
     @Override
-    public String getIdUser() {
-        return getData().getIdUser();
+    public String getId() {
+      return getData().getId();
+    }
+
+    @Override
+    public String getCpf() {
+        return getData().getCpf();
     }
 
     @Override

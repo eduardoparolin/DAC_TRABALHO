@@ -7,11 +7,12 @@ CREATE TABLE IF NOT EXISTS manager (
     name VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
     type VARCHAR(50) NOT NULL,
-    account_count INTEGER NOT NULL DEFAULT 0,
+    account_count INTEGER NOT NULL DEFAULT 0
 );
 
 INSERT INTO manager (id, cpf, email, name, password, type) VALUES
-    (1, '11111111111', 'manager1@bank.com', 'João Silva', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'MANAGER'),
-    (2, '22222222222', 'manager2@bank.com', 'Maria Santos', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'MANAGER'),
-    (3, '33333333333', 'admin@bank.com', 'Admin User', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMINISTRATOR')
+    (1, '98574307084', 'ger1@bantads.com.br', 'Geniéve', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'MANAGER'),
+    (2, '64065268052', 'ger2@bantads.com.br', 'Godophredo', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'MANAGER'),
+    (3, '23862179060', 'ger3@bantads.com.br', 'Gyândula', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'MANAGER'),
+    (4, '40501740066', 'adm1@bantads.com.br', 'Adamântio', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMINISTRATOR')
 ON CONFLICT (id) DO NOTHING;

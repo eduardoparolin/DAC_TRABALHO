@@ -22,6 +22,10 @@ export class ClientsService {
     return lastValueFrom(this.http.get<ClientResponse>(`${environment.baseUrl}/clientes/${id}`));
   }
 
+  getClientByCpf(cpf: string) {
+    return lastValueFrom(this.http.get<ClientResponse>(`${environment.baseUrl}/client/${cpf}`));
+  }
+
   async getAllClients() {
     const clientsResponse = await lastValueFrom(this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`));
     this.clients.set(clientsResponse.map(client => Client.fromJson(client)));

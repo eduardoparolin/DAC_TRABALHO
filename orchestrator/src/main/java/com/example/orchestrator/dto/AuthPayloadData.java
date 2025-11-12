@@ -4,6 +4,7 @@ public class AuthPayloadData {
     private String idUser;
     private String email;
     private String password;
+    private String cpf;
     private String role;
 
     public AuthPayloadData() {
@@ -39,5 +40,13 @@ public class AuthPayloadData {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getCpf() {
+      return cpf;
+    }
+
+    public void setCpf(String cpf) {
+      this.cpf = cpf;
     }
 }
