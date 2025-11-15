@@ -1,5 +1,5 @@
-package com.bank.manager.config.consumer;
-// Essa classe vai representar as mensagens recebidas no consumidor RabbitMQ.
+package com.bank.manager.config;
+
 public class ManagerSagaEvent {
 
     private String eventType; // e.g., "CREATE", "UPDATE", "DELETE"

@@ -1,6 +1,6 @@
 \c account_query;
 
-CREATE TABLE IF NOT EXISTS account_query (
+CREATE TABLE IF NOT EXISTS account (
     id BIGSERIAL PRIMARY KEY,
     client_id BIGINT NOT NULL,
     account_number VARCHAR(50) NOT NULL UNIQUE,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS account_query (
 );
 
 -- Inserts na tabela account
-INSERT INTO account_query (client_id, account_number, creation_date, balance, limit_amount, manager_id, status)
+INSERT INTO account (client_id, account_number, creation_date, balance, limit_amount, manager_id, status)
 VALUES
 (12912861012, '1291', '2000-01-01T00:00:00Z', 800.00, 5000.00, 1, 'ATIVA'),
 

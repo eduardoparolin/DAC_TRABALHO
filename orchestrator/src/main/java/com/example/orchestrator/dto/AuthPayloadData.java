@@ -1,7 +1,7 @@
 package com.example.orchestrator.dto;
 
 public class AuthPayloadData {
-    private String id;
+    private Long id;
     private String name;
     private String email;
     private String password;
@@ -11,11 +11,11 @@ public class AuthPayloadData {
     public AuthPayloadData() {
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

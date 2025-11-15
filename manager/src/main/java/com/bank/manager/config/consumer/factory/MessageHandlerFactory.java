@@ -21,7 +21,7 @@ public class MessageHandlerFactory {
         handlerMap = Map.of(
                 "CREATE", createHandler,
                 "UPDATE", updateHandler,
-                "DELETE", deleteHandler
+                "DELETE_MANAGER_MS", deleteHandler
         );
     }
 

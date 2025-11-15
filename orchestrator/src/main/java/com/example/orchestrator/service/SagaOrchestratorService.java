@@ -149,6 +149,45 @@ public class SagaOrchestratorService {
     return sagaId;
   }
 
+  public String startDeleteManagerSaga(SagaRequest request) {
+    String sagaId = UUID.randomUUID().toString();
+    log.info("Starting DELETE_MANAGER saga with id: {}", sagaId);
+
+    // Create saga
+    Saga saga = new Saga(sagaId, "PENDING", Instant.now());
+    sagaRepository.save(saga);
+
+    // Initialize saga context with all data from request
+    Map<String, Object> context = new HashMap<>();
+    context.put("sagaId", sagaId);
+    Map<String, Object> data = request.getData();
+
+    if (data != null) {
+        context.put("managerId", data.get("managerId"));
+        context.put("cpf", data.get("cpf"));
+        context.put("requestedById", data.get("requestedById"));
+        context.put("role", data.get("role"));
+    }
+
+    sagaContexts.put(sagaId, context);
+
+    // Create saga step
+    SagaStep step = new SagaStep("DELETE_MANAGER_REGISTER", "PENDING",
+            convertMapToString(request.getData()), "REVERT_DELETE_MANAGER");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> managerRequest = new HashMap<>();
+    managerRequest.put("sagaId", sagaId);
+    managerRequest.put("action", "DELETE_MANAGER_MS");
+    managerRequest.put("cpf", context.get("cpf"));
+    managerRequest.put("managerId", context.get("managerId"));
+    managerRequest.put("requestedById", context.get("requestedById"));
+
+    sagaProducer.sendToManagerService(managerRequest);
+    return sagaId;
+  }
+
   @Transactional
   public void processResult(SagaResult result) {
     log.info("Processing result from {}: status={}, action={}, sagaId={}, result={}",
@@ -194,12 +233,30 @@ public class SagaOrchestratorService {
     if (result.getGeneratedPassword() != null) {
       context.put("generatedPassword", result.getGeneratedPassword());
     }
+    if(result.getManagerIdLessAccounts() != null) {
+      context.put("managerIdLessAccounts", result.getManagerIdLessAccounts());
+    }
   }
 
   private void advanceToNextStep(String sagaId, String completedAction) {
     log.info("Advancing saga {} after completing action: '{}'", sagaId, completedAction);
 
     switch (completedAction) {
+      case "DELETE":
+      case "DELETE_RESULT":
+        log.info("Matched DELETE, completing saga");
+        completeSaga(sagaId, "DELETE MANAGER");
+        break;
+      case "DELETE_MANAGER":
+      case "DELETE_MANAGER_RESULT":
+        log.info("Matched DELETE_MANAGER, proceeding to deleteManagerAuth");
+        deleteManagerAuth(sagaId);
+        break;
+      case "DELETE_MANAGER_MS":
+      case "DELETE_MANAGER_MS_RESULT":
+        log.info("Matched DELETE_MANAGER_MS, proceeding to assignNewManagerToAccounts");
+        assignNewManagerToAccounts(sagaId);
+        break;
       case "UPDATE":
       case "UPDATE_RESULT":
         log.info("Matched UPDATE_CLIENT, proceeding to updateSalaryAccount");
@@ -237,11 +294,35 @@ public class SagaOrchestratorService {
       case "CREATE":
       case "CREATE_RESULT":
         log.info("Matched CREATE, completing saga");
-        completeSaga(sagaId);
+        completeSaga(sagaId, "CADASTRO COMPLETO");
         break;
       default:
         log.warn("Unknown action to advance: '{}' (length: {})", completedAction, completedAction.length());
     }
+  }
+
+  private void deleteManagerAuth(String sagaId) {
+    log.info("Step 3: Delete manager auth {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("DELETE_MANAGER_AUTH", "PENDING",
+        "Deleting manager auth", "REVERT_DELETE_MANAGER_AUTH");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    AuthPayload payload = new AuthPayload();
+    payload.setAction("DELETE");
+    payload.setMessageSource("orchestrator");
+    payload.setSagaId(sagaId);
+
+    AuthPayloadData data = new AuthPayloadData();
+    data.setId(Long.parseLong(String.valueOf(context.get("managerId"))));
+    data.setRole(context.get("role").toString());
+    payload.setRequestedById(Long.parseLong(String.valueOf(context.get("requestedById"))));
+    payload.setData(data);
+
+    sagaProducer.sendToAuthService(payload);
   }
 
   private void updateSalaryAccount(String sagaId) {
@@ -279,7 +360,7 @@ public class SagaOrchestratorService {
     payload.setSagaId(sagaId);
 
     AuthPayloadData data = new AuthPayloadData();
-    data.setId(context.get("clientId").toString());
+    data.setId(Long.parseLong(String.valueOf(context.get("clientId"))));
     data.setName(context.get("name").toString());
     data.setCpf(context.get("cpf").toString());
     data.setEmail((String) context.get("email"));
@@ -288,6 +369,26 @@ public class SagaOrchestratorService {
     payload.setData(data);
 
     sagaProducer.sendToAuthService(payload);
+  }
+
+  private void assignNewManagerToAccounts(String sagaId) {
+    log.info("Step 2: Assigning new manager to accounts");
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("DELETE_MANAGER_ACCOUNT", "PENDING",
+        "Deleting manager", "REVERT_DELETE_MANAGER_ACCOUNT");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> updateManagersToAccount = new HashMap<>();
+    updateManagersToAccount.put("sagaId", sagaId);
+    updateManagersToAccount.put("action", "DELETE_MANAGER");
+    updateManagersToAccount.put("managerId", context.get("managerId"));
+    updateManagersToAccount.put("oldManagerId", context.get("managerId"));
+    updateManagersToAccount.put("newManagerId", context.get("managerIdLessAccounts"));
+
+    sagaProducer.sendToAccountService(updateManagersToAccount);
   }
 
   private void assignManagerStep(String sagaId) {
@@ -396,7 +497,7 @@ public class SagaOrchestratorService {
     payload.setSagaId(sagaId);
 
     AuthPayloadData data = new AuthPayloadData();
-    data.setId(context.get("clientId").toString());
+    data.setId(Long.parseLong(String.valueOf(context.get("clientId"))));
     data.setName(context.get("name").toString());
     data.setCpf(context.get("cpf").toString());
     data.setEmail((String) context.get("email"));
@@ -408,7 +509,7 @@ public class SagaOrchestratorService {
     sagaProducer.sendToAuthService(payload);
   }
 
-  private void completeSaga(String sagaId) {
+  private void completeSaga(String sagaId , String title) {
     log.info("Step 7: Completing saga {}", sagaId);
 
     Saga saga = sagaRepository.findById(sagaId).orElseThrow();
@@ -419,7 +520,7 @@ public class SagaOrchestratorService {
 
     // PRINT NO TERMINAL com as credenciais
     System.out.println("========================================");
-    System.out.println("CADASTRO COMPLETO - SAGA: " + sagaId);
+    System.out.println(title + " - SAGA: " + sagaId);
     System.out.println("========================================");
     System.out.println("Cliente ID: " + context.get("clientId"));
     System.out.println("Nome: " + context.get("name"));

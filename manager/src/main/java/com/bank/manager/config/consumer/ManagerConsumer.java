@@ -1,10 +1,12 @@
 package com.bank.manager.config.consumer;
 
+import com.bank.manager.config.ManagerSagaEvent;
 import com.bank.manager.config.consumer.factory.MessageHandlerFactory;
 import com.bank.manager.config.consumer.handlers.interfaces.ManagerMessageHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+;
 
 @Component
 public class ManagerConsumer {
