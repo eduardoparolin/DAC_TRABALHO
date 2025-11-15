@@ -1,5 +1,6 @@
 package com.dac.auth.infra.consumer.utils.factory;
 
+import com.dac.auth.exception.custom.ApiException;
 import com.dac.auth.infra.consumer.utils.handlers.MessageCreateHandler;
 import com.dac.auth.infra.consumer.utils.handlers.MessageDeleteHandler;
 import com.dac.auth.infra.consumer.utils.handlers.MessageUpdateHandler;
@@ -7,6 +8,7 @@ import com.dac.auth.infra.consumer.utils.handlers.interfaces.MessageHandler;
 import com.dac.auth.dto.payload.AuthPayload;
 import com.dac.auth.enums.Action;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -29,7 +31,7 @@ public class MessageHandlerFactory {
 
     public MessageHandler<AuthPayload> getStrategy(Action action) {
         return strategies.getOrDefault(action,
-                data -> { throw new IllegalArgumentException("Ação não suportada: " + action); });
+                data -> { throw new ApiException("Ação não suportada: " + action, HttpStatus.BAD_REQUEST); });
     }
 }
 

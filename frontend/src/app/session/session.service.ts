@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 export interface UserWithBalance extends User {
   balance: number;
+  salary?: number;
 }
 
 @Injectable({
@@ -40,7 +41,7 @@ export class SessionService {
     localStorage.setItem('user', JSON.stringify(response));
     const user = User.fromJson(response);
     this.user.set(user);
-    this.meClient.set(Object.assign(user, { balance: Math.random() * 1000 }));
+    this.meClient.set(Object.assign(user, { balance: Math.random() * 1000, salary: 10000 }));
     return user;
   }
 

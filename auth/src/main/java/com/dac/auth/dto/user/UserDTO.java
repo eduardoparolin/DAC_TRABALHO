@@ -10,15 +10,29 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class UserDTO {
-    private String id;
+    private Long id;
     private String email;
+    private String cpf;
     private Role role;
 
     public static UserDTO fromEntity(User user) {
         return new UserDTO(
-                user.getId(),
+                user.getUserId(),
                 user.getEmail(),
+                user.getCpf(),
                 user.getRole()
         );
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "{\"id\": %s, \"email\": \"%s\", \"cpf\": \"%s\", \"role\": \"%s\"}",
+                id != null ? id : null,
+                email,
+                cpf,
+                role != null ? role.name() : null
+        );
+    }
+
 }

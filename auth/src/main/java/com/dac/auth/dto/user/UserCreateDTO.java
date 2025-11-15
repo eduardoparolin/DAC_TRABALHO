@@ -15,11 +15,16 @@ import lombok.NoArgsConstructor;
 public class UserCreateDTO  {
 
     @NotBlank
-    private String id;
+    private String cpf;
 
     @Email
     private String email;
 
     @NotNull
     private Role role;
+
+    @NotNull
+    private String name;
+
+    private Long id;
 }

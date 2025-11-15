@@ -18,7 +18,29 @@ export class ClientLeaderboardService {
 
   async getAllClients() {
     const clientsResponse = await lastValueFrom(this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`));
-    const clients = clientsResponse.map(client => Client.fromJson(client));
+    const clients = clientsResponse.map(client => {
+      const clientJson = {
+        tipo: client.tipo,
+        usuario: {
+          id: client.id,
+          cpf: client.cpf,
+          name: client.nome,
+          email: client.email,
+        },
+        saldo: client.saldo,
+        limite: client.limite,
+        salario: client.salario,
+        endereco: client.endereco,
+        cidade: client.cidade,
+        estado: client.estado,
+        telefone: client.telefone,
+        numero_conta: client.numero_conta,
+        gerente: client.gerente,
+        gerente_nome: client.gerente_nome,
+      };
+
+      return Client.fromJson(clientJson);
+    });
     clients.sort((a, b) => b.balance - a.balance);
     this.clients.set(clients);
   }

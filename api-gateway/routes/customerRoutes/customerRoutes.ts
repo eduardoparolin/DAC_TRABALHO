@@ -6,11 +6,22 @@ import {
   declineCustomerByCPFSchemaInput,
   getCustomerByCPFSchemaInput,
   getCustomersSchemaInput,
-  UpdateCustomerByCPFSchemaInput,
 } from "./customerRoutesSchema";
 import { customersMock } from "./customerRoutes.mock";
+import { z } from "zod";
 
 export const customerRoutes = new Hono();
+const clientServiceUrl = process.env.CLIENT_SERVICE_URL;
+const orchestratorServiceUrl =
+  process.env.ORCHESTRATOR_SERVICE_URL || "http://orchestrator-service:8085";
+
+const updateCustomerSchema = z.object({
+  cpf: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  salary: z.number(),
+  clientId: z.number(),
+});
 
 customerRoutes.get(
   "/",
@@ -37,10 +48,47 @@ customerRoutes.post(
 );
 
 customerRoutes.put(
-  "/:cpf",
-  zValidator("param", UpdateCustomerByCPFSchemaInput),
+  "/",
+  zValidator("json", updateCustomerSchema),
   async (c) => {
-    return c.json({ message: "Perfil do cliente alterado com sucesso" }, 200);
+    try {
+      const updateProfileData = c.req.valid("json");
+
+      const response = await fetch(
+      `${orchestratorServiceUrl}/api/saga/client`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            data: updateProfileData,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return c.json(
+          {
+            error: "Falha ao iniciar cadastro",
+            details: errorData,
+          },
+          response.status as any
+        );
+      }
+
+      const data = await response.json();
+
+      return c.json(
+        {
+          message: "Cadastro iniciado com sucesso",
+          sagaId: data.sagaId,
+          status: data.status,
+        },
+        202
+      );
+    } catch (error) {
+      console.error("Erro ao disparar saga de editar:", error);
+      return c.json({ error: "Serviço de orquestração indisponível" }, 503);
+    }
   }
 );
 

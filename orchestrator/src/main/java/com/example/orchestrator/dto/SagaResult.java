@@ -1,5 +1,7 @@
 package com.example.orchestrator.dto;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
+
 public class SagaResult {
 
   private String sagaId;
@@ -13,6 +15,7 @@ public class SagaResult {
   private Long managerId;
   private String accountNumber;
   private String generatedPassword;
+  private JSONPObject result;
 
   public SagaResult() {
   }
@@ -105,7 +108,15 @@ public class SagaResult {
     this.generatedPassword = generatedPassword;
   }
 
-  @Override
+    public JSONPObject getResult() {
+        return result;
+    }
+
+    public void setResult(JSONPObject result) {
+        this.result = result;
+    }
+
+    @Override
   public String toString() {
     return "SagaResult{" +
         "sagaId='" + sagaId + '\'' +
@@ -119,6 +130,7 @@ public class SagaResult {
         ", managerId=" + managerId +
         ", accountNumber='" + accountNumber + '\'' +
         ", generatedPassword='" + generatedPassword + '\'' +
+        ", result='" + result + '\'' +
         '}';
   }
 }

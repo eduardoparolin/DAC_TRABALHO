@@ -1,5 +1,6 @@
 package com.dac.auth.infra.consumer.utils.handlers;
 
+import com.dac.auth.dto.user.UserDTO;
 import com.dac.auth.dto.user.UserUpdateDTO;
 import com.dac.auth.exception.custom.ApiException;
 import com.dac.auth.infra.consumer.utils.handlers.interfaces.MessageHandler;
@@ -18,12 +19,12 @@ public class MessageUpdateHandler<T extends IAuthPayload> implements MessageHand
     private final UserService service;
 
     @Override
-    public void handle(T data) {
+    public UserDTO handle(T data) {
         UserUpdateDTO user = new UserUpdateDTO(
-                data.getPassword(),
-                data.getRole()
+                data.getEmail(),
+                data.getName()
         );
 
-        service.update(user, data.getIdUser(), data.getRequestedById());
+        return service.update(user, data.getCpf());
     }
 }

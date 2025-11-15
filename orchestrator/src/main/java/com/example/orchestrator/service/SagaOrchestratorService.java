@@ -99,6 +99,56 @@ public class SagaOrchestratorService {
     return sagaId;
   }
 
+  public String startUpdateClientSaga(SagaRequest request) {
+    String sagaId = UUID.randomUUID().toString();
+    log.info("Starting UPDATE_CLIENT saga with id: {}", sagaId);
+
+    // Create saga
+    Saga saga = new Saga(sagaId, "PENDING", Instant.now());
+    sagaRepository.save(saga);
+
+    // Initialize saga context with all data from request
+    Map<String, Object> context = new HashMap<>();
+    context.put("sagaId", sagaId);
+    Map<String, Object> data = request.getData();
+
+    if (data != null) {
+      context.put("cpf", data.get("cpf"));
+      context.put("name", data.get("name"));
+      context.put("email", data.get("email"));
+      context.put("salary", data.get("salary"));
+      context.put("clientId", data.get("clientId"));
+    }
+
+    sagaContexts.put(sagaId, context);
+
+    // Create saga step
+    SagaStep step = new SagaStep("UPDATE_CLIENT", "PENDING",
+        convertMapToString(request.getData()), "DELETE_CLIENT");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    // Send message to client service
+    ClientMessageRequest clientRequest = new ClientMessageRequest();
+    clientRequest.setSagaId(sagaId);
+    clientRequest.setAction("UPDATE_CLIENT");
+    clientRequest.setClientId(Long.valueOf((Integer) context.get("clientId")));
+    clientRequest.setCpf((String) context.get("cpf"));
+    clientRequest.setName((String) context.get("name"));
+    clientRequest.setEmail((String) context.get("email"));
+
+    Object salaryObj = context.get("salary");
+    if (salaryObj != null) {
+      if (salaryObj instanceof Number) {
+        clientRequest.setSalary(((Number) salaryObj).doubleValue());
+      }
+    }
+
+    sagaProducer.sendToClientService(clientRequest);
+
+    return sagaId;
+  }
+
   @Transactional
   public void processResult(SagaResult result) {
     log.info("Processing result from {}: status={}, action={}, sagaId={}, result={}",
@@ -150,6 +200,15 @@ public class SagaOrchestratorService {
     log.info("Advancing saga {} after completing action: '{}'", sagaId, completedAction);
 
     switch (completedAction) {
+      case "UPDATE":
+      case "UPDATE_RESULT":
+        log.info("Matched UPDATE_CLIENT, proceeding to updateSalaryAccount");
+        updateSalaryAccount(sagaId);
+      case "UPDATE_CLIENT":
+      case "UPDATE_CLIENT_RESULT":
+        log.info("Matched UPDATE_CLIENT, proceeding to updateAuth");
+        updateAuth(sagaId);
+        break;
       case "CREATE_CLIENT":
       case "CREATE_CLIENT_RESULT":
         log.info("Matched CREATE_CLIENT, proceeding to assignManagerStep");
@@ -183,6 +242,52 @@ public class SagaOrchestratorService {
       default:
         log.warn("Unknown action to advance: '{}' (length: {})", completedAction, completedAction.length());
     }
+  }
+
+  private void updateSalaryAccount(String sagaId) {
+    log.info("Step 2: Update salary in account {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("UPDATE_SALARY", "PENDING",
+        "updating auth email", "REVERT_UPDATE_SALARY");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> updateSalaryRequest = new HashMap<>();
+    updateSalaryRequest.put("sagaId", sagaId);
+    updateSalaryRequest.put("action", "UPDATE_LIMIT");
+    updateSalaryRequest.put("idUser", context.get("clientId"));
+    updateSalaryRequest.put("salary", context.get("salary"));
+
+    sagaProducer.sendToAccountService(updateSalaryRequest);
+  }
+
+  private void updateAuth(String sagaId) {
+    log.info("Step 2: Update auth for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("UPDATE_AUTH", "PENDING",
+        "updating auth", "REVERT_UPDATE_EMAIL");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    AuthPayload payload = new AuthPayload();
+    payload.setAction("UPDATE");
+    payload.setMessageSource("orchestrator");
+    payload.setSagaId(sagaId);
+
+    AuthPayloadData data = new AuthPayloadData();
+    data.setId(context.get("clientId").toString());
+    data.setName(context.get("name").toString());
+    data.setCpf(context.get("cpf").toString());
+    data.setEmail((String) context.get("email"));
+    data.setRole((String) context.get("role"));
+
+    payload.setData(data);
+
+    sagaProducer.sendToAuthService(payload);
   }
 
   private void assignManagerStep(String sagaId) {
@@ -291,7 +396,9 @@ public class SagaOrchestratorService {
     payload.setSagaId(sagaId);
 
     AuthPayloadData data = new AuthPayloadData();
-    data.setIdUser(context.get("clientId").toString());
+    data.setId(context.get("clientId").toString());
+    data.setName(context.get("name").toString());
+    data.setCpf(context.get("cpf").toString());
     data.setEmail((String) context.get("email"));
     data.setPassword((String) context.get("generatedPassword"));
     data.setRole("CLIENT");

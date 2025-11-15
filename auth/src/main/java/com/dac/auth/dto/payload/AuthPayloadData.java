@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class AuthPayloadData {
-    private String idUser;
+    private Long id;
+    private String cpf;
     private String email;
     private String password;
+    private String name;
     private Role role;
 }
