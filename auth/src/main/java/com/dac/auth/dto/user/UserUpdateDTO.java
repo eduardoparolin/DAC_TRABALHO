@@ -12,10 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class UserUpdateDTO {
-    @NotBlank
+
     private String email;
 
+    private String name;
+
     public static UserUpdateDTO fromEntity(User user) {
-        return new UserUpdateDTO(user.getEmail());
+        return new UserUpdateDTO(user.getEmail(), user.getName());
     }
 }

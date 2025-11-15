@@ -6,11 +6,12 @@ import com.dac.auth.enums.Role;
 
 public interface IAuthPayload {
     Action getAction();
-    String getId();
+    Long getId();
     String getCpf();
     String getEmail();
     String getPassword();
     Role getRole();
-    String getRequestedById();
+    Long getRequestedById();
     SagaContext getSagaContext();
+    String getName();
 }

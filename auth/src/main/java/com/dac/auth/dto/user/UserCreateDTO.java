@@ -22,4 +22,9 @@ public class UserCreateDTO  {
 
     @NotNull
     private Role role;
+
+    @NotNull
+    private String name;
+
+    private Long id;
 }

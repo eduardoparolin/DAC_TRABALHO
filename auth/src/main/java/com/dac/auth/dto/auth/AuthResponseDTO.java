@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 public class AuthResponseDTO {
     private String accessToken;
     private String tokenType;
-    private String cpf;
     private Role tipo;
+    private LoggedUserDTO usuario;
 }

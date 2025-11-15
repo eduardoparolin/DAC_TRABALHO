@@ -1,7 +1,11 @@
+import { UserType } from "../session/user.model";
+
 export type LoginResponse = {
-  id: string;
-  cpf: string,
-  nome: string,
-  email: string,
-  tipo: string
+  usuario: {
+    id: number,
+    name: string,
+    cpf: string,
+    email: string,
+  }
+  tipo: UserType | string;
 }

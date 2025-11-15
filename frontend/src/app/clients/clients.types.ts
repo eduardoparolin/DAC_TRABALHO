@@ -1,5 +1,5 @@
 export type ClientResponse = {
-  "id": string | number;
+  "id": number;
   "cpf": string;
   "nome": string;
   "email": string;

@@ -24,10 +24,13 @@ public class User implements UserDetails {
 
     @Id
     private String id;
+    private Long clientId;
+    private Long managerId;
     private String email;
     private String password;
     private Role role;
     private String cpf;
+    private String name;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -37,5 +40,20 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         return this.email;
+    }
+
+    public Long getUserId() {
+        if(Role.CLIENT.equals(this.role)) {
+            return this.clientId;
+        }
+        return this.managerId;
+    }
+
+    public void setUserId(Long id) {
+        if(Role.CLIENT.equals(this.role)) {
+            this.clientId = id;
+            return;
+        }
+        this.managerId = id;
     }
 }

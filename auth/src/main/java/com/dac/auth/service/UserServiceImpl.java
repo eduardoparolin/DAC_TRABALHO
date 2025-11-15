@@ -45,14 +45,17 @@ public class UserServiceImpl implements UserService {
         }
 
         PasswordData passwordData = generateRandomPassword();
-        emailService.sendPasswordEmail(dto.getEmail(), passwordData.raw());
+        emailService.sendPasswordEmail(dto.getName(), dto.getEmail(), passwordData.raw());
 
         User createUser = User.builder()
                 .cpf(dto.getCpf())
                 .email(dto.getEmail())
                 .role(dto.getRole())
                 .password(passwordData.encoded())
+                .name(dto.getName())
                 .build();
+
+        createUser.setUserId(dto.getId());
 
         log.info("Usuario criado com sucesso");
         return UserDTO.fromEntity(repository.save(createUser));
@@ -62,6 +65,15 @@ public class UserServiceImpl implements UserService {
     public User findByCpf(String cpf) {
         log.info("Buscando usuario com cpf {}", cpf);
         return repository.findByCpf(cpf).orElseThrow(() -> new ApiException("Usuario com cpf "+cpf+" não encontrado", HttpStatus.NOT_FOUND));
+    }
+
+    @Override
+    public User findById(Long id, Role role) {
+        log.info("Buscando usuario com id {}", id);
+        if(Role.CLIENT.equals(role)) {
+            return repository.findByClientId(id).orElseThrow(() -> new ApiException("Cliente com id "+id+" não encontrado", HttpStatus.NOT_FOUND));
+        }
+        return repository.findByManagerId(id).orElseThrow(() -> new ApiException("Manager com id "+id+" não encontrado", HttpStatus.NOT_FOUND));
     }
 
     @Override
@@ -86,19 +98,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(String id, String requesterId) {
+    public void delete(Long id, Long requesterId, Role role) {
         log.info("Excluindo usuario");
         if(requesterId.equals(id)) {
             throw new ApiException("Usuário não pode deletar a si mesmo", HttpStatus.BAD_REQUEST);
         }
-        findByCpf(id);
-        repository.deleteById(id);
+
+        User user = findById(id, role);
+        repository.delete(user);
         log.info("Usuario deletado com sucesso");
     }
 
     private User updateValidFields(User user, UserUpdateDTO dto) {
         if(validField(dto.getEmail())) {
-            user.setPassword(dto.getEmail());
+            user.setEmail(dto.getEmail());
+        }
+
+        if(validField(dto.getName())) {
+            user.setName(dto.getName());
         }
 
         return user;

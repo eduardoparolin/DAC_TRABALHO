@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class AuthPayload implements IAuthPayload{
-    private String requestedById;
+    private Long requestedById;
     private Action action;
     private String messageSource;
     private String sagaId;
@@ -19,7 +19,7 @@ public class AuthPayload implements IAuthPayload{
     private SagaContext sagaContext;
 
     @Override
-    public String getId() {
+    public Long getId() {
       return getData().getId();
     }
 
@@ -41,5 +41,10 @@ public class AuthPayload implements IAuthPayload{
     @Override
     public Role getRole() {
         return getData().getRole();
+    }
+
+    @Override
+    public String getName() {
+        return getData().getName();
     }
 }

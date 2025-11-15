@@ -6,7 +6,6 @@ import {
   declineCustomerByCPFSchemaInput,
   getCustomerByCPFSchemaInput,
   getCustomersSchemaInput,
-  UpdateCustomerByCPFSchemaInput,
 } from "./customerRoutesSchema";
 import { customersMock } from "./customerRoutes.mock";
 import { z } from "zod";
@@ -21,6 +20,7 @@ const updateCustomerSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   salary: z.number(),
+  clientId: z.number(),
 });
 
 customerRoutes.get(
@@ -48,21 +48,18 @@ customerRoutes.post(
 );
 
 customerRoutes.put(
-  "/:cpf",
-  zValidator("param", getCustomerByCPFSchemaInput),
+  "/",
   zValidator("json", updateCustomerSchema),
   async (c) => {
     try {
-      const { cpf } = c.req.valid("param");
       const updateProfileData = c.req.valid("json");
 
       const response = await fetch(
-      `${orchestratorServiceUrl}/api/saga/client/create`,
+      `${orchestratorServiceUrl}/api/saga/client`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            action: "UPDATE",
             data: updateProfileData,
         }),
       });

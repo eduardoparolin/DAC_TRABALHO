@@ -35,7 +35,7 @@ public class SagaController {
     }
   }
 
-  @PutMapping("/client/{cpf}")
+  @PutMapping("/client")
   public ResponseEntity<Map<String, String>> updateClient(@RequestBody SagaRequest request) {
     try {
       String sagaId = sagaOrchestratorService.startUpdateClientSaga(request);

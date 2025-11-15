@@ -2,6 +2,7 @@ package com.dac.auth.service;
 
 import com.dac.auth.dto.auth.AuthRequestDTO;
 import com.dac.auth.dto.auth.AuthResponseDTO;
+import com.dac.auth.dto.auth.LoggedUserDTO;
 import com.dac.auth.model.User;
 import com.dac.auth.infra.configuration.security.TokenService;
 import com.dac.auth.service.interfaces.AuthService;
@@ -31,8 +32,8 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponseDTO(
                 token,
                 "Bearer",
-                user.getCpf(),
-                user.getRole()
+                user.getRole(),
+                LoggedUserDTO.fromUser(user)
         );
     }
 

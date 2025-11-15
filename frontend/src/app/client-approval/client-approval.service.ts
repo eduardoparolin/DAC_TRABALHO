@@ -25,7 +25,29 @@ export class ClientApprovalService {
     const clientsResponse = await lastValueFrom(
       this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`)
     );
-    this.clients.set(clientsResponse.map((client) => Client.fromJson(client)));
+    this.clients.set(clientsResponse.map((client) => {
+      const clientJson = {
+        tipo: client.tipo,
+        usuario: {
+          id: client.id,
+          cpf: client.cpf,
+          name: client.nome,
+          email: client.email,
+        },
+        saldo: client.saldo,
+        limite: client.limite,
+        salario: client.salario,
+        endereco: client.endereco,
+        cidade: client.cidade,
+        estado: client.estado,
+        telefone: client.telefone,
+        numero_conta: client.numero_conta,
+        gerente: client.gerente,
+        gerente_nome: client.gerente_nome,
+      };
+
+      return Client.fromJson(clientJson);
+    }));
   }
 
   approveClient(clientId: string) {

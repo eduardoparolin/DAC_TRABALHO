@@ -70,23 +70,26 @@ public class ClientService {
         Client client = repo.findById(req.getClientId())
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + req.getClientId()));
 
-        if (!Objects.equals(client.getEmail(), req.getEmail()) && repo.existsByEmail(req.getEmail())) {
+        if (req.getEmail() != null &&
+                !Objects.equals(client.getEmail(), req.getEmail()) &&
+                repo.existsByEmail(req.getEmail())) {
             throw new DuplicateResourceException("Email já cadastrado");
         }
 
-        client.setName(req.getName());
-        client.setEmail(req.getEmail());
-        client.setPhone(req.getPhone());
-        client.setSalary(req.getSalary());
-        client.setStreet(req.getStreet());
-        client.setNumber(req.getNumber());
-        client.setComplement(req.getComplement());
-        client.setZipCode(req.getZipCode());
-        client.setCity(req.getCity());
-        client.setState(req.getState());
+        if (req.getName() != null) client.setName(req.getName());
+        if (req.getEmail() != null) client.setEmail(req.getEmail());
+        if (req.getPhone() != null) client.setPhone(req.getPhone());
+        if (req.getSalary() != null) client.setSalary(req.getSalary());
+        if (req.getStreet() != null) client.setStreet(req.getStreet());
+        if (req.getNumber() != null) client.setNumber(req.getNumber());
+        if (req.getComplement() != null) client.setComplement(req.getComplement());
+        if (req.getZipCode() != null) client.setZipCode(req.getZipCode());
+        if (req.getCity() != null) client.setCity(req.getCity());
+        if (req.getState() != null) client.setState(req.getState());
 
         repo.save(client);
     }
+
 
     @Transactional
     public void delete(Long id) {

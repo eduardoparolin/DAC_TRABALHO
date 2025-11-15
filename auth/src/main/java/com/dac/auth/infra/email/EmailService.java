@@ -11,20 +11,18 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    public void sendPasswordEmail(String to, String plainPassword) {
+    public void sendPasswordEmail(String name, String to, String plainPassword) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Sua nova senha de acesso");
         message.setText("""
-                Olá,
+                Olá, %s
 
-                Sua nova senha temporária é: %s
-
-                Recomendamos que você altere a senha assim que fizer login.
+                Sua senha é: %s
                 
                 Atenciosamente,
                 Equipe DAC
-                """.formatted(plainPassword));
+                """.formatted(name, plainPassword));
 
         mailSender.send(message);
     }
