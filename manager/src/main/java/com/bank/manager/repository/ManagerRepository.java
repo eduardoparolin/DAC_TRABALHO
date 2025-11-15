@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface ManagerRepository extends JpaRepository<Manager, Long> {
     Optional<Manager> findByCpf(String cpf);
+    List<Manager> findByIdIn(List<Long> managerIds);
 }

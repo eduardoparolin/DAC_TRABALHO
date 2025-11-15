@@ -2,6 +2,8 @@ package com.bank.manager.controller;
 
 import com.bank.manager.dto.ManagerDTO;
 import com.bank.manager.dto.ManagerUpdateDTO;
+import com.bank.manager.dto.ManagersDTO;
+import com.bank.manager.dto.ManagersResponseDTO;
 import com.bank.manager.service.ManagerService;
 
 import lombok.RequiredArgsConstructor;
@@ -43,5 +45,10 @@ public class ManagerController {
     public ResponseEntity<Void> delete(@PathVariable String cpf) {
         service.deleteByCpf(cpf);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/gerentes")
+    public ResponseEntity<List<ManagersResponseDTO>> getManagers(@RequestBody ManagersDTO request) {
+        return ResponseEntity.ok(service.getManagers(request));
     }
 }

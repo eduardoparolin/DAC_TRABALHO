@@ -189,6 +189,15 @@ public class ClientService {
                 .collect(Collectors.toList());
     }
 
+    public List<ClientResponse> getClients(ClientsRequestDTO req) {
+        List<Long> clientIds = req.clientIds();
+        List<Client> clients = repo.findByIdIn(clientIds);
+
+        return clients.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private ClientResponse toResponse(Client client) {
         ClientResponse response = new ClientResponse();
         response.setId(client.getId());
