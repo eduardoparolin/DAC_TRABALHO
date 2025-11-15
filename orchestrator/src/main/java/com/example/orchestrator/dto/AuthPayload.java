@@ -1,7 +1,7 @@
 package com.example.orchestrator.dto;
 
 public class AuthPayload {
-    private String requestedById;
+    private Long requestedById;
     private String action;
     private String messageSource;
     private String sagaId;
@@ -11,11 +11,11 @@ public class AuthPayload {
         this.data = new AuthPayloadData();
     }
 
-    public String getRequestedById() {
+    public Long getRequestedById() {
         return requestedById;
     }
 
-    public void setRequestedById(String requestedById) {
+    public void setRequestedById(Long requestedById) {
         this.requestedById = requestedById;
     }
 

@@ -1,6 +1,7 @@
 package com.bank.manager.config.producer;
 
-import com.bank.manager.config.consumer.ManagerSagaEvent;
+
+import com.bank.manager.config.ManagerSagaEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;

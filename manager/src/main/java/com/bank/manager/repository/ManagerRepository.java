@@ -12,4 +12,5 @@ import java.util.List;
 public interface ManagerRepository extends JpaRepository<Manager, Long> {
     Optional<Manager> findByCpf(String cpf);
     List<Manager> findByIdIn(List<Long> managerIds);
+    Manager findFirstByOrderByAccountCountAsc();
 }

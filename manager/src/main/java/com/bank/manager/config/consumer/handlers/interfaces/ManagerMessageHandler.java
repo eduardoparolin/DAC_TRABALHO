@@ -1,6 +1,7 @@
 package com.bank.manager.config.consumer.handlers.interfaces;
 
-import com.bank.manager.config.consumer.ManagerSagaEvent;
+
+import com.bank.manager.config.ManagerSagaEvent;
 
 public interface ManagerMessageHandler {
     void handleMessage(ManagerSagaEvent event);

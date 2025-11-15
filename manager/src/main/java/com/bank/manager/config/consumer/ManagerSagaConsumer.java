@@ -1,14 +1,22 @@
 package com.bank.manager.config.consumer;
 
+import com.bank.manager.config.ManagerSagaEvent;
 import com.bank.manager.config.producer.ManagerSagaProducer;
 import com.bank.manager.model.Manager;
 import com.bank.manager.repository.ManagerRepository;
+import com.bank.manager.service.ManagerService;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,12 +25,16 @@ public class ManagerSagaConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(ManagerSagaConsumer.class);
 
+    private final ManagerService managerService;
     private final ManagerRepository managerRepository;
     private final ManagerSagaProducer managerSagaProducer;
+    private final ObjectMapper objectMapper;
 
-    public ManagerSagaConsumer(ManagerRepository managerRepository, ManagerSagaProducer managerSagaProducer) {
-        this.managerRepository = managerRepository;
-        this.managerSagaProducer = managerSagaProducer;
+    public ManagerSagaConsumer(@Lazy ManagerService managerService, ManagerRepository managerRepository, ManagerSagaProducer managerSagaProducer, ObjectMapper objectMapper) {
+      this.managerService = managerService;
+      this.managerRepository = managerRepository;
+      this.managerSagaProducer = managerSagaProducer;
+      this.objectMapper = objectMapper;
     }
 
     @RabbitListener(queues = "manager-saga-queue")
@@ -37,6 +49,8 @@ public class ManagerSagaConsumer {
                 handleAssignManager(sagaId, message);
             } else if ("UNASSIGN_MANAGER".equals(action)) {
                 handleUnassignManager(sagaId, message);
+            } else if ("DELETE_MANAGER_MS".equals(action)) {
+                handleDeleteManager(sagaId, message);
             } else {
                 log.warn("Unknown action: {}", action);
                 managerSagaProducer.sendFailureResult(sagaId, action, "Unknown action: " + action);
@@ -47,7 +61,35 @@ public class ManagerSagaConsumer {
         }
     }
 
-    private void handleAssignManager(String sagaId, Map<String, Object> message) {
+    private void handleDeleteManager(String sagaId, Map<String, Object> message) throws Exception {
+      log.info("Delete manager for saga {}", sagaId);
+
+      String cpf = (String) message.get("cpf");
+      Long requestedById = Long.parseLong(String.valueOf(message.get("requestedById")));
+
+      Manager managerLessAccounts = managerService.getWithLessAccounts();
+      log.info("id manager less acounts: {}", managerLessAccounts.getId());
+      Manager deletedManager = managerService.findByCpf(cpf);
+
+      if (deletedManager.getId().equals(requestedById)) {
+        throw new Exception("Manager não pode deletar a si mesmo");
+      }
+
+      managerLessAccounts.setAccountCount(managerLessAccounts.getAccountCount() + deletedManager.getAccountCount());
+
+      managerService.save(managerLessAccounts);
+      managerService.deleteByCpf(cpf);
+
+      Map<String, Object> responseResult = new HashMap<>();
+      responseResult.put("cpf", cpf);
+      responseResult.put("managerIdLessAccounts", managerLessAccounts.getId());
+      responseResult.put("managerId", deletedManager.getId());
+
+      managerSagaProducer.sendSuccessResult(sagaId, "DELETE_MANAGER_MS", responseResult);
+    }
+
+
+  private void handleAssignManager(String sagaId, Map<String, Object> message) {
         log.info("Assigning manager for saga {}", sagaId);
 
         // Find manager with least accounts

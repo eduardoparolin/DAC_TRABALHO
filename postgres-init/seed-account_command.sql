@@ -1,18 +1,18 @@
 \c account_command;
 
-CREATE TABLE IF NOT EXISTS account_command (
+CREATE TABLE IF NOT EXISTS account (
     id BIGSERIAL PRIMARY KEY,
-    client_id BIGINT NOT NULL,
-    account_number VARCHAR(50) NOT NULL UNIQUE,
-    creation_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    clientId BIGINT NOT NULL,
+    accountNumber VARCHAR(50) NOT NULL UNIQUE,
+    creationDate TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     balance NUMERIC(14,2) NOT NULL DEFAULT 0,
-    limit_amount NUMERIC(14,2) NOT NULL DEFAULT 0,
-    manager_id BIGINT,
+    limitAmount NUMERIC(14,2) NOT NULL DEFAULT 0,
+    managerId BIGINT,
     status VARCHAR(50 ) NOT NULL
 );
 
 -- Inserts na tabela account
-INSERT INTO account_command (client_id, account_number, creation_date, balance, limit_amount, manager_id, status)
+INSERT INTO account (clientId, accountNumber, creationDate, balance, limitAmount, managerId, status)
 VALUES
 (12912861012, '1291', '2000-01-01T00:00:00Z', 800.00, 5000.00, 1, 'ATIVA'),
 
@@ -28,15 +28,15 @@ CREATE TABLE IF NOT EXISTS transaction (
     id BIGSERIAL PRIMARY KEY,
     dateTime TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     type VARCHAR(50) NOT NULL,
-    source_account_number VARCHAR(50) NOT NULL,
-    target_account_number VARCHAR(50),
+    sourceAccountNumber VARCHAR(50) NOT NULL,
+    targetAccountNumber VARCHAR(50),
     amount NUMERIC(14,2) NOT NULL
 );
 
 -- =============================
 -- Transações de Catharyna
 -- =============================
-INSERT INTO transaction (dateTime, type, source_account_number, target_account_number, amount)
+INSERT INTO transaction (dateTime, type, sourceAccountNumber, targetAccountNumber, amount)
 VALUES
 ('2020-01-01 10:00:00+00', 'DEPÓSITO', '1291', NULL, 1000.00),
 ('2020-01-01 11:00:00+00', 'DEPÓSITO', '1291', NULL, 900.00),
@@ -49,7 +49,7 @@ VALUES
 -- =============================
 -- Transações de Cleuddônio
 -- =============================
-INSERT INTO transaction (dateTime, type, source_account_number, target_account_number, amount)
+INSERT INTO transaction (dateTime, type, sourceAccountNumber, targetAccountNumber, amount)
 VALUES
 ('2025-01-01 12:00:00+00', 'DEPÓSITO', '0950', NULL, 1000.00),
 ('2025-01-02 10:00:00+00', 'DEPÓSITO', '0950', NULL, 5000.00),
@@ -59,7 +59,7 @@ VALUES
 -- =============================
 -- Transações de Catianna
 -- =============================
-INSERT INTO transaction (dateTime, type, source_account_number, target_account_number, amount)
+INSERT INTO transaction (dateTime, type, sourceAccountNumber, targetAccountNumber, amount)
 VALUES
 ('2025-05-05 10:00:00+00', 'DEPÓSITO', '8573', NULL, 1000.00),
 ('2025-06-06 10:00:00+00', 'SAQUE', '8573', NULL, 2000.00);
@@ -67,13 +67,13 @@ VALUES
 -- =============================
 -- Transações de Cutardo
 -- =============================
-INSERT INTO transaction (dateTime, type, source_account_number, target_account_number, amount)
+INSERT INTO transaction (dateTime, type, sourceAccountNumber, targetAccountNumber, amount)
 VALUES
 ('2025-06-01 10:00:00+00', 'DEPÓSITO', '5887', NULL, 150000.00);
 
 -- =============================
 -- Transações de Coândrya
 -- =============================
-INSERT INTO transaction (dateTime, type, source_account_number, target_account_number, amount)
+INSERT INTO transaction (dateTime, type, sourceAccountNumber, targetAccountNumber, amount)
 VALUES
 ('2025-07-01 10:00:00+00', 'DEPÓSITO', '7617', NULL, 1500.00);

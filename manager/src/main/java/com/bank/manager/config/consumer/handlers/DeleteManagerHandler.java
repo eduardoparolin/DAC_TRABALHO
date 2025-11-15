@@ -1,6 +1,6 @@
 package com.bank.manager.config.consumer.handlers;
 
-import com.bank.manager.config.consumer.ManagerSagaEvent;
+import com.bank.manager.config.ManagerSagaEvent;
 import com.bank.manager.config.consumer.handlers.interfaces.ManagerMessageHandler;
 import com.bank.manager.service.ManagerService;
 import com.bank.manager.config.producer.ManagerProducer;

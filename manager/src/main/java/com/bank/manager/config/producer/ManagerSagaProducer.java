@@ -1,5 +1,7 @@
 package com.bank.manager.config.producer;
 
+import com.bank.manager.config.ManagerSagaEvent;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -33,6 +35,22 @@ public class ManagerSagaProducer {
 
         rabbitTemplate.convertAndSend(RESULT_QUEUE, result);
     }
+
+  public void sendSuccessResult(String sagaId, String action,  Map<String, Object> response) {
+    log.info("Sending success result for action {} in saga {}", action, sagaId);
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("sagaId", sagaId);
+    result.put("source", MESSAGE_SOURCE);
+    result.put("action", action + "_RESULT");
+    result.put("status", "SUCCESS");
+    result.put("managerId", response.get("managerId"));
+    result.put("managerIdLessAccounts", response.get("managerIdLessAccounts"));
+    result.put("cpf", response.get("cpf"));
+    result.put("error", null);
+
+    rabbitTemplate.convertAndSend(RESULT_QUEUE, result);
+  }
 
     public void sendFailureResult(String sagaId, String action, String error) {
         log.error("Sending failure result for action {} in saga {}: {}", action, sagaId, error);

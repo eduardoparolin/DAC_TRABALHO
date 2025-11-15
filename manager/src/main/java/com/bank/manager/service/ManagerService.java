@@ -8,6 +8,7 @@ import com.bank.manager.exception.custom.ApiException;
 import com.bank.manager.model.Manager;
 import com.bank.manager.repository.ManagerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -102,4 +103,11 @@ public class ManagerService {
                 .toList();
     }
 
+    public Manager getWithLessAccounts() {
+      return repository.findFirstByOrderByAccountCountAsc();
+    }
+
+    public Manager save(Manager manager) {
+      return repository.save(manager);
+    }
 }
