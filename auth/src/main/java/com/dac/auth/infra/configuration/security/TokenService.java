@@ -46,6 +46,7 @@ public class TokenService {
                 .setIssuer("bantads")
                 .claim(Claims.ID, user.getId().toString())
                 .claim(ROLES_CLAIM, List.of("ROLE_" + user.getRole()))
+                .claim("email", user.getEmail())
                 .setIssuedAt(now)
                 .setExpiration(exp)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

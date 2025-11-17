@@ -5,7 +5,7 @@
     "nome": "Alberto",
     "email": "cli1@bantads.com.br",
     "phone": "(11) 9 8765-4321",
-    "type": "MANAGER"
+    "type": "GERENTE"
   },
   {
     "id": 2,
@@ -13,7 +13,7 @@
     "nome": "Catharyna",
     "email": "cli1@bantads.com.br",
     "phone": "(21) 9 7654-3210",
-    "type": "MANAGER"
+    "type": "GERENTE"
   },
   {
     "id": 3,
@@ -21,6 +21,6 @@
     "nome": "Joaquina",
     "email": "cli1@bantads.com.br",
     "phone": "(31) 9 6543-2109",
-    "type": "MANAGER"
+    "type": "GERENTE"
   }
 ]

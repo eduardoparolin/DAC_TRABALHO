@@ -6,15 +6,18 @@ import com.bank.client.exception.DuplicateResourceException;
 import com.bank.client.exception.NotFoundException;
 import com.bank.client.repository.ClientRepository;
 import com.bank.client.spec.ClientSpecifications;
+import com.bank.client.dto.AccountSagaEvent;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.bank.client.events.ClienteEventPublisher;
+import com.bank.client.infra.producer.AccountProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +31,9 @@ public class ClientService {
 
     @Autowired(required = false)
     private ClienteEventPublisher publisher;
+
+    @Autowired(required = false)
+    private AccountProducer accountProducer;
 
     @Transactional
     public Long create(ClientCreateDTO req) {
@@ -43,7 +49,6 @@ public class ClientService {
         client.setPhone(req.getPhone());
         client.setSalary(req.getSalary());
         client.setStreet(req.getStreet());
-        client.setNumber(req.getNumber());
         client.setComplement(req.getComplement());
         client.setZipCode(req.getZipCode());
         client.setCity(req.getCity());
@@ -55,6 +60,14 @@ public class ClientService {
         return client.getId();
     }
 
+    @Transactional
+    public void setManagerId(Long clientId, Long managerId) {
+        Client client = repo.findById(clientId)
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
+        client.setManagerId(managerId);
+        repo.save(client);
+    }
+
     public List<ClientResponse> list() {
         return repo.findAll().stream().map(this::toResponse).collect(Collectors.toList());
     }
@@ -62,6 +75,13 @@ public class ClientService {
     public ClientResponse getById(Long id) {
         Client client = repo.findById(id)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + id));
+        return toResponse(client);
+    }
+
+    public ClientResponse getByCpf(String cpf) {
+        String cpfDigits = normalizeCpf(cpf);
+        Client client = repo.findByCpf(cpfDigits)
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado com CPF: " + cpf));
         return toResponse(client);
     }
 
@@ -76,20 +96,27 @@ public class ClientService {
             throw new DuplicateResourceException("Email já cadastrado");
         }
 
-        if (req.getName() != null) client.setName(req.getName());
-        if (req.getEmail() != null) client.setEmail(req.getEmail());
-        if (req.getPhone() != null) client.setPhone(req.getPhone());
-        if (req.getSalary() != null) client.setSalary(req.getSalary());
-        if (req.getStreet() != null) client.setStreet(req.getStreet());
-        if (req.getNumber() != null) client.setNumber(req.getNumber());
-        if (req.getComplement() != null) client.setComplement(req.getComplement());
-        if (req.getZipCode() != null) client.setZipCode(req.getZipCode());
-        if (req.getCity() != null) client.setCity(req.getCity());
-        if (req.getState() != null) client.setState(req.getState());
+        if (req.getName() != null)
+            client.setName(req.getName());
+        if (req.getEmail() != null)
+            client.setEmail(req.getEmail());
+        if (req.getPhone() != null)
+            client.setPhone(req.getPhone());
+        if (req.getSalary() != null)
+            client.setSalary(req.getSalary());
+        if (req.getStreet() != null)
+            client.setStreet(req.getStreet());
+        if (req.getComplement() != null)
+            client.setComplement(req.getComplement());
+        if (req.getZipCode() != null)
+            client.setZipCode(req.getZipCode());
+        if (req.getCity() != null)
+            client.setCity(req.getCity());
+        if (req.getState() != null)
+            client.setState(req.getState());
 
         repo.save(client);
     }
-
 
     @Transactional
     public void delete(Long id) {
@@ -132,7 +159,7 @@ public class ClientService {
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
 
-        if(client.getStatus().equals(Client.ClientStatus.APROVADO)){
+        if (client.getStatus().equals(Client.ClientStatus.APROVADO)) {
             throw new IllegalArgumentException("Cliente ja aprovado");
         }
 
@@ -153,7 +180,7 @@ public class ClientService {
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
 
-        if(client.getStatus().equals(Client.ClientStatus.REJEITADO)){
+        if (client.getStatus().equals(Client.ClientStatus.REJEITADO)) {
             throw new IllegalArgumentException("Cliente ja rejeitdo");
         }
 
@@ -163,8 +190,16 @@ public class ClientService {
         client.setApprovalDate(OffsetDateTime.now());
 
         repo.save(client);
-        // TODO: Publicar evento RabbitMQ para ms-conta criar conta, senha e enviar
-        // e-mail
+
+        if (accountProducer != null) {
+            AccountSagaEvent event = new AccountSagaEvent();
+            event.setSagaId(UUID.randomUUID().toString());
+            event.setAction("UPDATE_ACCOUNT_STATUS");
+            event.setClientId(clientId);
+            event.setIsApproved(true);
+            event.setAccountId(accountNumber);
+            accountProducer.sendUpdateAccountStatusEvent(event);
+        }
     }
 
     // R9
@@ -213,7 +248,6 @@ public class ClientService {
         response.setCreationDate(client.getCreationDate());
         response.setApprovalDate(client.getApprovalDate());
         response.setStreet(client.getStreet());
-        response.setNumber(client.getNumber());
         response.setComplement(client.getComplement());
         response.setZipCode(client.getZipCode());
         response.setCity(client.getCity());
@@ -235,5 +269,10 @@ public class ClientService {
         if (value == null)
             return null;
         return value.replaceAll("\\D", "");
+    }
+
+    public boolean clientExists(String cpf) {
+        String cpfDigits = normalizeCpf(cpf);
+        return repo.existsByCpf(cpfDigits);
     }
 }

@@ -35,12 +35,12 @@ public class UserServiceImpl implements UserService {
     public UserDTO save(UserCreateDTO dto) {
         log.info("Criando usuario");
         User existingUser = repository.findByCpf(dto.getCpf()).orElse(null);
-        if(Objects.nonNull(existingUser)) {
+        if (Objects.nonNull(existingUser)) {
             throw new ApiException("Usuario com CPF já existente.", HttpStatus.BAD_REQUEST);
         }
 
         existingUser = repository.findByEmail(dto.getEmail()).orElse(null);
-        if(Objects.nonNull(existingUser)) {
+        if (Objects.nonNull(existingUser)) {
             throw new ApiException("Email em uso.", HttpStatus.BAD_REQUEST);
         }
 
@@ -64,22 +64,26 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByCpf(String cpf) {
         log.info("Buscando usuario com cpf {}", cpf);
-        return repository.findByCpf(cpf).orElseThrow(() -> new ApiException("Usuario com cpf "+cpf+" não encontrado", HttpStatus.NOT_FOUND));
+        return repository.findByCpf(cpf).orElseThrow(
+                () -> new ApiException("Usuario com cpf " + cpf + " não encontrado", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public User findById(Long id, Role role) {
         log.info("Buscando usuario com id {}", id);
-        if(Role.CLIENT.equals(role)) {
-            return repository.findByClientId(id).orElseThrow(() -> new ApiException("Cliente com id "+id+" não encontrado", HttpStatus.NOT_FOUND));
+        if (Role.CLIENTE.equals(role)) {
+            return repository.findByClientId(id).orElseThrow(
+                    () -> new ApiException("Cliente com id " + id + " não encontrado", HttpStatus.NOT_FOUND));
         }
-        return repository.findByManagerId(id).orElseThrow(() -> new ApiException("Manager com id "+id+" não encontrado", HttpStatus.NOT_FOUND));
+        return repository.findByManagerId(id)
+                .orElseThrow(() -> new ApiException("Manager com id " + id + " não encontrado", HttpStatus.NOT_FOUND));
     }
 
     @Override
     public User findByEmail(String email) {
         log.info("Buscando usuario com Email {}", email);
-        return repository.findByEmail(email).orElseThrow(() -> new ApiException("Usuario com email "+email+" não encontrado", HttpStatus.NOT_FOUND));
+        return repository.findByEmail(email).orElseThrow(
+                () -> new ApiException("Usuario com email " + email + " não encontrado", HttpStatus.NOT_FOUND));
     }
 
     @Override
@@ -87,7 +91,7 @@ public class UserServiceImpl implements UserService {
         log.info("Atualizando usuario");
         User existingUser = findByCpf(cpf);
 
-        if(Objects.isNull(existingUser)) {
+        if (Objects.isNull(existingUser)) {
             throw new ApiException("Usuario não encontrado.", HttpStatus.BAD_REQUEST);
         }
 
@@ -100,7 +104,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id, Long requesterId, Role role) {
         log.info("Excluindo usuario");
-        if(requesterId.equals(id)) {
+        if (requesterId.equals(id)) {
             throw new ApiException("Usuário não pode deletar a si mesmo", HttpStatus.BAD_REQUEST);
         }
 
@@ -110,11 +114,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private User updateValidFields(User user, UserUpdateDTO dto) {
-        if(validField(dto.getEmail())) {
+        if (validField(dto.getEmail())) {
             user.setEmail(dto.getEmail());
         }
 
-        if(validField(dto.getName())) {
+        if (validField(dto.getName())) {
             user.setName(dto.getName());
         }
 

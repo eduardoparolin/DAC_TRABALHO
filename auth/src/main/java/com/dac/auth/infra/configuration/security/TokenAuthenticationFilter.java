@@ -27,13 +27,23 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         String token = recoverToken(request);
 
         if (token != null) {
+            String requestPath = request.getRequestURI();
+            if (requestPath.equals("/auth/logout")) {
+                UsernamePasswordAuthenticationToken usuarioEntity = tokenService.isValid(token);
+                if (usuarioEntity != null) {
+                    SecurityContextHolder.getContext().setAuthentication(usuarioEntity);
+                }
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             if (revokedTokenRepository.existsByToken(token)) {
                 Map<String, Object> body = new HashMap<>();
                 body.put("status", HttpServletResponse.SC_UNAUTHORIZED);

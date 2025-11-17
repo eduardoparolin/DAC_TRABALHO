@@ -1,16 +1,16 @@
 enum UserType {
-  ADMIN = 'ADMIN',
-  CLIENT = 'CLIENT',
-  MANAGER = 'MANAGER'
+  ADMINISTRADOR = 'ADMINISTRADOR',
+  CLIENTE = 'CLIENTE',
+  GERENTE = 'GERENTE',
 }
 
 interface UserJson {
   usuario: {
-    id: number,
-    name: string,
-    cpf: string,
-    email: string,
-  }
+    id: number;
+    name: string;
+    cpf: string;
+    email: string;
+  };
   tipo: UserType | string;
 }
 
@@ -21,7 +21,13 @@ class User {
   cpf: string;
   type: UserType;
 
-  constructor(id: number, name: string, email: string, cpf: string, type: UserType) {
+  constructor(
+    id: number,
+    name: string,
+    email: string,
+    cpf: string,
+    type: UserType
+  ) {
     this.id = id;
     this.name = name;
     this.email = email;
@@ -30,21 +36,33 @@ class User {
   }
 
   static fromJson(json: UserJson): User {
-    const id = typeof json.usuario.id === 'string' ? parseInt(json.usuario.id, 10) : json.usuario.id;
-    const tipo = typeof json.tipo === 'string' ? UserType[json.tipo as keyof typeof UserType] : json.tipo;
-    return new User(id, json.usuario.name, json.usuario.email, json.usuario.cpf, tipo);
+    const id =
+      typeof json.usuario.id === 'string'
+        ? parseInt(json.usuario.id, 10)
+        : json.usuario.id;
+    const tipo =
+      typeof json.tipo === 'string'
+        ? UserType[json.tipo as keyof typeof UserType]
+        : json.tipo;
+    return new User(
+      id,
+      json.usuario.name,
+      json.usuario.email,
+      json.usuario.cpf,
+      tipo
+    );
   }
 
   isAdmin(): boolean {
-    return this.type === UserType.ADMIN;
+    return this.type === UserType.ADMINISTRADOR;
   }
 
   isClient(): boolean {
-    return this.type === UserType.CLIENT;
+    return this.type === UserType.CLIENTE;
   }
 
   isManager(): boolean {
-    return this.type === UserType.MANAGER;
+    return this.type === UserType.GERENTE;
   }
 }
 

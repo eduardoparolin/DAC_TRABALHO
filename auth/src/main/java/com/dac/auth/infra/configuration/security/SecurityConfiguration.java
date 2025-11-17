@@ -26,20 +26,17 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.disable())
-                )
+                        .frameOptions(frame -> frame.disable()))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/auth", "/auth/login").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers("/auth", "/auth/login", "/auth/logout").permitAll()
+                        .anyRequest().authenticated())
                 .addFilterBefore(tokenAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -54,7 +51,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

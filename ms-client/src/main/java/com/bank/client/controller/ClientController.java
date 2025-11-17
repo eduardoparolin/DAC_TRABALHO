@@ -1,14 +1,13 @@
 package com.bank.client.controller;
 
-import com.bank.client.dto.ClientReportResponse;
-import com.bank.client.dto.ClientResponse;
-import com.bank.client.dto.ClientsRequestDTO;
+import com.bank.client.dto.*;
 import com.bank.client.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -25,6 +24,11 @@ public class ClientController {
     @GetMapping("/{id}")
     public ClientResponse getById(@PathVariable Long id) {
         return service.getById(id);
+    }
+
+    @GetMapping("/cpf/{cpf}")
+    public ClientResponse getByCpf(@PathVariable String cpf) {
+        return service.getByCpf(cpf);
     }
 
     @DeleteMapping("/{id}")
@@ -56,5 +60,34 @@ public class ClientController {
     @PostMapping("/clientes")
     public ResponseEntity<List<ClientResponse>> getCliente(@RequestBody ClientsRequestDTO request) {
         return ResponseEntity.ok(service.getClients(request));
+    }
+
+    @PostMapping("/{cpf}/aprovar")
+    public ResponseEntity<Map<String, Long>> approveClient(@PathVariable String cpf) {
+        ClientResponse client = service.getByCpf(cpf);
+        ClientApproveDTO dto = new ClientApproveDTO();
+        dto.setClientId(client.getId());
+        dto.setManagerId(client.getManagerId());
+        dto.setAccountNumber(client.getAccountId());
+        service.approveClient(dto);
+        return ResponseEntity.ok(Map.of("clientId", client.getId()));
+    }
+
+    @PostMapping("/{cpf}/reprovar")
+    public ResponseEntity<Void> rejectClient(
+            @PathVariable String cpf,
+            @RequestBody Map<String, String> body) {
+        ClientResponse client = service.getByCpf(cpf);
+        ClientRejectDTO dto = new ClientRejectDTO();
+        dto.setClientId(client.getId());
+        dto.setRejectionReason(body.get("rejectionReason"));
+        service.rejectClient(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/existe/{cpf}")
+    public ResponseEntity<Map<String, Boolean>> checkClientExists(@PathVariable String cpf) {
+        boolean exists = service.clientExists(cpf);
+        return ResponseEntity.ok(Map.of("clienteExiste", exists));
     }
 }

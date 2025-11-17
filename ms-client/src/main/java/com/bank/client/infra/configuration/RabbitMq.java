@@ -12,6 +12,7 @@ public class RabbitMq {
 
   private final String SAGA_QUEUE = "client-queue";
   private final String SAGA_RESULT_QUEUE = "client-result-queue";
+  private final String ACCOUNT_SAGA_QUEUE = "account-saga-queue";
 
   @Bean
   public Queue clientQueue() {
@@ -21,6 +22,11 @@ public class RabbitMq {
   @Bean
   public Queue clientResultQueue() {
     return new Queue(SAGA_RESULT_QUEUE, true);
+  }
+
+  @Bean
+  public Queue accountSagaQueue() {
+    return new Queue(ACCOUNT_SAGA_QUEUE, true);
   }
 
   @Bean

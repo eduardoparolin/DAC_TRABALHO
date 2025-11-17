@@ -21,6 +21,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: 1234
+      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
     networks:
       - backend
     healthcheck:

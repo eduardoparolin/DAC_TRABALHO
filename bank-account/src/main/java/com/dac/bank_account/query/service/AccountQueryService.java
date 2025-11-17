@@ -20,8 +20,8 @@ public class AccountQueryService {
     private final AccountQueryMapper accountQueryMapper;
 
     public AccountQueryService(AccountQueryRepository accountQueryRepository,
-                               TransactionQueryRepository transactionQueryRepository,
-                               AccountQueryMapper accountQueryMapper) {
+            TransactionQueryRepository transactionQueryRepository,
+            AccountQueryMapper accountQueryMapper) {
         this.accountQueryRepository = accountQueryRepository;
         this.transactionQueryRepository = transactionQueryRepository;
         this.accountQueryMapper = accountQueryMapper;
@@ -41,7 +41,7 @@ public class AccountQueryService {
         List<TransactionView> transactions = transactionQueryRepository
                 .findBySourceAccountNumberOrTargetAccountNumber(accountNumber, accountNumber);
 
-        return  accountQueryMapper.toStatementResponseDTO(account, transactions);
+        return accountQueryMapper.toStatementResponseDTO(account, transactions);
     }
 
     @Transactional("queryTransactionManager")
@@ -55,7 +55,7 @@ public class AccountQueryService {
     public ManagerAccountsResponseDTO getManagerAccounts(String managerId) {
         List<AccountView> accounts = accountQueryRepository.findByManagerId(Long.valueOf(managerId));
 
-        if(accounts.isEmpty()) {
+        if (accounts.isEmpty()) {
             throw new ResourceNotFoundException("No accounts found for manager with ID: " + managerId);
         }
 
@@ -64,9 +64,10 @@ public class AccountQueryService {
 
     @Transactional("queryTransactionManager")
     public List<AccountResponseDTO> getTop3Accounts(String managerId) {
-        List<AccountView> accounts = accountQueryRepository.findTop3ByManagerIdOrderByBalanceDesc(Long.valueOf(managerId));
+        List<AccountView> accounts = accountQueryRepository
+                .findTop3ByManagerIdOrderByBalanceDesc(Long.valueOf(managerId));
 
-        if(accounts.isEmpty()) {
+        if (accounts.isEmpty()) {
             throw new ResourceNotFoundException("No accounts found for manager with ID: " + managerId);
         }
 
@@ -77,9 +78,13 @@ public class AccountQueryService {
     public List<AccountResponseDTO> getAccounts(AccountsRequestDTO request) {
         List<String> accountNumbers = request.getAccountNumbers();
 
-        List<AccountView> accounts = accountQueryRepository.findByAccountNumberIn(accountNumbers);
-        if(accounts.isEmpty()) {
-            throw new ResourceNotFoundException("No accounts found for account number: " + accountNumbers);
+        List<Long> accountIds = accountNumbers.stream()
+                .map(Long::valueOf)
+                .toList();
+
+        List<AccountView> accounts = accountQueryRepository.findByIdIn(accountIds);
+        if (accounts.isEmpty()) {
+            throw new ResourceNotFoundException("No accounts found for account IDs: " + accountIds);
         }
         return accountQueryMapper.toAccountResponseDTOList(accounts);
     }
@@ -88,16 +93,21 @@ public class AccountQueryService {
     public List<StatementResponseDTO> getAccountsWithTransactions(AccountsRequestDTO request) {
         List<String> accountNumbers = request.getAccountNumbers();
 
-        List<AccountView> accounts = accountQueryRepository.findByAccountNumberIn(accountNumbers);
+        List<Long> accountIds = accountNumbers.stream()
+                .map(Long::valueOf)
+                .toList();
+
+        List<AccountView> accounts = accountQueryRepository.findByIdIn(accountIds);
 
         if (accounts.isEmpty()) {
-            throw new ResourceNotFoundException("No accounts found for account number: " + accountNumbers);
+            throw new ResourceNotFoundException("No accounts found for account IDs: " + accountIds);
         }
 
         return accounts.stream()
                 .map(account -> {
-                    List<TransactionView> transactions =
-                            transactionQueryRepository.findBySourceAccountNumberOrTargetAccountNumber(account.getAccountNumber(), account.getAccountNumber());
+                    List<TransactionView> transactions = transactionQueryRepository
+                            .findBySourceAccountNumberOrTargetAccountNumber(account.getAccountNumber(),
+                                    account.getAccountNumber());
                     return accountQueryMapper.toStatementResponseDTO(account, transactions);
                 })
                 .toList();
@@ -105,9 +115,10 @@ public class AccountQueryService {
 
     @Transactional("queryTransactionManager")
     public ManagerAccountsResponseDTO getActiveAccountsByManager(String managerId) {
-        List<AccountView> accounts = accountQueryRepository.findByManagerIdAndStatus(Long.valueOf(managerId), AccountStatus.ATIVA);
+        List<AccountView> accounts = accountQueryRepository.findByManagerIdAndStatus(Long.valueOf(managerId),
+                AccountStatus.ATIVA);
 
-        if(accounts.isEmpty()) {
+        if (accounts.isEmpty()) {
             throw new ResourceNotFoundException("No active accounts found for manager with ID: " + managerId);
         }
 
@@ -125,7 +136,8 @@ public class AccountQueryService {
     @Transactional("queryTransactionManager")
     public AccountView getAccountByNumber(String accountNumber) {
         AccountView acc = accountQueryRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Account not found with account number: " + accountNumber));
         return acc;
     }
 }

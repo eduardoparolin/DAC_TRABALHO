@@ -4,14 +4,14 @@
       "cpf": "12912861012",
       "nome": "Catharyna",
       "email": "cli1@bantads.com.br",
-      "type": "MANAGER"
+      "type": "GERENTE"
     },
     "clientes": [
       {
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"
@@ -20,7 +20,7 @@
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"
@@ -34,14 +34,14 @@
       "cpf": "12912861012",
       "nome": "Joaquina",
       "email": "cli1@bantads.com.br",
-      "type": "MANAGER"
+      "type": "GERENTE"
     },
     "clientes": [
       {
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"
@@ -50,7 +50,7 @@
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"
@@ -59,7 +59,7 @@
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"
@@ -73,14 +73,14 @@
       "cpf": "12912861012",
       "nome": "Alberto",
       "email": "cli1@bantads.com.br",
-      "type": "MANAGER"
+      "type": "GERENTE"
     },
     "clientes": [
       {
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"
@@ -89,7 +89,7 @@
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"
@@ -98,7 +98,7 @@
         "cpf": "12912861012",
         "nome": "Catharyna",
         "email": "cli1@bantads.com.br",
-        "type": "MANAGER",
+        "type": "GERENTE",
         "endereco": "Rua X, nr 10",
         "cidade": "Curitiba",
         "estado": "PR"

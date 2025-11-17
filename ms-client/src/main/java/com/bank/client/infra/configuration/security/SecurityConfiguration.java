@@ -26,15 +26,17 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.disable())
-                )
+                        .frameOptions(frame -> frame.disable()))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/cliente/**").hasAnyRole("ADMIN", "MANAGER", "CLIENT")
-                        .requestMatchers("/cliente").hasAnyRole("ADMIN", "MANAGER", "CLIENT")
-                        .anyRequest().authenticated()
-                ).addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .requestMatchers("/clientes/existe/**").permitAll()
+                        .requestMatchers("/cliente/**").hasAnyRole("ADMINISTRADOR", "GERENTE",
+                                "CLIENTE")
+                        .requestMatchers("/cliente").hasAnyRole("ADMINISTRADOR", "GERENTE",
+                                "CLIENTE")
+                        .anyRequest().authenticated())
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -52,7 +54,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

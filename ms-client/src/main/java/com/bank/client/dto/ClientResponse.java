@@ -24,7 +24,6 @@ public class ClientResponse {
     private OffsetDateTime creationDate;
     private OffsetDateTime approvalDate;
     private String street;
-    private String number;
     private String complement;
     private String zipCode;
     private String city;

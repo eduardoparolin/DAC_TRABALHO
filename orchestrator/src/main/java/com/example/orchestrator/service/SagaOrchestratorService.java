@@ -57,7 +57,6 @@ public class SagaOrchestratorService {
       context.put("phone", data.get("phone"));
       context.put("salary", data.get("salary"));
       context.put("street", data.get("street"));
-      context.put("number", data.get("number"));
       context.put("complement", data.get("complement"));
       context.put("zipCode", data.get("zipCode"));
       context.put("city", data.get("city"));
@@ -88,7 +87,6 @@ public class SagaOrchestratorService {
     }
 
     clientRequest.setStreet((String) context.get("street"));
-    clientRequest.setNumber((String) context.get("number"));
     clientRequest.setComplement((String) context.get("complement"));
     clientRequest.setZipCode((String) context.get("zipCode"));
     clientRequest.setCity((String) context.get("city"));
@@ -273,17 +271,27 @@ public class SagaOrchestratorService {
         break;
       case "ASSIGN_MANAGER":
       case "ASSIGN_MANAGER_RESULT":
-        log.info("Matched ASSIGN_MANAGER, proceeding to createAccountStep");
+        log.info("Matched ASSIGN_MANAGER, proceeding to updateClientManagerStep");
+        updateClientManagerStep(sagaId);
+        break;
+      case "UPDATE_CLIENT_MANAGER":
+      case "UPDATE_CLIENT_MANAGER_RESULT":
+        log.info("Matched UPDATE_CLIENT_MANAGER, proceeding to createAccountStep");
         createAccountStep(sagaId);
         break;
       case "CREATE_ACCOUNT":
       case "CREATE_ACCOUNT_RESULT":
-        log.info("Matched CREATE_ACCOUNT, proceeding to approveClientStep");
-        approveClientStep(sagaId);
+        log.info("Matched CREATE_ACCOUNT, completing saga - client awaiting manual approval");
+        completeSaga(sagaId, "AGUARDANDO_APROVACAO");
         break;
       case "APPROVE_CLIENT":
       case "APPROVE_CLIENT_RESULT":
-        log.info("Matched APPROVE_CLIENT, proceeding to updateAccountStatusStep");
+        log.info("Matched APPROVE_CLIENT, proceeding to incrementAccountCountStep");
+        incrementAccountCountStep(sagaId);
+        break;
+      case "INCREMENT_ACCOUNT_COUNT":
+      case "INCREMENT_ACCOUNT_COUNT_RESULT":
+        log.info("Matched INCREMENT_ACCOUNT_COUNT, proceeding to updateAccountStatusStep");
         updateAccountStatusStep(sagaId);
         break;
       case "UPDATE_ACCOUNT_STATUS":
@@ -410,6 +418,25 @@ public class SagaOrchestratorService {
     sagaProducer.sendToManagerService(managerRequest);
   }
 
+  private void updateClientManagerStep(String sagaId) {
+    log.info("Step 2.5: Updating client with managerId for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("UPDATE_CLIENT_MANAGER", "PENDING",
+        "Updating client manager", "REVERT_UPDATE_CLIENT_MANAGER");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    ClientMessageRequest request = new ClientMessageRequest();
+    request.setSagaId(sagaId);
+    request.setAction("UPDATE_CLIENT_MANAGER");
+    request.setClientId((Long) context.get("clientId"));
+    request.setManagerId((Long) context.get("managerId"));
+
+    sagaProducer.sendToClientService(request);
+  }
+
   private void createAccountStep(String sagaId) {
     log.info("Step 3: Creating account for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
@@ -424,7 +451,7 @@ public class SagaOrchestratorService {
     event.setSagaId(sagaId);
     event.setAction("CREATE_ACCOUNT");
     event.setClientId((Long) context.get("clientId"));
-    event.setManagerId((Long) context.get("managerId")); // Now using managerId from context
+    event.setManagerId((Long) context.get("managerId")); // Manager ID from ASSIGN_MANAGER step
 
     Object salaryObj = context.get("salary");
     if (salaryObj != null && salaryObj instanceof Number) {
@@ -460,6 +487,24 @@ public class SagaOrchestratorService {
     }
 
     sagaProducer.sendToClientService(request);
+  }
+
+  private void incrementAccountCountStep(String sagaId) {
+    log.info("Step 4.5: Incrementing manager account count for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("INCREMENT_ACCOUNT_COUNT", "PENDING",
+        "Incrementing manager account count", "DECREMENT_ACCOUNT_COUNT");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> managerRequest = new HashMap<>();
+    managerRequest.put("sagaId", sagaId);
+    managerRequest.put("action", "INCREMENT_ACCOUNT_COUNT");
+    managerRequest.put("managerId", context.get("managerId"));
+
+    sagaProducer.sendToManagerService(managerRequest);
   }
 
   private void updateAccountStatusStep(String sagaId) {
@@ -502,7 +547,7 @@ public class SagaOrchestratorService {
     data.setCpf(context.get("cpf").toString());
     data.setEmail((String) context.get("email"));
     data.setPassword((String) context.get("generatedPassword"));
-    data.setRole("CLIENT");
+    data.setRole("CLIENTE");
 
     payload.setData(data);
 

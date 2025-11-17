@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-
 @Document("user")
 @AllArgsConstructor
 @Getter
@@ -43,14 +42,14 @@ public class User implements UserDetails {
     }
 
     public Long getUserId() {
-        if(Role.CLIENT.equals(this.role)) {
+        if (Role.CLIENTE.equals(this.role)) {
             return this.clientId;
         }
         return this.managerId;
     }
 
     public void setUserId(Long id) {
-        if(Role.CLIENT.equals(this.role)) {
+        if (Role.CLIENTE.equals(this.role)) {
             this.clientId = id;
             return;
         }

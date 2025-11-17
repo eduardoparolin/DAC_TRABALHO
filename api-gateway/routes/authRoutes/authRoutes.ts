@@ -1,16 +1,31 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+import { authMiddleware } from "../../middleware/auth";
 
 export const authRoutes = new Hono();
 
-const authServiceUrl = process.env.AUTH_SERVICE_URL;
-const orchestratorServiceUrl =
-  process.env.ORCHESTRATOR_SERVICE_URL || "http://orchestrator-service:8085";
+const authValidator = (schema: z.ZodSchema) =>
+  zValidator("json", schema, (result, c) => {
+    if (!result.success) {
+      return c.json(
+        {
+          error: "Dados de autenticação inválidos",
+          details: result.error.issues,
+        },
+        401
+      );
+    }
+  });
+
+const getServiceUrls = () => ({
+  authServiceUrl: process.env.AUTH_SERVICE_URL,
+  orchestratorServiceUrl: process.env.ORCHESTRATOR_SERVICE_URL,
+});
 
 const loginSchema = z.object({
-  email: z.email("Email inválido"),
-  password: z.string().min(1, "Senha é obrigatória"),
+  login: z.string().min(1, "Email é obrigatório"),
+  senha: z.string().min(1, "Senha é obrigatória"),
 });
 
 const signupSchema = z.object({
@@ -43,50 +58,55 @@ const logoutSchema = z.object({
   tipo: z.string(),
 });
 
-authRoutes.post("/login", zValidator("json", loginSchema), async (c) => {
+authRoutes.post("/login", authValidator(loginSchema), async (c) => {
   try {
-    const { email, password } = c.req.valid("json");
+    const { login, senha } = c.req.valid("json") as z.infer<typeof loginSchema>;
+    const { authServiceUrl } = getServiceUrls();
 
     const response = await fetch(`${authServiceUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: login, password: senha }),
     });
 
-    const data = await response.text();
+    const responseData = await response.json();
 
-    return new Response(data, {
-      status: response.status,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const mappedData = {
+      ...responseData,
+      access_token: responseData.accessToken,
+      token_type: responseData.tokenType,
+    };
+
+    return c.json(mappedData, response.status as any);
   } catch (error) {
     return c.json({ error: "Serviço de autenticação indisponível" }, 503);
   }
 });
 
-authRoutes.post("/logout", zValidator("json", logoutSchema), async (c) => {
-  const { cpf, nome, email, tipo } = c.req.valid("json");
+authRoutes.post("/logout", authMiddleware, async (c) => {
   try {
+    const { authServiceUrl } = getServiceUrls();
+    const jwtPayload = c.get("jwtPayload") as any;
+
+    const email = jwtPayload?.email || jwtPayload?.sub;
+
+    if (!email) {
+      return c.json({ error: "Email não encontrado no token" }, 400);
+    }
+
     const response = await fetch(`${authServiceUrl}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ cpf, nome, email, tipo }),
+      body: JSON.stringify({ email }),
     });
 
     const data = await response.text();
 
-    return new Response(data, {
-      status: response.status,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    return c.json({ email }, response.status as any);
   } catch (error) {
     return c.json({ error: "Serviço de autenticação indisponível" }, 503);
   }
@@ -95,6 +115,7 @@ authRoutes.post("/logout", zValidator("json", logoutSchema), async (c) => {
 authRoutes.post("/signup", zValidator("json", signupSchema), async (c) => {
   try {
     const clientData = c.req.valid("json");
+    const { orchestratorServiceUrl } = getServiceUrls();
 
     const response = await fetch(
       `${orchestratorServiceUrl}/api/saga/client/create`,
