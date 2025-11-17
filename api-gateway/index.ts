@@ -1,5 +1,5 @@
+import "dotenv/config";
 import { Hono } from "hono";
-import { config } from "dotenv";
 import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
@@ -13,15 +13,7 @@ import { AppVariables } from "./types/context";
 import { existsSync } from "fs";
 import { resolve } from "path";
 
-const envLocalPath = resolve(process.cwd(), ".env.local");
-
-if (existsSync(envLocalPath)) {
-  config({ path: envLocalPath });
-} else {
-  config();
-}
-
-const app = new Hono<{ Variables: AppVariables }>();
+const app = new Hono();
 app.use("*", cors());
 app.use("*", logger());
 
