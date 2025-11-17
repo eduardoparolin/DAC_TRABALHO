@@ -1,12 +1,14 @@
 package com.dac.auth.infra.email;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
 
     private final JavaMailSender mailSender;
@@ -19,10 +21,18 @@ public class EmailService {
                 Olá, %s
 
                 Sua senha é: %s
-                
+
                 Atenciosamente,
                 Equipe DAC
                 """.formatted(name, plainPassword));
+
+        // Log email details instead of sending
+        log.info("=================================================");
+        log.info("EMAIL TO BE SENT:");
+        log.info("To: {}", to);
+        log.info("Subject: {}", message.getSubject());
+        log.info("Body:\n{}", message.getText());
+        log.info("=================================================");
 
         mailSender.send(message);
     }

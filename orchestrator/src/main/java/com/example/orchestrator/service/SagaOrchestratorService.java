@@ -281,7 +281,12 @@ public class SagaOrchestratorService {
         break;
       case "CREATE_ACCOUNT":
       case "CREATE_ACCOUNT_RESULT":
-        log.info("Matched CREATE_ACCOUNT, completing saga - client awaiting manual approval");
+        log.info("Matched CREATE_ACCOUNT, proceeding to linkAccountStep");
+        linkAccountStep(sagaId);
+        break;
+      case "LINK_ACCOUNT":
+      case "LINK_ACCOUNT_RESULT":
+        log.info("Matched LINK_ACCOUNT, completing saga - client awaiting manual approval");
         completeSaga(sagaId, "AGUARDANDO_APROVACAO");
         break;
       case "APPROVE_CLIENT":
@@ -461,23 +466,24 @@ public class SagaOrchestratorService {
     sagaProducer.sendToAccountService(event);
   }
 
-  private void approveClientStep(String sagaId) {
-    log.info("Step 4: Approving client for saga {}", sagaId);
+  private void linkAccountStep(String sagaId) {
+    log.info("Step 4: Linking account to client for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
+    log.info("Context for saga {}: {}", sagaId, context);
 
     Saga saga = sagaRepository.findById(sagaId).orElseThrow();
-    SagaStep step = new SagaStep("APPROVE_CLIENT", "PENDING",
-        "Approving client", "REJECT_CLIENT");
+    SagaStep step = new SagaStep("LINK_ACCOUNT", "PENDING",
+        "Linking account to client", "UNLINK_ACCOUNT");
     step.setSaga(saga);
     sagaStepRepository.save(step);
 
     ClientMessageRequest request = new ClientMessageRequest();
     request.setSagaId(sagaId);
-    request.setAction("APPROVE_CLIENT");
+    request.setAction("LINK_ACCOUNT");
     request.setClientId((Long) context.get("clientId"));
-    request.setManagerId((Long) context.get("managerId"));
 
     Object accountNumberObj = context.get("accountNumber");
+    log.info("Account number from context: {} (type: {})", accountNumberObj, accountNumberObj != null ? accountNumberObj.getClass().getName() : "null");
     if (accountNumberObj != null) {
       if (accountNumberObj instanceof String) {
         request.setAccountNumber(Long.parseLong((String) accountNumberObj));
@@ -485,6 +491,7 @@ public class SagaOrchestratorService {
         request.setAccountNumber(((Number) accountNumberObj).longValue());
       }
     }
+    log.info("Sending LINK_ACCOUNT request with accountNumber: {}", request.getAccountNumber());
 
     sagaProducer.sendToClientService(request);
   }

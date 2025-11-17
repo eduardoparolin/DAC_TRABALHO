@@ -4,6 +4,7 @@ import com.bank.client.enums.ClientAction;
 import com.bank.client.infra.consumer.handler.handlers.ApproveClientHandler;
 import com.bank.client.infra.consumer.handler.handlers.CreateClientHandler;
 import com.bank.client.infra.consumer.handler.handlers.DeleteClientHandler;
+import com.bank.client.infra.consumer.handler.handlers.LinkAccountHandler;
 import com.bank.client.infra.consumer.handler.handlers.RejectClientHandler;
 import com.bank.client.infra.consumer.handler.handlers.UpdateClientHandler;
 import com.bank.client.infra.consumer.handler.handlers.UpdateClientManagerHandler;
@@ -22,6 +23,7 @@ public class ClientMessageHandleFactory {
             CreateClientHandler createClientHandler,
             UpdateClientHandler updateClientHandler,
             UpdateClientManagerHandler updateClientManagerHandler,
+            LinkAccountHandler linkAccountHandler,
             ApproveClientHandler approveClientHandler,
             RejectClientHandler rejectClientHandler,
             DeleteClientHandler deleteClientHandler
@@ -29,6 +31,7 @@ public class ClientMessageHandleFactory {
         strategies.put(ClientAction.CREATE_CLIENT, createClientHandler);
         strategies.put(ClientAction.UPDATE_CLIENT, updateClientHandler);
         strategies.put(ClientAction.UPDATE_CLIENT_MANAGER, updateClientManagerHandler);
+        strategies.put(ClientAction.LINK_ACCOUNT, linkAccountHandler);
         strategies.put(ClientAction.APPROVE_CLIENT, approveClientHandler);
         strategies.put(ClientAction.REJECT_CLIENT, rejectClientHandler);
         strategies.put(ClientAction.DELETE_CLIENT, deleteClientHandler);

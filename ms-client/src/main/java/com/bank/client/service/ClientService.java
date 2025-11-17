@@ -14,12 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bank.client.events.ClienteEventPublisher;
 import com.bank.client.infra.producer.AccountProducer;
 import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ClientService {
 
@@ -171,6 +173,21 @@ public class ClientService {
         // TODO: Chamar Mailer para Notificar Cliente
     }
 
+    // Link account to client without approving
+    @Transactional
+    public void linkAccount(ClientLinkAccountDTO req) {
+        Long clientId = req.getClientId();
+        Long accountNumber = req.getAccountNumber();
+        log.info("Linking account {} to client {}", accountNumber, clientId);
+        Client client = repo.findById(clientId)
+                .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
+
+        log.info("Found client: id={}, name={}, current accountId={}", client.getId(), client.getName(), client.getAccountId());
+        client.setAccountId(accountNumber);
+        repo.save(client);
+        log.info("Saved client with new accountId: {}", client.getAccountId());
+    }
+
     // R10
     @Transactional
     public void approveClient(ClientApproveDTO req) {
@@ -186,7 +203,12 @@ public class ClientService {
 
         client.setStatus(Client.ClientStatus.APROVADO);
         client.setManagerId(managerId);
-        client.setAccountId(accountNumber);
+        // Only set accountId if it's not already set and accountNumber is provided
+        if (client.getAccountId() == null && accountNumber != null) {
+            client.setAccountId(accountNumber);
+        }
+        // Use the existing accountId if accountNumber is not provided or already set
+        Long finalAccountNumber = client.getAccountId() != null ? client.getAccountId() : accountNumber;
         client.setApprovalDate(OffsetDateTime.now());
 
         repo.save(client);
@@ -197,7 +219,7 @@ public class ClientService {
             event.setAction("UPDATE_ACCOUNT_STATUS");
             event.setClientId(clientId);
             event.setIsApproved(true);
-            event.setAccountId(accountNumber);
+            event.setAccountId(finalAccountNumber);
             accountProducer.sendUpdateAccountStatusEvent(event);
         }
     }

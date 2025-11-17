@@ -267,21 +267,30 @@ customerRoutes.get(
             }
 
             const clientData = await clientResponse.json();
+            console.log('Client data:', JSON.stringify(clientData, null, 2));
 
             let accountData = null;
             if (clientData.accountId) {
                 try {
                     const {bankAccountServiceUrl} = getServiceUrls();
+                    const accountUrl = `${bankAccountServiceUrl}/query/contas/${clientData.accountId}`;
+                    console.log('Fetching account from:', accountUrl);
                     const accountResponse = await fetchWithAuth(
                         c,
-                        `${bankAccountServiceUrl}/contas/${clientData.accountId}`
+                        accountUrl
                     );
+                    console.log('Account response status:', accountResponse.status);
                     if (accountResponse.ok) {
                         accountData = await accountResponse.json();
+                        console.log('Account data:', JSON.stringify(accountData, null, 2));
+                    } else {
+                        console.log('Account fetch failed:', await accountResponse.text());
                     }
                 } catch (error) {
                     console.error("Erro ao buscar a conta bancária:", error);
                 }
+            } else {
+                console.log('No accountId in client data');
             }
 
             let managerData = null;
