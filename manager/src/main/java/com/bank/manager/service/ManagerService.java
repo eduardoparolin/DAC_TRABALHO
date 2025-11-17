@@ -8,11 +8,8 @@ import com.bank.manager.exception.custom.ApiException;
 import com.bank.manager.model.Manager;
 import com.bank.manager.repository.ManagerRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,14 +38,30 @@ public class ManagerService {
                 .toList();
     }
 
+    public ManagerDTO getById(Long id) {
+        return ManagerDTO.fromEntity(findById(id));
+    }
+
     public ManagerDTO getByCpf(String cpf) {
         return ManagerDTO.fromEntity(findByCpf(cpf));
     }
 
+    public ManagerDTO getByEmail(String email) {
+        return ManagerDTO.fromEntity(findByEmail(email));
+    }
+
     public Manager findByCpf(String cpf) {
         Optional<Manager> manager = repository.findByCpf(cpf);
-        if(manager.isEmpty()) {
+        if (manager.isEmpty()) {
             throw new ApiException("Manager not found with cpf: " + cpf, HttpStatus.NOT_FOUND);
+        }
+        return manager.get();
+    }
+
+    public Manager findByEmail(String email) {
+        Optional<Manager> manager = repository.findByEmail(email);
+        if (manager.isEmpty()) {
+            throw new ApiException("Manager not found with email: " + email, HttpStatus.NOT_FOUND);
         }
         return manager.get();
     }
@@ -60,15 +73,15 @@ public class ManagerService {
     }
 
     private Manager updateValidValues(Manager manager, ManagerUpdateDTO dto) {
-        if(Objects.nonNull(dto.name())) {
+        if (Objects.nonNull(dto.name())) {
             manager.setName(dto.name());
         }
 
-        if(Objects.nonNull(dto.email())) {
+        if (Objects.nonNull(dto.email())) {
             manager.setEmail(dto.email());
         }
 
-        if(Objects.nonNull(dto.type())) {
+        if (Objects.nonNull(dto.type())) {
             manager.setType(dto.type());
         }
 
@@ -77,7 +90,7 @@ public class ManagerService {
 
     public Manager findById(Long id) {
         Optional<Manager> opManager = repository.findById(id);
-        if(opManager.isEmpty()) {
+        if (opManager.isEmpty()) {
             throw new ApiException("Manager not found with id: " + id, HttpStatus.NOT_FOUND);
         }
         return opManager.get();
@@ -88,7 +101,7 @@ public class ManagerService {
         repository.delete(manager);
     }
 
-    public List<ManagersResponseDTO> getManagers(ManagersDTO request){
+    public List<ManagersResponseDTO> getManagers(ManagersDTO request) {
         List<Long> managerIds = request.managerIds();
         List<Manager> managers = repository.findByIdIn(managerIds);
 
@@ -98,16 +111,15 @@ public class ManagerService {
                         manager.getCpf(),
                         manager.getName(),
                         manager.getEmail(),
-                        manager.getType()
-                ))
+                        manager.getType()))
                 .toList();
     }
 
     public Manager getWithLessAccounts() {
-      return repository.findFirstByOrderByAccountCountAsc();
+        return repository.findFirstByOrderByAccountCountAsc();
     }
 
     public Manager save(Manager manager) {
-      return repository.save(manager);
+        return repository.save(manager);
     }
 }

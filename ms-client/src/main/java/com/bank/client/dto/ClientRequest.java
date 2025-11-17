@@ -22,7 +22,6 @@ public class ClientRequest {
     private String phone;
     private BigDecimal salary;
     private String street;
-    private String number;
     private String complement;
     private String zipCode;
     private String city;

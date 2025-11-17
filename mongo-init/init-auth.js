@@ -1,6 +1,6 @@
-db = db.getSiblingDB('users'); // Nome do banco
+db = db.getSiblingDB("users"); // Nome do banco
 
-db.createCollection('user');
+db.createCollection("user");
 
 db.user.insertMany([
   // Clientes
@@ -10,7 +10,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "12912861012",
     name: "Catharyna",
-    role: "CLIENT"
+    role: "CLIENTE",
   },
   {
     clientId: 2,
@@ -18,7 +18,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "09506382000",
     name: "Cleuddônio",
-    role: "CLIENT"
+    role: "CLIENTE",
   },
   {
     clientId: 3,
@@ -26,7 +26,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "85733854057",
     name: "Catianna",
-    role: "CLIENT"
+    role: "CLIENTE",
   },
   {
     clientId: 4,
@@ -34,7 +34,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "58872160006",
     name: "Cutardo",
-    role: "CLIENT"
+    role: "CLIENTE",
   },
   {
     clientId: 5,
@@ -42,7 +42,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "76179646090",
     name: "Coândrya",
-    role: "CLIENT"
+    role: "CLIENTE",
   },
 
   // MANAGERs
@@ -52,7 +52,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "98574307084",
     name: "Geniéve",
-    role: "MANAGER"
+    role: "GERENTE",
   },
   {
     managerId: 2,
@@ -60,7 +60,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "64065268052",
     name: "Godophredo",
-    role: "MANAGER"
+    role: "GERENTE",
   },
   {
     managerId: 3,
@@ -68,7 +68,7 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "23862179060",
     name: "Gyândula",
-    role: "MANAGER"
+    role: "GERENTE",
   },
 
   // Administrador
@@ -78,6 +78,6 @@ db.user.insertMany([
     password: "$2a$10$M/l5HsgddsSw5QiDGWXzJOSaS8cYwTUkEm3ftBbwWpbpA0zXA8exu",
     cpf: "40501740066",
     name: "Adamântio",
-    role: "ADMIN"
-  }
+    role: "ADMINISTRADOR",
+  },
 ]);

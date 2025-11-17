@@ -26,17 +26,16 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.disable())
-                )
+                        .frameOptions(frame -> frame.disable()))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/command/contas/**").hasAnyRole("ADMIN", "CLIENT")
-                        .requestMatchers("/command/contas/").hasAnyRole("ADMIN", "CLIENT")
-                        .requestMatchers("/query/contas/**").hasAnyRole("ADMIN", "CLIENT")
-                        .requestMatchers("/query/contas/").hasAnyRole("ADMIN", "CLIENT")
-                        .anyRequest().authenticated()
-                ).addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .requestMatchers("/command/contas/**").hasAnyRole("ADMINISTRADOR", "CLIENTE")
+                        .requestMatchers("/command/contas/").hasAnyRole("ADMINISTRADOR", "CLIENTE")
+                        .requestMatchers("/query/contas/**").hasAnyRole("ADMINISTRADOR", "CLIENTE", "GERENTE")
+                        .requestMatchers("/query/contas/").hasAnyRole("ADMINISTRADOR", "CLIENTE", "GERENTE")
+                        .anyRequest().authenticated())
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -54,7 +53,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

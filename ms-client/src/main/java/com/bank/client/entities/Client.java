@@ -43,9 +43,6 @@ public class Client {
     @Column(nullable = false, length = 200)
     private String street;
 
-    @Column(nullable = false, length = 10)
-    private String number;
-
     @Column(length = 100)
     private String complement;
 

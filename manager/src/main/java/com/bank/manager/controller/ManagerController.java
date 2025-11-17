@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ManagerController {
 
-    private final ManagerService  service;
+    private final ManagerService service;
 
     @GetMapping
     public ResponseEntity<List<ManagerDTO>> getAll() {
@@ -31,14 +31,24 @@ public class ManagerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    @GetMapping("/{cpf}")
+    @GetMapping("/id/{id}")
+    public ResponseEntity<ManagerDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
+    @GetMapping("/cpf/{cpf}")
     public ResponseEntity<ManagerDTO> getByCpf(@PathVariable(name = "cpf") String cpf) {
         return ResponseEntity.ok(service.getByCpf(cpf));
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseEntity<ManagerDTO> getByEmail(@PathVariable String email) {
+        return ResponseEntity.ok(service.getByEmail(email));
+    }
+
     @PutMapping("/{cpf}")
     public ResponseEntity<ManagerDTO> update(@PathVariable String cpf, @RequestBody ManagerUpdateDTO dto) {
-        return ResponseEntity.ok(service.update(cpf,dto));
+        return ResponseEntity.ok(service.update(cpf, dto));
     }
 
     @DeleteMapping("/{cpf}")

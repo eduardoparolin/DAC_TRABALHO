@@ -35,10 +35,6 @@ public class ClientCreateDTO {
     @Size(max = 200, message = "Logradouro deve ter no máximo 200 caracteres")
     private String street;
 
-    @NotBlank(message = "Número é obrigatório")
-    @Size(max = 10, message = "Número deve ter no máximo 10 caracteres")
-    private String number;
-
     @Size(max = 100, message = "Complemento deve ter no máximo 100 caracteres")
     private String complement;
 

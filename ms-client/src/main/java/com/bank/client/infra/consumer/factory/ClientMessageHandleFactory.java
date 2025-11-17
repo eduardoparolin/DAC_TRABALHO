@@ -6,6 +6,7 @@ import com.bank.client.infra.consumer.handler.handlers.CreateClientHandler;
 import com.bank.client.infra.consumer.handler.handlers.DeleteClientHandler;
 import com.bank.client.infra.consumer.handler.handlers.RejectClientHandler;
 import com.bank.client.infra.consumer.handler.handlers.UpdateClientHandler;
+import com.bank.client.infra.consumer.handler.handlers.UpdateClientManagerHandler;
 import com.bank.client.infra.consumer.handler.interfaces.ClientMessageHandler;
 import org.springframework.stereotype.Component;
 
@@ -20,12 +21,14 @@ public class ClientMessageHandleFactory {
     public ClientMessageHandleFactory(
             CreateClientHandler createClientHandler,
             UpdateClientHandler updateClientHandler,
+            UpdateClientManagerHandler updateClientManagerHandler,
             ApproveClientHandler approveClientHandler,
             RejectClientHandler rejectClientHandler,
             DeleteClientHandler deleteClientHandler
     ) {
         strategies.put(ClientAction.CREATE_CLIENT, createClientHandler);
         strategies.put(ClientAction.UPDATE_CLIENT, updateClientHandler);
+        strategies.put(ClientAction.UPDATE_CLIENT_MANAGER, updateClientManagerHandler);
         strategies.put(ClientAction.APPROVE_CLIENT, approveClientHandler);
         strategies.put(ClientAction.REJECT_CLIENT, rejectClientHandler);
         strategies.put(ClientAction.DELETE_CLIENT, deleteClientHandler);

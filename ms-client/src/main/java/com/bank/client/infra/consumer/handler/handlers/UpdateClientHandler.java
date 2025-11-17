@@ -22,7 +22,6 @@ public class UpdateClientHandler implements ClientMessageHandler {
                 event.getPhone(),
                 event.getSalary(),
                 event.getStreet(),
-                event.getNumber(),
                 event.getComplement(),
                 event.getZipCode(),
                 event.getCity(),

@@ -11,7 +11,6 @@ public class ClientMessageRequest {
   private String phone;
   private Double salary;
   private String street;
-  private String number;
   private String complement;
   private String zipCode;
   private String city;
@@ -95,14 +94,6 @@ public class ClientMessageRequest {
 
   public void setStreet(String street) {
     this.street = street;
-  }
-
-  public String getNumber() {
-    return number;
-  }
-
-  public void setNumber(String number) {
-    this.number = number;
   }
 
   public String getComplement() {

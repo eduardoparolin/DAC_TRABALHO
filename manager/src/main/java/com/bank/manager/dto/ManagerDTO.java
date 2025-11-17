@@ -6,6 +6,7 @@ import com.bank.manager.model.Manager;
 import com.bank.manager.model.ManagerType;
 
 public record ManagerDTO(
+        Long id,
         String cpf,
         String name,
         String email,
@@ -13,6 +14,7 @@ public record ManagerDTO(
 ){
     public static ManagerDTO fromEntity(Manager entity) {
         return new ManagerDTO(
+                entity.getId(),
                 entity.getCpf(),
                 entity.getName(),
                 entity.getEmail(),
