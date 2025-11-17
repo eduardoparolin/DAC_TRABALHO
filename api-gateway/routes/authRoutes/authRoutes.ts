@@ -62,8 +62,7 @@ authRoutes.post("/login", authValidator(loginSchema), async (c) => {
   try {
     const { login, senha } = c.req.valid("json") as z.infer<typeof loginSchema>;
     const { authServiceUrl } = getServiceUrls();
-
-    const response = await fetch(`${authServiceUrl}/auth/login`, {
+      const response = await fetch(`${authServiceUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,8 +71,8 @@ authRoutes.post("/login", authValidator(loginSchema), async (c) => {
     });
 
     const responseData = await response.json();
-
-    const mappedData = {
+      console.log(login, senha, responseData);
+      const mappedData = {
       ...responseData,
       access_token: responseData.accessToken,
       token_type: responseData.tokenType,
