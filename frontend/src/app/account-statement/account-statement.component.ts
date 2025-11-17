@@ -1,8 +1,5 @@
-import {CommonModule, CurrencyPipe, DatePipe, JsonPipe} from '@angular/common';
-import {ChangeDetectionStrategy, Component} from '@angular/core';
-import {FormControl, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {provideNativeDateAdapter} from '@angular/material/core';
-import {MatDatepickerModule} from '@angular/material/datepicker';
+import {CommonModule, CurrencyPipe} from '@angular/common';
+import {ChangeDetectionStrategy, Component, OnInit, inject} from '@angular/core';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {
   MatCell,
@@ -13,53 +10,44 @@ import {
   MatHeaderRowDef,
   MatRow, MatRowDef, MatTable, MatTableModule
 } from '@angular/material/table';
-import {MatIcon, MatIconModule} from '@angular/material/icon';
 import {MatButton} from '@angular/material/button';
-import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
-
-interface Operation {
-  dateTime: string;
-  operation: string;
-  origin: string;
-  destination: string;
-  value: number;
-}
-
-type Period = {
-  date: Date;
-  total: number;
-  operations: Operation[];
-}
+import {MatProgressBar} from '@angular/material/progress-bar';
+import {AccountStatementService, Transaction} from './account-statement.service';
 
 @Component({
   selector: 'app-account-statement',
-  providers: [provideNativeDateAdapter()],
-  imports: [MatFormFieldModule, MatDatepickerModule, FormsModule, MatTableModule, MatIconModule, MatButton, MatFormField, MatLabel, MatInput, ReactiveFormsModule, JsonPipe, MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderRow, MatHeaderRowDef, MatIcon, MatRow, MatRowDef, MatTable, DatePipe, CurrencyPipe, CommonModule],
+  imports: [MatFormFieldModule, MatTableModule, MatButton, MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef, MatTable, CurrencyPipe, CommonModule, MatProgressBar],
   templateUrl: './account-statement.component.html',
   styleUrl: './account-statement.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AccountStatementComponent {
-  tables: Period[] = [{date: new Date(), total: 800, operations: [
-    {dateTime: '2024-01-01 10:00', operation: 'Deposito', origin: 'Externa', destination: '1233321 (Minha Conta)', value: 1000},
-    {dateTime: '2024-01-01 12:00', operation: 'Transferência', origin: '1233321 (Minha Conta)', destination: '333211212', value: -200},
-  ]}, {date: new Date(new Date().setDate(new Date().getDate() - 1)), total: 1000, operations: [
-    {dateTime: '2023-12-31 09:00', operation: 'Saque', origin: '1233321 (Minha Conta)', destination: 'Externa', value: -100},
-    {dateTime: '2023-12-31 15:00', operation: 'Deposito', origin: 'Externa', destination: '1233321 (Minha Conta)', value: 500},
-    ]}];
-  displayedColumns: string[] = ['DATE_TIME', 'OPERATION', 'ORIGIN', 'DESTINATION', 'VALUE', 'SUM'];
-  readonly range = new FormGroup({
-    start: new FormControl<Date | null>(null),
-    end: new FormControl<Date | null>(null),
-  });
+export class AccountStatementComponent implements OnInit {
+  service = inject(AccountStatementService);
+  displayedColumns: string[] = ['DATE_TIME', 'OPERATION', 'ORIGIN', 'DESTINATION', 'VALUE'];
 
-  getRowClass(row: Operation): string {
-  if (row.operation === 'Saque' || (row.operation === 'Transferência' && row.value < 0)) {
-    return 'red-row';
+  ngOnInit(): void {
+    this.refresh();
   }
-  if (row.operation === 'Deposito' || (row.operation === 'Transferência' && row.value > 0)) {
-    return 'blue-row';
+
+  get transactions(): Transaction[] {
+    return this.service.statement()?.movimentacoes ?? [];
   }
-  return '';
-}
+
+  get balance(): number {
+    return this.service.statement()?.saldo ?? 0;
+  }
+
+  refresh(): void {
+    this.service.loadStatement();
+  }
+
+  getRowClass(row: Transaction): string {
+    if (row.tipo === 'SAQUE' || (row.tipo === 'TRANSFERENCIA' && row.valor < 0)) {
+      return 'red-row';
+    }
+    if (row.tipo === 'DEPOSITO' || (row.tipo === 'TRANSFERENCIA' && row.valor > 0)) {
+      return 'blue-row';
+    }
+    return '';
+  }
 }

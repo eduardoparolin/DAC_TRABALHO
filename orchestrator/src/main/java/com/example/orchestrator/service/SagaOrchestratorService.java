@@ -187,6 +187,34 @@ public class SagaOrchestratorService {
   }
 
   @Transactional
+  public String startApproveClientSaga(SagaRequest request) {
+    String sagaId = UUID.randomUUID().toString();
+    log.info("Starting APPROVE_CLIENT saga with id: {}", sagaId);
+
+    // Create saga
+    Saga saga = new Saga(sagaId, "PENDING", Instant.now());
+    sagaRepository.save(saga);
+
+    // Initialize saga context with data from request
+    Map<String, Object> context = new HashMap<>();
+    context.put("sagaId", sagaId);
+    Map<String, Object> data = request.getData();
+
+    if (data != null) {
+      context.put("cpf", data.get("cpf"));
+      context.put("clientId", data.get("clientId"));
+      context.put("managerId", data.get("managerId"));
+      context.put("accountId", data.get("accountId"));
+    }
+    sagaContexts.put(sagaId, context);
+
+    // Start with APPROVE_CLIENT step
+    approveClientStep(sagaId);
+
+    return sagaId;
+  }
+
+  @Transactional
   public void processResult(SagaResult result) {
     log.info("Processing result from {}: status={}, action={}, sagaId={}, result={}",
         result.getSource(), result.getStatus(), result.getAction(), result.getSagaId(), result);
@@ -286,8 +314,8 @@ public class SagaOrchestratorService {
         break;
       case "LINK_ACCOUNT":
       case "LINK_ACCOUNT_RESULT":
-        log.info("Matched LINK_ACCOUNT, completing saga - client awaiting manual approval");
-        completeSaga(sagaId, "AGUARDANDO_APROVACAO");
+        log.info("Matched LINK_ACCOUNT, proceeding to createUserStep (create auth with temp password)");
+        createUserStep(sagaId);
         break;
       case "APPROVE_CLIENT":
       case "APPROVE_CLIENT_RESULT":
@@ -301,13 +329,18 @@ public class SagaOrchestratorService {
         break;
       case "UPDATE_ACCOUNT_STATUS":
       case "UPDATE_ACCOUNT_STATUS_RESULT":
-        log.info("Matched UPDATE_ACCOUNT_STATUS, proceeding to createAuthStep");
-        createAuthStep(sagaId);
+        log.info("Matched UPDATE_ACCOUNT_STATUS, proceeding to updatePasswordStep");
+        updatePasswordStep(sagaId);
         break;
       case "CREATE":
       case "CREATE_RESULT":
-        log.info("Matched CREATE, completing saga");
-        completeSaga(sagaId, "CADASTRO COMPLETO");
+        log.info("Matched CREATE (user created with temp password), completing AUTO_CADASTRO saga");
+        completeSaga(sagaId, "AGUARDANDO_APROVACAO");
+        break;
+      case "UPDATE_PASSWORD":
+      case "UPDATE_PASSWORD_RESULT":
+        log.info("Matched UPDATE_PASSWORD, completing APPROVE_CLIENT saga");
+        completeSaga(sagaId, "CADASTRO_COMPLETO");
         break;
       default:
         log.warn("Unknown action to advance: '{}' (length: {})", completedAction, completedAction.length());
@@ -496,6 +529,39 @@ public class SagaOrchestratorService {
     sagaProducer.sendToClientService(request);
   }
 
+  private void approveClientStep(String sagaId) {
+    log.info("Step 1 (Approval): Approving client for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("APPROVE_CLIENT", "PENDING",
+        "Approving client", "REJECT_CLIENT");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    ClientMessageRequest request = new ClientMessageRequest();
+    request.setSagaId(sagaId);
+    request.setAction("APPROVE_CLIENT");
+
+    // Handle type conversion for clientId
+    Object clientIdObj = context.get("clientId");
+    if (clientIdObj instanceof Integer) {
+      request.setClientId(((Integer) clientIdObj).longValue());
+    } else if (clientIdObj instanceof Long) {
+      request.setClientId((Long) clientIdObj);
+    }
+
+    // Handle type conversion for managerId
+    Object managerIdObj = context.get("managerId");
+    if (managerIdObj instanceof Integer) {
+      request.setManagerId(((Integer) managerIdObj).longValue());
+    } else if (managerIdObj instanceof Long) {
+      request.setManagerId((Long) managerIdObj);
+    }
+
+    sagaProducer.sendToClientService(request);
+  }
+
   private void incrementAccountCountStep(String sagaId) {
     log.info("Step 4.5: Incrementing manager account count for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
@@ -527,30 +593,38 @@ public class SagaOrchestratorService {
     AccountSagaEvent event = new AccountSagaEvent();
     event.setSagaId(sagaId);
     event.setAction("UPDATE_ACCOUNT_STATUS");
-    event.setClientId((Long) context.get("clientId"));
+
+    // Handle type conversion for clientId
+    Object clientIdObj = context.get("clientId");
+    if (clientIdObj instanceof Integer) {
+      event.setClientId(((Integer) clientIdObj).longValue());
+    } else if (clientIdObj instanceof Long) {
+      event.setClientId((Long) clientIdObj);
+    }
+
     event.setIsApproved(true);
 
     sagaProducer.sendToAccountService(event);
   }
 
-  private void createAuthStep(String sagaId) {
-    log.info("Step 6: Creating authentication for saga {}", sagaId);
+  private void createUserStep(String sagaId) {
+    log.info("Step 6: Creating user with temporary password for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
 
     if (context == null) {
-      log.error("Saga context not found for sagaId: {}. Skipping createAuthStep.", sagaId);
+      log.error("Saga context not found for sagaId: {}. Skipping createUserStep.", sagaId);
       return;
     }
 
     Saga saga = sagaRepository.findById(sagaId).orElse(null);
     if (saga == null) {
-      log.error("Saga not found in database for sagaId: {}. Skipping createAuthStep.", sagaId);
+      log.error("Saga not found in database for sagaId: {}. Skipping createUserStep.", sagaId);
       sagaContexts.remove(sagaId);
       return;
     }
 
     SagaStep step = new SagaStep("CREATE_USER", "PENDING",
-        "Creating user authentication", "DELETE_USER");
+        "Creating user with temporary password", "DELETE_USER");
     step.setSaga(saga);
     sagaStepRepository.save(step);
 
@@ -564,7 +638,42 @@ public class SagaOrchestratorService {
     data.setName(context.get("name").toString());
     data.setCpf(context.get("cpf").toString());
     data.setEmail((String) context.get("email"));
-    data.setPassword((String) context.get("generatedPassword"));
+    data.setRole("CLIENTE");
+
+    payload.setData(data);
+
+    sagaProducer.sendToAuthService(payload);
+  }
+
+  private void updatePasswordStep(String sagaId) {
+    log.info("Step: Updating password and sending email for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    if (context == null) {
+      log.error("Saga context not found for sagaId: {}. Skipping updatePasswordStep.", sagaId);
+      return;
+    }
+
+    Saga saga = sagaRepository.findById(sagaId).orElse(null);
+    if (saga == null) {
+      log.error("Saga not found in database for sagaId: {}. Skipping updatePasswordStep.", sagaId);
+      sagaContexts.remove(sagaId);
+      return;
+    }
+
+    SagaStep step = new SagaStep("UPDATE_PASSWORD", "PENDING",
+        "Updating user password and sending email", "REVERT_PASSWORD");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    AuthPayload payload = new AuthPayload();
+    payload.setAction("UPDATE_PASSWORD");
+    payload.setMessageSource("orchestrator");
+    payload.setSagaId(sagaId);
+
+    AuthPayloadData data = new AuthPayloadData();
+    data.setId(Long.parseLong(String.valueOf(context.get("clientId"))));
+    data.setCpf(context.get("cpf").toString());
     data.setRole("CLIENTE");
 
     payload.setData(data);

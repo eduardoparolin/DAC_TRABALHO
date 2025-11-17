@@ -2,8 +2,9 @@ import {inject, Injectable, signal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {lastValueFrom} from 'rxjs';
-import {ClientResponse} from './clients.types';
+import {ClientDetailsResponse, ClientReportResponse} from './clients.types';
 import {Client} from './client.model';
+import {ErrorHandlerService} from '../utils/error-handler.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,46 +13,41 @@ export class ClientsService {
   clients = signal<Client[]>([]);
   filteredClients = signal<Client[]>([]);
   http = inject(HttpClient);
+  errorHandler = inject(ErrorHandlerService);
+  loading = signal(false);
   constructor() { }
 
-  getClients(filtros: 'para_aprovar' | 'adm_relatorio_clientes' | 'melhores_clientes') {
-    return lastValueFrom(this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`));
-  }
-
-  getClientById(id: string) {
-    return lastValueFrom(this.http.get<ClientResponse>(`${environment.baseUrl}/clientes/${id}`));
+  getClients(
+    filtro: 'para_aprovar' | 'adm_relatorio_clientes' | 'melhores_clientes',
+    options: { managerId?: string } = {}
+  ) {
+    const params: Record<string, string> = { filtro };
+    if (options.managerId) {
+      params['managerId'] = options.managerId;
+    }
+    return lastValueFrom(
+      this.http.get<ClientReportResponse[]>(`${environment.baseUrl}/clientes`, { params })
+    );
   }
 
   getClientByCpf(cpf: string) {
-    return lastValueFrom(this.http.get<ClientResponse>(`${environment.baseUrl}/client/${cpf}`));
+    return lastValueFrom(
+      this.http.get<ClientDetailsResponse>(`${environment.baseUrl}/clientes/${cpf}`)
+    );
   }
 
   async getAllClients() {
-    const clientsResponse = await lastValueFrom(this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`));
-    this.clients.set(clientsResponse.map(client => {
-      const clientJson = {
-        tipo: client.tipo,
-        usuario: {
-          id: client.id,
-          cpf: client.cpf,
-          name: client.nome,
-          email: client.email,
-        },
-        saldo: client.saldo,
-        limite: client.limite,
-        salario: client.salario,
-        endereco: client.endereco,
-        cidade: client.cidade,
-        estado: client.estado,
-        telefone: client.telefone,
-        numero_conta: client.numero_conta,
-        gerente: client.gerente,
-        gerente_nome: client.gerente_nome,
-      };
-
-      return Client.fromJson(clientJson);
-    }));
-    this.filteredClients.set(this.clients());
+    this.loading.set(true);
+    try {
+      const clientsResponse = await this.getClients('adm_relatorio_clientes');
+      const clients = clientsResponse.map(client => this.mapClient(client));
+      this.clients.set(clients);
+      this.filteredClients.set(clients);
+    } catch (error) {
+      this.errorHandler.handleError(error as Error);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   filterClients(filter: string) {
@@ -64,5 +60,30 @@ export class ClientsService {
 
   clearFilter() {
     this.filteredClients.set(this.clients());
+  }
+
+  private mapClient(client: ClientReportResponse): Client {
+    const account = client.conta;
+    const manager = client.gerente;
+    const clientJson = {
+      tipo: 'CLIENTE',
+      usuario: {
+        id: client.id,
+        cpf: client.cpf,
+        name: client.name,
+        email: client.email,
+      },
+      saldo: account?.saldo ?? 0,
+      limite: account?.limite ?? 0,
+      salario: Number(client.salary) ?? 0,
+      cidade: client.city,
+      estado: client.state,
+      telefone: client.phone,
+      numero_conta: account?.numero,
+      gerente: manager?.cpf,
+      gerente_nome: manager?.name,
+    };
+
+    return Client.fromJson(clientJson);
   }
 }

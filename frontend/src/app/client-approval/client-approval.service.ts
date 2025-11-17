@@ -1,13 +1,27 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Client } from '../clients/client.model';
 import { lastValueFrom } from 'rxjs';
-import { ClientResponse } from '../clients/clients.types';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../utils/confirmation-dialog/confirmation-dialog.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import {RejectClientDialogComponent} from './components/reject-client-dialog/reject-client-dialog.component';
+import {ErrorHandlerService} from '../utils/error-handler.service';
+
+export interface PendingClient {
+  cpf: string;
+  name: string;
+  email: string;
+  wage: number;
+}
+
+type PendingClientApiResponse = {
+  cpf: string;
+  nome: string;
+  email: string;
+  salario: number;
+  contaId?: number;
+  gerenteId?: number;
+};
 
 @Injectable({
   providedIn: 'root',
@@ -15,56 +29,112 @@ import {RejectClientDialogComponent} from './components/reject-client-dialog/rej
 export class ClientApprovalService {
   http = inject(HttpClient);
   dialog = inject(MatDialog);
-  clients = signal<Client[]>([]);
-  private _snackBar = inject(MatSnackBar);
+  errorHandler = inject(ErrorHandlerService);
+  clients = signal<PendingClient[]>([]);
+  loading = signal(false);
 
   constructor() {
   }
 
   async getAllClients() {
-    const clientsResponse = await lastValueFrom(
-      this.http.get<ClientResponse[]>(`${environment.baseUrl}/clientes`)
-    );
-    this.clients.set(clientsResponse.map((client) => {
-      const clientJson = {
-        tipo: client.tipo,
-        usuario: {
-          id: client.id,
+    this.loading.set(true);
+    try {
+      const clientsResponse = await lastValueFrom(
+        this.http.get<PendingClientApiResponse[]>(
+          `${environment.baseUrl}/clientes`,
+          {
+            params: { filtro: 'para_aprovar' },
+          }
+        )
+      );
+      this.clients.set(
+        clientsResponse.map((client) => ({
           cpf: client.cpf,
           name: client.nome,
           email: client.email,
-        },
-        saldo: client.saldo,
-        limite: client.limite,
-        salario: client.salario,
-        endereco: client.endereco,
-        cidade: client.cidade,
-        estado: client.estado,
-        telefone: client.telefone,
-        numero_conta: client.numero_conta,
-        gerente: client.gerente,
-        gerente_nome: client.gerente_nome,
-      };
-
-      return Client.fromJson(clientJson);
-    }));
+          wage: client.salario,
+        }))
+      );
+    } catch (error) {
+      this.errorHandler.handleError(error as Error);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  approveClient(clientId: string) {
+  approveClient(client: PendingClient) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, {});
 
-    dialogRef.afterClosed().subscribe((result) => {
+    dialogRef.afterClosed().subscribe(async (result) => {
       if (result) {
-        this._snackBar.open('Cliente aprovado com sucesso!');
+        await this.executeApprove(client);
       }
     });
   }
 
-  rejectClient(clientId: string) {
-    this.dialog.open(RejectClientDialogComponent, {
+  rejectClient(client: PendingClient) {
+    const dialogRef = this.dialog.open(RejectClientDialogComponent, {
       data: {
-        id: clientId
-      }
+        clientName: client.name
+      },
     });
+
+    dialogRef.afterClosed().subscribe(async (reason?: string) => {
+      if (!reason) {
+        return;
+      }
+
+      await this.executeReject(client, reason);
+    });
+  }
+
+  private async executeApprove(client: PendingClient) {
+    this.loading.set(true);
+    try {
+      await lastValueFrom(
+        this.http.post(
+          `${environment.baseUrl}/clientes/${client.cpf}/aprovar`,
+          {}
+        )
+      );
+
+      this.clients.update((current) =>
+        current.filter((item) => item.cpf !== client.cpf)
+      );
+
+      this.errorHandler.handleSuccess('Cliente aprovado com sucesso!');
+    } catch (error) {
+      this.errorHandler.handleError(error as Error);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private async executeReject(client: PendingClient, reason: string) {
+    this.loading.set(true);
+    try {
+      await lastValueFrom(
+        this.http.post(
+          `${environment.baseUrl}/clientes/${client.cpf}/rejeitar`,
+          {
+            usuario: {
+              cpf: client.cpf,
+              email: client.email,
+              nome: client.name,
+            },
+            motivo: reason,
+          }
+        )
+      );
+
+      this.clients.update((current) =>
+        current.filter((item) => item.cpf !== client.cpf)
+      );
+      this.errorHandler.handleSuccess('Cliente rejeitado com sucesso!');
+    } catch (error) {
+      this.errorHandler.handleError(error as Error);
+    } finally {
+      this.loading.set(false);
+    }
   }
 }

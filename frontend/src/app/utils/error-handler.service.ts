@@ -75,6 +75,8 @@ export class ErrorHandlerService {
   }
 
   private getHttpErrorMessage(error: HttpErrorResponse): string {
+    const backendMessage = this.getBackendMessage(error);
+
     if (error.error instanceof ErrorEvent) {
       return `Erro de rede: ${error.error.message}`;
     }
@@ -83,7 +85,7 @@ export class ErrorHandlerService {
       case 0:
         return 'Não foi possível conectar ao servidor. Verifique sua conexão.';
       case 400:
-        return error.error?.message || 'Requisição inválida.';
+        return backendMessage || 'Requisição inválida.';
       case 401:
         return 'Sessão expirada. Faça login novamente.';
       case 403:
@@ -91,13 +93,13 @@ export class ErrorHandlerService {
       case 404:
         return 'Recurso não encontrado.';
       case 409:
-        return error.error?.message || 'Conflito ao processar requisição.';
+        return backendMessage || 'Conflito ao processar requisição.';
       case 500:
-        return 'Erro interno do servidor. Tente novamente mais tarde.';
+        return backendMessage || 'Erro interno do servidor. Tente novamente mais tarde.';
       case 503:
         return 'Serviço temporariamente indisponível.';
       default:
-        return error.error?.message || `Erro: ${error.status} - ${error.statusText}`;
+        return backendMessage || `Erro: ${error.status} - ${error.statusText}`;
     }
   }
 
@@ -108,5 +110,19 @@ export class ErrorHandlerService {
       verticalPosition: 'top',
       panelClass: ['error-snackbar']
     });
+  }
+
+  private getBackendMessage(error: HttpErrorResponse): string | undefined {
+    const payload = error.error;
+
+    if (!payload) {
+      return undefined;
+    }
+
+    if (typeof payload === 'string') {
+      return payload;
+    }
+
+    return payload.message || payload.error || payload.details || payload.mensagem;
   }
 }

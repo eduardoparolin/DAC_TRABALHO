@@ -19,17 +19,16 @@ export type ViaCepResponse = {
 };
 
 export interface SignupData {
-  name: string;
-  email: string;
   cpf: string;
-  phone: string;
-  salary: number;
-  street: string;
-  number: string;
-  complement?: string;
-  zipCode: string;
-  city: string;
-  state: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  salario: number;
+  endereco: string;
+  complemento?: string;
+  CEP: string;
+  cidade: string;
+  estado: string;
 }
 
 @Injectable({

@@ -36,4 +36,30 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendRejectionEmail(String name, String to, String rejectionReason) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Seu cadastro foi reprovado");
+        message.setText("""
+                Olá, %s
+
+                Infelizmente, seu cadastro foi reprovado.
+
+                Motivo: %s
+
+                Atenciosamente,
+                Equipe DAC
+                """.formatted(name, rejectionReason));
+
+        // Log email details instead of sending
+        log.info("=================================================");
+        log.info("REJECTION EMAIL TO BE SENT:");
+        log.info("To: {}", to);
+        log.info("Subject: {}", message.getSubject());
+        log.info("Body:\n{}", message.getText());
+        log.info("=================================================");
+
+        mailSender.send(message);
+    }
 }

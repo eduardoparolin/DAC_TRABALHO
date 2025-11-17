@@ -15,5 +15,11 @@
       [formControl]="accountNumberFormControl"
     />
   </mat-form-field>
-  <button [disabled]="(valueFormControl.value ?? 0) <= 0" mat-raised-button (click)="transfer()">Transferir</button>
+  <button
+    mat-raised-button
+    (click)="transfer()"
+    [disabled]="service.loading() || (valueFormControl.value ?? 0) <= 0 || valueFormControl.invalid || accountNumberFormControl.invalid"
+  >
+    Transferir
+  </button>
 </div>

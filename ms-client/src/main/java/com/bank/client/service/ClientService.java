@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.bank.client.events.ClienteEventPublisher;
 import com.bank.client.infra.producer.AccountProducer;
+import com.bank.client.infra.producer.EmailProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 import java.time.OffsetDateTime;
@@ -36,6 +37,9 @@ public class ClientService {
 
     @Autowired(required = false)
     private AccountProducer accountProducer;
+
+    @Autowired(required = false)
+    private EmailProducer emailProducer;
 
     @Transactional
     public Long create(ClientCreateDTO req) {
@@ -137,11 +141,12 @@ public class ClientService {
                 .collect(Collectors.toList());
     }
 
-    // R13
+    // R12/R13
     public List<ClientReportResponse> getClientsByManager(Long managerId, String cpf, String name) {
         String cpfDigits = normalizeCpf(cpf);
 
         Specification<Client> spec = ClientSpecifications.hasManagerId(managerId);
+        spec = ClientSpecifications.and(spec, ClientSpecifications.hasStatus(Client.ClientStatus.APROVADO));
         spec = ClientSpecifications.and(spec, ClientSpecifications.hasCpf(cpfDigits));
         spec = ClientSpecifications.and(spec, ClientSpecifications.nameContains(name));
 
@@ -167,10 +172,17 @@ public class ClientService {
 
         client.setStatus(Client.ClientStatus.REJEITADO);
         client.setRejectionReason(reason);
-        client.setApprovalDate(OffsetDateTime.now());
+        client.setRejectionDate(OffsetDateTime.now());
 
         repo.save(client);
-        // TODO: Chamar Mailer para Notificar Cliente
+
+        // Send rejection email via RabbitMQ
+        if (emailProducer != null) {
+            log.info("Sending rejection email for client: {}", client.getEmail());
+            emailProducer.sendRejectionEmail(client.getName(), client.getEmail(), reason);
+        } else {
+            log.warn("EmailProducer not available, rejection email not sent");
+        }
     }
 
     // Link account to client without approving
@@ -238,7 +250,7 @@ public class ClientService {
         Specification<Client> spec = ClientSpecifications.hasStatus(clientStatus);
         spec = ClientSpecifications.and(spec, ClientSpecifications.hasManagerId(managerId));
 
-        Sort sort = Sort.by("creationDate").ascending();
+        Sort sort = Sort.by("name").ascending();
         List<Client> clients = repo.findAll(spec, sort);
 
         return clients.stream()

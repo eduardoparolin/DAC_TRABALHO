@@ -1,6 +1,7 @@
 import { effect, inject, Injectable, signal } from '@angular/core';
 import { User, UserJson } from './user.model';
 import { Router } from '@angular/router';
+import { LoginResponse } from '../login/login.types';
 
 export interface UserWithBalance extends User {
   balance: number;
@@ -14,6 +15,8 @@ export class SessionService {
   user = signal<User | null>(null);
   meClient = signal<UserWithBalance | null>(null);
   router = inject(Router);
+  private readonly storageKey = 'session';
+
   constructor() {
     effect(() => {
       if (this.user() != null) {
@@ -28,25 +31,36 @@ export class SessionService {
         this.router.navigate(['/login']);
       }
     });
-    const localStorageUser = localStorage.getItem('user');
+    const localStorageUser = localStorage.getItem(this.storageKey);
     if (localStorageUser) {
-      const parsedUser = JSON.parse(localStorageUser) as UserJson;
-      const user = User.fromJson(parsedUser);
-      this.user.set(user);
-      this.meClient.set(Object.assign(user, { balance: 1000 }));
+      try {
+        const parsedUser = JSON.parse(localStorageUser) as LoginResponse;
+        this.applyLoginResponse(parsedUser);
+      } catch (error) {
+        console.error('Erro ao carregar sessão do usuário', error);
+        localStorage.removeItem(this.storageKey);
+      }
     }
   }
 
-  parseLoginResponse(response: UserJson): User {
-    localStorage.setItem('user', JSON.stringify(response));
-    const user = User.fromJson(response);
+  parseLoginResponse(response: LoginResponse): User {
+    localStorage.setItem(this.storageKey, JSON.stringify(response));
+    this.applyLoginResponse(response);
+    return this.user()!;
+  }
+
+  private applyLoginResponse(response: LoginResponse) {
+    const userJson: UserJson = {
+      usuario: response.usuario,
+      tipo: response.tipo
+    };
+    const user = User.fromJson(userJson);
     this.user.set(user);
-    this.meClient.set(Object.assign(user, { balance: Math.random() * 1000, salary: 10000 }));
-    return user;
+    this.meClient.set(Object.assign({}, user, { balance: 0 }));
   }
 
   logout() {
-    localStorage.removeItem('user');
+    localStorage.removeItem(this.storageKey);
     this.user.set(null);
     this.meClient.set(null);
   }
@@ -57,5 +71,19 @@ export class SessionService {
 
   isAuthenticated(): boolean {
     return this.user() !== null;
+  }
+
+  getToken(): string | null {
+    const stored = localStorage.getItem(this.storageKey);
+    if (!stored) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(stored) as LoginResponse;
+      return parsed.accessToken || parsed.access_token || null;
+    } catch {
+      return null;
+    }
   }
 }

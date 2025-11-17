@@ -13,4 +13,5 @@ public interface UserService {
     UserDTO update(UserUpdateDTO user, String id);
     void delete(Long id, Long requesterId, Role role);
     User findById(Long id, Role role);
+    UserDTO updatePassword(String cpf, String newPassword);
 }

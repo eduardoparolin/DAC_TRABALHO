@@ -4,12 +4,13 @@ import {
 } from '@angular/material/table';
 import {MatIconModule} from '@angular/material/icon';
 import {ReactiveFormsModule} from '@angular/forms';
-import {ClientApprovalService} from './client-approval.service';
+import {ClientApprovalService, PendingClient} from './client-approval.service';
 import {MatButton} from '@angular/material/button';
+import {MatProgressBar} from '@angular/material/progress-bar';
 
 @Component({
   selector: 'app-client-approval',
-  imports: [MatTableModule, MatIconModule, ReactiveFormsModule, MatButton],
+  imports: [MatTableModule, MatIconModule, ReactiveFormsModule, MatButton, MatProgressBar],
   templateUrl: './client-approval.component.html',
   styleUrl: './client-approval.component.scss'
 })
@@ -22,11 +23,11 @@ export class ClientApprovalComponent implements OnInit {
       this.service.getAllClients();
     }
 
-    approveClient(clientId: string) {
-      this.service.approveClient(clientId);
+    approveClient(client: PendingClient) {
+      this.service.approveClient(client);
     }
 
-    rejectClient(clientId: string) {
-      this.service.rejectClient(clientId);
+    rejectClient(client: PendingClient) {
+      this.service.rejectClient(client);
     }
 }

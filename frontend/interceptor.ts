@@ -10,13 +10,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   const router = inject(Router);
 
-  const userDataString = localStorage.getItem('user');
+  const userDataString = localStorage.getItem('session');
   let authToken = '';
 
   if (userDataString) {
     try {
       const userData = JSON.parse(userDataString);
-      authToken = userData.token || userData.id || '';
+      authToken =
+        userData.accessToken ||
+        userData.access_token ||
+        userData.token ||
+        '';
     } catch (error) {
       console.error('Error parsing user data from localStorage', error);
     }

@@ -8,5 +8,11 @@
       [options]="{ prefix: 'R$', thousands: '.', decimal: ',' }"
     />
   </mat-form-field>
-  <button [disabled]="(valueFormControl.value ?? 0) <= 0" mat-raised-button (click)="deposit()">Depositar</button>
+  <button
+    mat-raised-button
+    (click)="deposit()"
+    [disabled]="service.loading() || (valueFormControl.value ?? 0) <= 0 || valueFormControl.invalid"
+  >
+    Depositar
+  </button>
 </div>

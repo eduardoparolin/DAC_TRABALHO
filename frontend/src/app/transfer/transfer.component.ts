@@ -35,18 +35,13 @@ export class TransferComponent {
     }
 
     if (this.valueFormControl.value && this.accountNumberFormControl.value) {
-      try {
-        const result = await this.service.transfer(
-          this.valueFormControl.value,
-          this.accountNumberFormControl.value
-        );
-        if (result) {
-          this.errorHandler.handleSuccess('Transferência realizada com sucesso!');
-          this.valueFormControl.reset();
-          this.accountNumberFormControl.reset();
-        }
-      } catch (error) {
-        this.errorHandler.handleError(error as Error);
+      const result = await this.service.transfer(
+        this.valueFormControl.value,
+        this.accountNumberFormControl.value
+      );
+      if (result) {
+        this.valueFormControl.reset();
+        this.accountNumberFormControl.reset();
       }
     }
   }

@@ -19,16 +19,20 @@ export class LoginService {
 
   async login(email: string, password: string) {
     this.loading.set(true);
-    await lastValueFrom(this.http.post<LoginResponse>(`${environment.baseUrl}/auth/login`, {email, password}))
-      .then(async (response) => {
-        this.loading.set(false);
-        this.session.parseLoginResponse(response);
-        this.errorHandler.handleSuccess('Login realizado com sucesso!');
-      })
-      .catch((error) => {
-        this.loading.set(false);
-        this.errorHandler.handleError(error, { showError: true });
-      })
+    try {
+      const response = await lastValueFrom(
+        this.http.post<LoginResponse>(`${environment.baseUrl}/login`, {
+          login: email,
+          senha: password
+        })
+      );
+      this.session.parseLoginResponse(response);
+      this.errorHandler.handleSuccess('Login realizado com sucesso!');
+    } catch (error) {
+      this.errorHandler.handleError(error as Error, { showError: true });
+    } finally {
+      this.loading.set(false);
+    }
 
   }
 

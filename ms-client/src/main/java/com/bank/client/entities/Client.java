@@ -64,6 +64,8 @@ public class Client {
 
     private OffsetDateTime approvalDate;
 
+    private OffsetDateTime rejectionDate;
+
     public enum ClientStatus {
         AGUARDANDO_APROVACAO,
         APROVADO,

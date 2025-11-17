@@ -16,3 +16,17 @@
 .blue-row {
   color: #1f558f !important;
 }
+
+.statement-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.statement-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0;
+  font-size: 14px;
+}

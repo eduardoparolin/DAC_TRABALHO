@@ -118,18 +118,34 @@ export class SignupComponent implements OnInit, OnDestroy {
     }
 
     try {
+      const cpf = this.cpfFormControl.value!.replace(/\D/g, '');
+      const telefone = this.phoneFormControl.value!.replace(/\D/g, '');
+      const CEP = this.cepFormControl.value!.replace(/\D/g, '');
+      const nome = this.nameFormControl.value!.trim();
+      const salario = Number(this.salaryFormControl.value!);
+      const cidade = this.cidadeFormControl.value!.trim();
+      const estado = this.estadoFormControl.value!.trim().toUpperCase();
+      const rua = this.ruaFormControl.value!.trim();
+      const numero = this.numeroFormControl.value!.trim();
+      const bairro = this.bairroFormControl.value?.trim();
+      const complemento = this.complementoFormControl.value?.trim();
+
+      let endereco = `${rua}, ${numero}`;
+      if (bairro) {
+        endereco += ` - ${bairro}`;
+      }
+
       const signupData = {
-        name: this.nameFormControl.value!,
-        email: this.emailFormControl.value!,
-        cpf: this.cpfFormControl.value!.replace(/\D/g, ''),
-        phone: this.phoneFormControl.value!.replace(/\D/g, ''),
-        salary: this.salaryFormControl.value!,
-        street: this.ruaFormControl.value!,
-        number: this.numeroFormControl.value!,
-        complement: this.complementoFormControl.value || '',
-        zipCode: this.cepFormControl.value!.replace(/\D/g, ''),
-        city: this.cidadeFormControl.value!,
-        state: this.estadoFormControl.value!,
+        cpf,
+        nome,
+        email: this.emailFormControl.value!.trim(),
+        telefone,
+        salario,
+        endereco,
+        complemento: complemento || undefined,
+        CEP,
+        cidade,
+        estado,
       };
 
       await this.service.signup(signupData);

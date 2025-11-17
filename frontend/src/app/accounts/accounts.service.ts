@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {ClientApprovalService} from '../client-approval/client-approval.service';
+import {ClientApprovalService, PendingClient} from '../client-approval/client-approval.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,11 +14,11 @@ export class AccountsService {
     this.service.getAllClients();
   }
 
-  approveClient(clientId: string) {
-    this.service.approveClient(clientId);
+  approveClient(client: PendingClient) {
+    this.service.approveClient(client);
   }
 
-  rejectClient(clientId: string) {
-    this.service.rejectClient(clientId);
+  rejectClient(client: PendingClient) {
+    this.service.rejectClient(client);
   }
 }

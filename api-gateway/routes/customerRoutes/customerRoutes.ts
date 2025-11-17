@@ -52,7 +52,62 @@ customerRoutes.get(
     authMiddleware,
     zValidator("query", getCustomersSchemaInput),
     async (c) => {
-        const {filtro, managerId} = c.req.valid("query");
+        const {filtro, managerId, cpf, name} = c.req.valid("query");
+
+        // R12: When no filter provided, list all approved clients
+        if (!filtro) {
+            const roleValidation = checkRole(
+                c,
+                "ROLE_GERENTE",
+                "ROLE_ADMINISTRADOR"
+            );
+            if (!roleValidation.authorized) {
+                return roleValidation.response;
+            }
+
+            const {clientServiceUrl} = getServiceUrls();
+
+            // Build URL - if managerId is provided, filter by manager, otherwise get all
+            let url: string;
+            if (managerId) {
+                // Filter by specific manager
+                url = `${clientServiceUrl}/clientes/manager/${managerId}`;
+                const params = new URLSearchParams();
+                if (cpf) params.append("cpf", cpf);
+                if (name) params.append("name", name);
+                const queryString = params.toString();
+                if (queryString) url += `?${queryString}`;
+            } else {
+                // Get all approved clients
+                url = `${clientServiceUrl}/clientes/status/APROVADO`;
+                const params = new URLSearchParams();
+                if (cpf) params.append("cpf", cpf);
+                if (name) params.append("name", name);
+                const queryString = params.toString();
+                if (queryString) url += `?${queryString}`;
+            }
+
+            const clientsResponse = await fetchWithAuth(c, url);
+
+            if (!clientsResponse.ok) {
+                return c.json(
+                    {error: "Erro ao buscar clientes"},
+                    clientsResponse.status as any
+                );
+            }
+
+            const clients = await clientsResponse.json();
+            const clientsMapped = clients.map((client: any) => ({
+                cpf: client.cpf,
+                nome: client.name,
+                email: client.email,
+                salario: client.salary,
+                contaId: client.accountId,
+                gerenteId: client.managerId,
+            }));
+
+            return c.json(clientsMapped, 200);
+        }
 
         switch (filtro) {
             case "para_aprovar": {
@@ -308,7 +363,7 @@ customerRoutes.get(
                     console.error("Erro ao buscar dados do gerente:", error);
                 }
             }
-
+            console.log(444, accountData);
             const composedResponse = {
                 cpf: clientData.cpf,
                 nome: clientData.name,
@@ -409,46 +464,63 @@ customerRoutes.post(
     async (c) => {
         try {
             const cpf = c.req.param("cpf");
-            const {clientServiceUrl, bankAccountServiceUrl} = getServiceUrls();
+            const {clientServiceUrl, orchestratorServiceUrl} = getServiceUrls();
 
+            // First, get client data to retrieve clientId, managerId, and accountId
+            const clientResponse = await fetchWithAuth(
+                c,
+                `${clientServiceUrl}/clientes/cpf/${cpf}`
+            );
+
+            if (!clientResponse.ok) {
+                return c.json(
+                    {error: "Cliente não encontrado"},
+                    404
+                );
+            }
+
+            const clientData = await clientResponse.json();
+
+            // Trigger approval saga via orchestrator
             const response = await fetchWithAuth(
                 c,
-                `${clientServiceUrl}/clientes/${cpf}/aprovar`,
+                `${orchestratorServiceUrl}/api/saga/client/approve`,
                 {
                     method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        action: "APPROVE_CLIENT",
+                        data: {
+                            cpf: cpf,
+                            clientId: clientData.id,
+                            managerId: clientData.managerId,
+                            accountId: clientData.accountId,
+                        },
+                    }),
                 }
             );
 
             if (!response.ok) {
+                const errorData = await response.json();
+                console.log('aaaa', errorData);
                 return c.json(
-                    {error: "Erro ao aprovar cliente"},
+                    {
+                        error: "Falha ao iniciar aprovação",
+                        details: errorData,
+                    },
                     response.status as any
                 );
             }
 
-            const approvalData = await response.json();
-            const clientId = approvalData.clientId;
-
-            let accountLimit = null;
-            try {
-                const accountResponse = await fetchWithAuth(
-                    c,
-                    `${bankAccountServiceUrl}/query/contas/cliente/${clientId}`
-                );
-
-                if (accountResponse.ok) {
-                    const accountData = await accountResponse.json();
-                    accountLimit = accountData.limite;
-                }
-            } catch (error) {
-                console.error("Erro ao buscar limite da conta:", error);
-            }
+            const sagaData = await response.json();
 
             return c.json(
                 {
-                    message: "Cliente aprovado com sucesso",
-                    clientId: clientId,
-                    limite: accountLimit,
+                    message: "Aprovação iniciada com sucesso. Senha será enviada por email.",
+                    sagaId: sagaData.sagaId,
+                    cpf: cpf,
                 },
                 200
             );
@@ -468,7 +540,7 @@ customerRoutes.post(
     async (c) => {
         try {
             const cpf = c.req.param("cpf");
-            const {rejectionReason} = c.req.valid("json");
+            const {usuario, motivo} = c.req.valid("json");
             const {clientServiceUrl} = getServiceUrls();
 
             const response = await fetchWithAuth(
@@ -479,7 +551,7 @@ customerRoutes.post(
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify({rejectionReason}),
+                    body: JSON.stringify({rejectionReason: motivo}),
                 }
             );
 

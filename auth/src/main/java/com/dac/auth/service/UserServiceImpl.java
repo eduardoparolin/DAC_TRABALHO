@@ -44,8 +44,9 @@ public class UserServiceImpl implements UserService {
             throw new ApiException("Email em uso.", HttpStatus.BAD_REQUEST);
         }
 
+        // Generate temporary password - will be replaced during approval
         PasswordData passwordData = generateRandomPassword();
-        emailService.sendPasswordEmail(dto.getName(), dto.getEmail(), passwordData.raw());
+        // Note: Email is NOT sent here - it will be sent during approval with the final password
 
         User createUser = User.builder()
                 .cpf(dto.getCpf())
@@ -57,7 +58,7 @@ public class UserServiceImpl implements UserService {
 
         createUser.setUserId(dto.getId());
 
-        log.info("Usuario criado com sucesso");
+        log.info("Usuario criado com sucesso com senha temporária");
         return UserDTO.fromEntity(repository.save(createUser));
     }
 
@@ -131,5 +132,28 @@ public class UserServiceImpl implements UserService {
 
     private PasswordData generateRandomPassword() {
         return passwordGenerator.generateRandomPassword();
+    }
+
+    @Override
+    public UserDTO updatePassword(String cpf, String newPassword) {
+        log.info("Atualizando senha do usuario com cpf {}", cpf);
+        User user = findByCpf(cpf);
+
+        if (Objects.isNull(user)) {
+            throw new ApiException("Usuario não encontrado.", HttpStatus.NOT_FOUND);
+        }
+
+        // Generate new password data
+        PasswordData passwordData = generateRandomPassword();
+
+        // Update user password
+        user.setPassword(passwordData.encoded());
+        User savedUser = repository.save(user);
+
+        // Send email with new password
+        emailService.sendPasswordEmail(user.getName(), user.getEmail(), passwordData.raw());
+
+        log.info("Senha atualizada com sucesso e email enviado");
+        return UserDTO.fromEntity(savedUser);
     }
 }

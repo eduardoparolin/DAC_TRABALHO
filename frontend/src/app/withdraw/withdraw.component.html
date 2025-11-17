@@ -1,5 +1,5 @@
 <div class="withdraw-form">
-  <div>Valor em conta: {{ 0 | currency: 'BRL' }}</div>
+  <div>Valor em conta: {{ balance | currency: 'BRL' }}</div>
   <mat-form-field>
     <mat-label>Valor a sacar</mat-label>
     <input
@@ -9,5 +9,11 @@
       [options]="{ prefix: 'R$', thousands: '.', decimal: ',' }"
     />
   </mat-form-field>
-  <button [disabled]="(valueFormControl.value ?? 0) <= 0" mat-raised-button (click)="withdraw()">Sacar</button>
+  <button
+    mat-raised-button
+    (click)="withdraw()"
+    [disabled]="service.loading() || (valueFormControl.value ?? 0) <= 0 || valueFormControl.invalid"
+  >
+    Sacar
+  </button>
 </div>

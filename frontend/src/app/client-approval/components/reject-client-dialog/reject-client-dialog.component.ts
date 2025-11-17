@@ -1,6 +1,5 @@
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import {MatButton} from '@angular/material/button';
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import {FormsModule} from '@angular/forms';
@@ -27,7 +26,6 @@ export class RejectClientDialogComponent {
 
 constructor(
   private dialogRef: MatDialogRef<RejectClientDialogComponent>,
-  private snackBar: MatSnackBar,
 @Inject(MAT_DIALOG_DATA) public data: RejectClientDialogData
 ) {}
 
@@ -36,22 +34,11 @@ onCancel(): void {
 }
 
 onConfirm(): void {
-  if (!this.whyRejected) {
-  this.snackBar.open('Selecione um motivo!', 'Fechar', {
-    duration: 3000,
-    panelClass: ['error-snackbar']
-  });
-  return;
-}
+  const reason = this.whyRejected.trim();
+  if (!reason) {
+    return;
+  }
 
-const result = this.whyRejected;
-
-this.snackBar.open('Cliente recusado com sucesso!', 'OK', {
-  duration: 3000,
-  horizontalPosition: 'center',
-  verticalPosition: 'top'
-});
-
-this.dialogRef.close(result);
+  this.dialogRef.close(reason);
 }
 }
