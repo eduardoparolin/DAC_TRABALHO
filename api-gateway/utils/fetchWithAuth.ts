@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { AppVariables } from "../types/context";
-s;
+
 export const fetchWithAuth = async (
   c: Context<{ Variables: AppVariables }>,
   url: string,
