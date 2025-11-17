@@ -530,7 +530,18 @@ public class SagaOrchestratorService {
     log.info("Step 6: Creating authentication for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
 
-    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    if (context == null) {
+      log.error("Saga context not found for sagaId: {}. Skipping createAuthStep.", sagaId);
+      return;
+    }
+
+    Saga saga = sagaRepository.findById(sagaId).orElse(null);
+    if (saga == null) {
+      log.error("Saga not found in database for sagaId: {}. Skipping createAuthStep.", sagaId);
+      sagaContexts.remove(sagaId);
+      return;
+    }
+
     SagaStep step = new SagaStep("CREATE_USER", "PENDING",
         "Creating user authentication", "DELETE_USER");
     step.setSaga(saga);
@@ -557,30 +568,38 @@ public class SagaOrchestratorService {
   private void completeSaga(String sagaId , String title) {
     log.info("Step 7: Completing saga {}", sagaId);
 
-    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    Saga saga = sagaRepository.findById(sagaId).orElse(null);
+    if (saga == null) {
+      log.error("Saga not found in database for sagaId: {}. Cannot complete saga.", sagaId);
+      sagaContexts.remove(sagaId);
+      return;
+    }
+
     saga.setStatus("COMPLETED");
     sagaRepository.save(saga);
 
     Map<String, Object> context = sagaContexts.get(sagaId);
 
-    // PRINT NO TERMINAL com as credenciais
-    System.out.println("========================================");
-    System.out.println(title + " - SAGA: " + sagaId);
-    System.out.println("========================================");
-    System.out.println("Cliente ID: " + context.get("clientId"));
-    System.out.println("Nome: " + context.get("name"));
-    System.out.println("CPF: " + context.get("cpf"));
-    System.out.println("Email: " + context.get("email"));
-    System.out.println("Conta: " + context.get("accountNumber"));
-    System.out.println("Gerente ID: " + context.get("managerId"));
+    if (context != null) {
+      // PRINT NO TERMINAL com as credenciais
+      System.out.println("========================================");
+      System.out.println(title + " - SAGA: " + sagaId);
+      System.out.println("========================================");
+      System.out.println("Cliente ID: " + context.get("clientId"));
+      System.out.println("Nome: " + context.get("name"));
+      System.out.println("CPF: " + context.get("cpf"));
+      System.out.println("Email: " + context.get("email"));
+      System.out.println("Conta: " + context.get("accountNumber"));
+      System.out.println("Gerente ID: " + context.get("managerId"));
 
-    String password = (String) context.get("generatedPassword");
-    if (password != null) {
-      System.out.println("Senha gerada: " + password);
-    } else {
-      System.out.println("Senha: Verifique com o administrador");
+      String password = (String) context.get("generatedPassword");
+      if (password != null) {
+        System.out.println("Senha gerada: " + password);
+      } else {
+        System.out.println("Senha: Verifique com o administrador");
+      }
+      System.out.println("========================================");
     }
-    System.out.println("========================================");
 
     // Limpar contexto
     sagaContexts.remove(sagaId);

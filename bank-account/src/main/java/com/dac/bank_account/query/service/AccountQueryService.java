@@ -78,13 +78,9 @@ public class AccountQueryService {
     public List<AccountResponseDTO> getAccounts(AccountsRequestDTO request) {
         List<String> accountNumbers = request.getAccountNumbers();
 
-        List<Long> accountIds = accountNumbers.stream()
-                .map(Long::valueOf)
-                .toList();
-
-        List<AccountView> accounts = accountQueryRepository.findByIdIn(accountIds);
+        List<AccountView> accounts = accountQueryRepository.findByAccountNumberIn(accountNumbers);
         if (accounts.isEmpty()) {
-            throw new ResourceNotFoundException("No accounts found for account IDs: " + accountIds);
+            throw new ResourceNotFoundException("No accounts found for account numbers: " + accountNumbers);
         }
         return accountQueryMapper.toAccountResponseDTOList(accounts);
     }
@@ -93,14 +89,10 @@ public class AccountQueryService {
     public List<StatementResponseDTO> getAccountsWithTransactions(AccountsRequestDTO request) {
         List<String> accountNumbers = request.getAccountNumbers();
 
-        List<Long> accountIds = accountNumbers.stream()
-                .map(Long::valueOf)
-                .toList();
-
-        List<AccountView> accounts = accountQueryRepository.findByIdIn(accountIds);
+        List<AccountView> accounts = accountQueryRepository.findByAccountNumberIn(accountNumbers);
 
         if (accounts.isEmpty()) {
-            throw new ResourceNotFoundException("No accounts found for account IDs: " + accountIds);
+            throw new ResourceNotFoundException("No accounts found for account numbers: " + accountNumbers);
         }
 
         return accounts.stream()

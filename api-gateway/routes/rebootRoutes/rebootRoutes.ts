@@ -178,11 +178,11 @@ rebootRoutes.get("/", async (c) => {
     });
     try {
       await clientUpdatePool.query(`
-        UPDATE client SET account_id = 1 WHERE cpf = '12912861012';
-        UPDATE client SET account_id = 2 WHERE cpf = '09506382000';
-        UPDATE client SET account_id = 3 WHERE cpf = '85733854057';
-        UPDATE client SET account_id = 4 WHERE cpf = '58872160006';
-        UPDATE client SET account_id = 5 WHERE cpf = '76179646090';
+        UPDATE client SET account_id = '1291' WHERE cpf = '12912861012';
+        UPDATE client SET account_id = '0950' WHERE cpf = '09506382000';
+        UPDATE client SET account_id = '8573' WHERE cpf = '85733854057';
+        UPDATE client SET account_id = '5887' WHERE cpf = '58872160006';
+        UPDATE client SET account_id = '7617' WHERE cpf = '76179646090';
       `);
     } finally {
       await clientUpdatePool.end();

@@ -39,7 +39,7 @@ const signupSchema = z.object({
   salary: z.number().min(0, "Salário deve ser positivo"),
   street: z.string().min(1, "Rua é obrigatória"),
   number: z.string().min(1, "Número é obrigatório"),
-  complement: z.string().optional(),
+  complement: z.string().optional().or(z.literal("")),
   zipCode: z
     .string()
     .min(8, "CEP deve ter 8 dígitos")
@@ -62,16 +62,16 @@ authRoutes.post("/login", authValidator(loginSchema), async (c) => {
   try {
     const { login, senha } = c.req.valid("json") as z.infer<typeof loginSchema>;
     const { authServiceUrl } = getServiceUrls();
+    const body = JSON.stringify({ email: login, password: senha });
       const response = await fetch(`${authServiceUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email: login, password: senha }),
+      body,
     });
 
     const responseData = await response.json();
-      console.log(login, senha, responseData);
       const mappedData = {
       ...responseData,
       access_token: responseData.accessToken,
