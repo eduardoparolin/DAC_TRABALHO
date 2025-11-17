@@ -46,8 +46,7 @@ const logoutSchema = z.object({
 authRoutes.post("/login", zValidator("json", loginSchema), async (c) => {
   try {
     const { email, password } = c.req.valid("json");
-
-    const response = await fetch(`${authServiceUrl}/auth/login`, {
+      const response = await fetch(`${authServiceUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

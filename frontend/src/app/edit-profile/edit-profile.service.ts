@@ -32,7 +32,7 @@ export class EditProfileService {
       this.errorHandler.handleSuccess('Perfil atualizado com sucesso!');
     } catch (error) {
       this.loading.set(false);
-      this.errorHandler.handleError(error, { showError: true });
+      this.errorHandler.handleError(error as Error, { showError: true });
     }
   }
 }

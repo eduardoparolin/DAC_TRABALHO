@@ -2,7 +2,7 @@ version: '3.9'
 
 networks:
   backend:
-    external: true  # Usa a rede compartilhada com o DAC
+    driver: bridge
 
 volumes:
   auth-mongo-data:
@@ -23,7 +23,27 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  # ---------- RabbitMQ ----------
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ms-auth-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -33,7 +53,10 @@ services:
     build: .
     container_name: ms-auth
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     env_file:
       - .env
     ports:

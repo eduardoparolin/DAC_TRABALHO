@@ -6,51 +6,55 @@ import { UserType } from '../session/user.model';
 export const adminGuard: CanActivateFn = (route, state) => {
   const sessionService = inject(SessionService);
   const router = inject(Router);
-  const user = sessionService.getUser();
 
-  if (user && user.isAdmin()) {
-    return true;
+  const user = sessionService.user();
+
+  if (!user || !user.isAdmin()) {
+    router.navigate(['/login']);
+    return false;
   }
 
-  router.navigate(['/']);
-  return false;
+  return true;
 };
 
 export const managerGuard: CanActivateFn = (route, state) => {
   const sessionService = inject(SessionService);
   const router = inject(Router);
-  const user = sessionService.getUser();
 
-  if (user && user.isManager()) {
-    return true;
+  const user = sessionService.user();
+
+  if (!user || !user.isManager()) {
+    router.navigate(['/login']);
+    return false;
   }
 
-  router.navigate(['/']);
-  return false;
+  return true;
 };
 
 export const clientGuard: CanActivateFn = (route, state) => {
   const sessionService = inject(SessionService);
   const router = inject(Router);
-  const user = sessionService.getUser();
 
-  if (user && user.isClient()) {
-    return true;
+  const user = sessionService.user();
+
+  if (!user || !user.isClient()) {
+    router.navigate(['/login']);
+    return false;
   }
 
-  router.navigate(['/']);
-  return false;
+  return true;
 };
 
 export const adminOrManagerGuard: CanActivateFn = (route, state) => {
   const sessionService = inject(SessionService);
   const router = inject(Router);
-  const user = sessionService.getUser();
 
-  if (user && (user.isAdmin() || user.isManager())) {
-    return true;
+  const user = sessionService.user();
+
+  if (!user || (!user.isAdmin() && !user.isManager())) {
+    router.navigate(['/login']);
+    return false;
   }
 
-  router.navigate(['/']);
-  return false;
+  return true;
 };
