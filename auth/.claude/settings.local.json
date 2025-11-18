@@ -3,7 +3,10 @@
     "allow": [
       "Bash(./mvnw.cmd spring-boot:run:*)",
       "Bash(curl:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(cat:*)",
+      "Bash(./mvnw clean compile:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

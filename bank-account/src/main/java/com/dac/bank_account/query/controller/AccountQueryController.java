@@ -35,6 +35,12 @@ public class AccountQueryController {
         return ResponseEntity.ok(dto);
     }
 
+    @GetMapping("/{numero}/extrato")
+    public ResponseEntity<StatementResponseDTO> statementGet(@PathVariable String numero) {
+        StatementResponseDTO dto = accountQueryService.getStatement(numero);
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping("/{numero}")
     public ResponseEntity<AccountResponseDTO> getAccountDetails(@PathVariable String numero) {
         AccountResponseDTO dto = accountQueryService.getAccountDetails(numero);

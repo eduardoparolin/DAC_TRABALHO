@@ -261,8 +261,16 @@ customerRoutes.get(
                         gerente: manager || null,
                     };
                 });
-
-                return c.json(clientsWithAccountsAndManagers, 200);
+                const clis = clientsWithAccountsAndManagers.map((client: any) => {
+                    return {
+                        ...client,
+                        nome: client.name,
+                        salario: client.salario,
+                        rua: client.street,
+                    }
+                }).filter((client: any) => !!client.approvalDate);
+                clis.sort((a: any, b: any) => a.nome.localeCompare(b.nome));
+                return c.json(clis, 200);
             }
 
             case "melhores_clientes": {
@@ -361,7 +369,6 @@ customerRoutes.get(
                     );
                     if (accountResponse.ok) {
                         accountData = await accountResponse.json();
-                        console.log('Account data:', JSON.stringify(accountData, null, 2));
                     } else {
                         console.log('Account fetch failed:', await accountResponse.text());
                     }
@@ -399,7 +406,7 @@ customerRoutes.get(
                 estado: clientData.state,
                 salario: clientData.salary,
                 conta: accountData?.numero?.toString() || null,
-                saldo: accountData?.saldo?.toString() || null,
+                saldo: accountData?.saldo || null,
                 limite: accountData?.limite || null,
                 gerente: managerData?.cpf || null,
                 gerente_nome: managerData?.name || null,
