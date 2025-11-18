@@ -8,5 +8,6 @@ public enum AccountAction {
     NEW_MANAGER,
     FIND_ACCOUNT_FOR_NEW_MANAGER,
     ASSIGN_ACCOUNT_TO_NEW_MANAGER,
-    BALANCE_MANAGER_ACCOUNTS  // Consolidated action for simplified saga
+    BALANCE_MANAGER_ACCOUNTS,  // Consolidated action for simplified manager creation saga
+    ASSIGN_MANAGER_WITH_LEAST_ACCOUNTS  // Find manager with least accounts for new client
 }

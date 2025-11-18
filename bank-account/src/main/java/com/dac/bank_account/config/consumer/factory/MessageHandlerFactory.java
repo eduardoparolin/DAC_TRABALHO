@@ -18,7 +18,8 @@ public class MessageHandlerFactory {
             UpdateStatusHandler updateStatusHandler,
             UpdateLimitHandler updateLimitHandler,
             DeleteManagerHandler deleteManagerHandler,
-            NewManagerHandler newManagerHandler
+            NewManagerHandler newManagerHandler,
+            AssignManagerHandler assignManagerHandler
     ){
         strategies.put(AccountAction.CREATE_ACCOUNT, createHandler);
         strategies.put(AccountAction.UPDATE_ACCOUNT_STATUS, updateStatusHandler);
@@ -28,6 +29,7 @@ public class MessageHandlerFactory {
         strategies.put(AccountAction.FIND_ACCOUNT_FOR_NEW_MANAGER, newManagerHandler);
         strategies.put(AccountAction.ASSIGN_ACCOUNT_TO_NEW_MANAGER, newManagerHandler);
         strategies.put(AccountAction.BALANCE_MANAGER_ACCOUNTS, newManagerHandler);
+        strategies.put(AccountAction.ASSIGN_MANAGER_WITH_LEAST_ACCOUNTS, assignManagerHandler);
     }
 
     public AccountMessageHandler getStrategy(AccountAction action) {

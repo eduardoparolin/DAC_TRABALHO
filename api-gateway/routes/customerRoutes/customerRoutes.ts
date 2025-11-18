@@ -7,6 +7,8 @@ import {
     declineCustomerBodySchema,
     getCustomerByCPFSchemaInput,
     getCustomersSchemaInput,
+    UpdateCustomerByCPFSchemaInput,
+    updateCustomerSchemaInput,
 } from "./customerRoutesSchema";
 import {z} from "zod";
 import {AppVariables} from "../../types/context";
@@ -159,7 +161,7 @@ customerRoutes.get(
                     return roleValidation.response;
                 }
 
-                const {clientServiceUrl, managerServiceUrl} = getServiceUrls();
+                const {clientServiceUrl} = getServiceUrls();
 
                 const jwtPayload = c.get("jwtPayload");
                 const userEmail = jwtPayload?.email;
@@ -168,29 +170,7 @@ customerRoutes.get(
                     return c.json({error: "Email não encontrado no token"}, 400);
                 }
 
-                const managerResponse = await fetchWithAuth(
-                    c,
-                    `${managerServiceUrl}/manager/email/${userEmail}`
-                );
-
-                if (!managerResponse.ok) {
-                    return c.json(
-                        {error: "Erro ao buscar dados do gerente"},
-                        managerResponse.status as any
-                    );
-                }
-
-                const managerData = await managerResponse.json();
-                const managerIdFromToken = managerData.id;
-                const userRoles = jwtPayload?.roles || [];
-                const isAdmin = userRoles.includes("ROLE_ADMINISTRADOR");
-                const finalManagerId =
-                    isAdmin && managerId ? managerId : managerIdFromToken;
-
                 let url = `${clientServiceUrl}/clientes/status/AGUARDANDO_APROVACAO`;
-                if (finalManagerId) {
-                    url += `?managerId=${finalManagerId}`;
-                }
 
                 const clientsResponse = await fetchWithAuth(c, url);
 
@@ -495,16 +475,146 @@ customerRoutes.get(
                 estado: clientData.state,
                 salario: clientData.salary,
                 conta: accountData?.numero?.toString() || null,
-                saldo: accountData?.saldo || null,
+                saldo: accountData?.saldo || 0,
                 limite: accountData?.limite || null,
                 gerente: managerData?.cpf || null,
                 gerente_nome: managerData?.name || null,
                 gerente_email: managerData?.email || null,
             };
-
+            console.log(composedResponse);
             return c.json(composedResponse, 200);
         } catch (error) {
             console.error("Erro ao buscar dados do cliente:", error);
+            return c.json({error: "Erro interno do servidor"}, 500);
+        }
+    }
+);
+
+customerRoutes.put(
+    "/:cpf",
+    authMiddleware,
+    zValidator("param", UpdateCustomerByCPFSchemaInput),
+    zValidator("json", updateCustomerSchemaInput),
+    async (c) => {
+        try {
+            const cpf = c.req.param("cpf");
+            const updateData = c.req.valid("json");
+            const {clientServiceUrl, orchestratorServiceUrl} = getServiceUrls();
+
+            // Get current client to retrieve clientId
+            const clientResponse = await fetchWithAuth(
+                c,
+                `${clientServiceUrl}/clientes/cpf/${cpf}`
+            );
+
+            if (!clientResponse.ok) {
+                return c.json({error: "Cliente não encontrado"}, 404);
+            }
+
+            const clientData = await clientResponse.json();
+
+            // Map data to English
+            const mappedData = {
+                cpf: updateData.cpf,
+                name: updateData.nome,
+                email: updateData.email,
+                phone: updateData.telefone,
+                salary: updateData.salario,
+                street: updateData.endereco,
+                number: updateData.numero || "",
+                complement: updateData.complemento || "",
+                zipCode: updateData.CEP,
+                city: updateData.cidade,
+                state: updateData.estado,
+                clientId: clientData.id,
+            };
+
+            // Trigger update saga via orchestrator
+            const response = await fetchWithAuth(
+                c,
+                `${orchestratorServiceUrl}/api/saga/client`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        action: "UPDATE_CLIENT",
+                        data: mappedData,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                return c.json(
+                    {
+                        error: "Falha ao atualizar cliente",
+                        details: errorData,
+                    },
+                    response.status as any
+                );
+            }
+
+            // Wait for saga to complete
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Fetch updated client data with account and manager info
+            const {bankAccountServiceUrl, managerServiceUrl} = getServiceUrls();
+
+            const updatedClientResponse = await fetchWithAuth(
+                c,
+                `${clientServiceUrl}/clientes/cpf/${cpf}`
+            );
+
+            if (!updatedClientResponse.ok) {
+                return c.json({error: "Erro ao buscar dados atualizados"}, 500);
+            }
+
+            const updatedClient = await updatedClientResponse.json();
+
+            // Fetch account data to get saldo and limite
+            let accountData = null;
+            if (updatedClient.accountId) {
+                try {
+                    const accountUrl = `${bankAccountServiceUrl}/query/contas/${updatedClient.accountId}`;
+                    const accountResponse = await fetchWithAuth(c, accountUrl);
+                    if (accountResponse.ok) {
+                        accountData = await accountResponse.json();
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar a conta bancária:", error);
+                }
+            }
+
+            // Fetch manager data to get CPF
+            let managerData = null;
+            if (updatedClient.managerId) {
+                try {
+                    const managerResponse = await fetchWithAuth(
+                        c,
+                        `${managerServiceUrl}/manager/id/${updatedClient.managerId}`
+                    );
+                    if (managerResponse.ok) {
+                        managerData = await managerResponse.json();
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar dados do gerente:", error);
+                }
+            }
+
+            // Return updated profile data with saldo, limite, and gerente
+            return c.json({
+                cpf: updatedClient.cpf,
+                nome: updatedClient.name,
+                email: updatedClient.email,
+                salario: updatedClient.salary,
+                saldo: accountData?.saldo || null,
+                limite: accountData?.limite || null,
+                gerente: managerData?.cpf || null,
+            }, 200);
+        } catch (error) {
+            console.error("Erro ao atualizar cliente:", error);
             return c.json({error: "Erro interno do servidor"}, 500);
         }
     }
@@ -623,7 +733,6 @@ customerRoutes.post(
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.log('aaaa', errorData);
                 return c.json(
                     {
                         error: "Falha ao iniciar aprovação",

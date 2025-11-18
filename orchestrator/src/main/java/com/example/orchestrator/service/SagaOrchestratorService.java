@@ -365,6 +365,7 @@ public class SagaOrchestratorService {
       case "UPDATE_RESULT":
         log.info("Matched UPDATE_CLIENT, proceeding to updateSalaryAccount");
         updateSalaryAccount(sagaId);
+        break;
       case "UPDATE_CLIENT":
       case "UPDATE_CLIENT_RESULT":
         log.info("Matched UPDATE_CLIENT, proceeding to updateAuth");
@@ -377,7 +378,9 @@ public class SagaOrchestratorService {
         break;
       case "ASSIGN_MANAGER":
       case "ASSIGN_MANAGER_RESULT":
-        log.info("Matched ASSIGN_MANAGER, proceeding to updateClientManagerStep");
+      case "ASSIGN_MANAGER_WITH_LEAST_ACCOUNTS":
+      case "ASSIGN_MANAGER_WITH_LEAST_ACCOUNTS_RESULT":
+        log.info("Matched ASSIGN_MANAGER (from bank-account service), proceeding to updateClientManagerStep");
         updateClientManagerStep(sagaId);
         break;
       case "UPDATE_CLIENT_MANAGER":
@@ -457,7 +460,7 @@ public class SagaOrchestratorService {
     Map<String, Object> updateSalaryRequest = new HashMap<>();
     updateSalaryRequest.put("sagaId", sagaId);
     updateSalaryRequest.put("action", "UPDATE_LIMIT");
-    updateSalaryRequest.put("idUser", context.get("clientId"));
+    updateSalaryRequest.put("clientId", context.get("clientId"));
     updateSalaryRequest.put("salary", context.get("salary"));
 
     sagaProducer.sendToAccountService(updateSalaryRequest);
@@ -516,17 +519,19 @@ public class SagaOrchestratorService {
 
     Saga saga = sagaRepository.findById(sagaId).orElseThrow();
     SagaStep step = new SagaStep("ASSIGN_MANAGER", "PENDING",
-        "Assigning manager", "UNASSIGN_MANAGER");
+        "Assigning manager with least accounts", "UNASSIGN_MANAGER");
     step.setSaga(saga);
     sagaStepRepository.save(step);
 
-    // Send message to manager service to assign a manager
-    Map<String, Object> managerRequest = new HashMap<>();
-    managerRequest.put("sagaId", sagaId);
-    managerRequest.put("action", "ASSIGN_MANAGER");
-    managerRequest.put("clientId", context.get("clientId"));
+    // Call bank-account service to find manager with least accounts
+    // The bank-account service will calculate account counts dynamically
+    // and handle tie-breaking by random selection
+    Map<String, Object> accountRequest = new HashMap<>();
+    accountRequest.put("sagaId", sagaId);
+    accountRequest.put("action", "ASSIGN_MANAGER_WITH_LEAST_ACCOUNTS");
+    accountRequest.put("clientId", context.get("clientId"));
 
-    sagaProducer.sendToManagerService(managerRequest);
+    sagaProducer.sendToAccountService(accountRequest);
   }
 
   private void updateClientManagerStep(String sagaId) {

@@ -21,6 +21,7 @@ export const createCustomerSchemaInput = z.object({
   telefone: z.string().min(1, "Telefone é obrigatório"),
   salario: z.number().min(0, "Salário deve ser positivo"),
   endereco: z.string().min(1, "Endereço é obrigatório"),
+  numero: z.string().optional(),
   complemento: z.string().optional(),
   CEP: z
     .string()
@@ -32,6 +33,8 @@ export const createCustomerSchemaInput = z.object({
     .min(2, "Estado deve ter 2 letras")
     .max(2, "Estado deve ter 2 letras"),
 });
+
+export const updateCustomerSchemaInput = createCustomerSchemaInput;
 
 export const getCustomerByCPFSchemaInput = z.object({
   cpf: z.string().regex(/^\d{11}$/, "CPF deve ter exatamente 11 dígitos"),

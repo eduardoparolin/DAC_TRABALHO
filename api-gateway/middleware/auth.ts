@@ -41,7 +41,6 @@ export const authMiddleware = async (
     const status = await response.json();
 
     if (status?.revoked) {
-        console.log("Token revoked", token);
         return c.json({ error: "Token revoked" }, 401);
     }
   } catch (error) {

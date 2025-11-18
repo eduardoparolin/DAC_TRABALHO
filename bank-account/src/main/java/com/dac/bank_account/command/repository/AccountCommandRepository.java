@@ -69,6 +69,26 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
     )
     Long findManagerWithLeastAccounts();
 
+    //Encontra os managerIds que possuem a menor quantidade de contas associadas (para tie-breaking aleatório)
+    //Retorna todos os managers que estão empatados com a menor quantidade de contas
+    @Query(
+            value = """
+            SELECT managerId
+            FROM account
+            GROUP BY managerId
+            HAVING COUNT(*) = (
+                SELECT MIN(account_count)
+                FROM (
+                    SELECT COUNT(*) as account_count
+                    FROM account
+                    GROUP BY managerId
+                ) as counts
+            )
+            """,
+            nativeQuery = true
+    )
+    List<Long> findManagersWithLeastAccounts();
+
     //Encontra a primeira conta com status ATIVA associada ao gerente que vai doar uma conta para o novo gerente, saga de novo gerente
     Optional<Account> findFirstByManagerIdAndStatus(Long managerId, AccountStatus status);
 }

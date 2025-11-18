@@ -142,7 +142,6 @@ const buildManagersDashboard = async (
 
               return accountManagerId === managerId;
             });
-        console.log(clients);
         let saldoPositivo = 0;
       let saldoNegativo = 0;
 

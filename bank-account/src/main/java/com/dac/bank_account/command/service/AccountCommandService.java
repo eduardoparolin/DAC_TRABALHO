@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -167,11 +168,23 @@ public class AccountCommandService {
         Account account = accountCommandRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with client id: " + clientId));
 
+        BigDecimal calculatedLimit;
         if (salary != null && salary >= 2000) {
-            account.setLimitAmount(BigDecimal.valueOf(salary / 2));
+            calculatedLimit = BigDecimal.valueOf(salary / 2);
         } else {
-            account.setLimitAmount(BigDecimal.ZERO);
+            calculatedLimit = BigDecimal.ZERO;
         }
+
+        // Business rule: if new limit < current negative balance, adjust limit to negative balance
+        BigDecimal currentBalance = account.getBalance();
+        if (currentBalance.compareTo(BigDecimal.ZERO) < 0) {
+            BigDecimal negativeBalance = currentBalance.abs();
+            if (calculatedLimit.compareTo(negativeBalance) < 0) {
+                calculatedLimit = negativeBalance;
+            }
+        }
+
+        account.setLimitAmount(calculatedLimit);
         accountCommandRepository.save(account);
 
         AccountLimitChangedEvent event = accountMapper.accountToLimitChangedEvent(account);
@@ -355,6 +368,31 @@ public class AccountCommandService {
 
         // Use new method to find account with lowest positive balance
         return accountCommandRepository.findAccountWithLowestPositiveBalance(oldManagerId);
+    }
+
+    /**
+     * Finds the manager with the least number of accounts assigned.
+     * If there's a tie (multiple managers with the same minimum count),
+     * randomly selects one from the tied managers.
+     *
+     * @return managerId of the manager with least accounts, or null if no managers exist
+     */
+    public Long findManagerWithLeastAccountsRandomTieBreaker() {
+        List<Long> managersWithLeastAccounts = accountCommandRepository.findManagersWithLeastAccounts();
+
+        if (managersWithLeastAccounts == null || managersWithLeastAccounts.isEmpty()) {
+            return null;
+        }
+
+        // If only one manager has the least accounts, return it
+        if (managersWithLeastAccounts.size() == 1) {
+            return managersWithLeastAccounts.get(0);
+        }
+
+        // If there's a tie, randomly select one
+        Random random = new Random();
+        int randomIndex = random.nextInt(managersWithLeastAccounts.size());
+        return managersWithLeastAccounts.get(randomIndex);
     }
 
     public String generateAccountNumber() {

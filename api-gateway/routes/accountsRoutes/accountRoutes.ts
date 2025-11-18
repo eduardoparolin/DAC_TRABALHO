@@ -102,9 +102,6 @@ accountRoutes.post(
 
             const data = await response.json();
             const enrichedData = await enrichBalanceResponse(c, data);
-
-            // enrichedData.saldo = String(enrichedData.saldo);
-            // console.log(enrichedData);
             return c.json(enrichedData, 200);
         } catch (error) {
             console.error("Erro ao realizar depósito:", error);

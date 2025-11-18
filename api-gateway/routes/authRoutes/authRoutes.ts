@@ -63,7 +63,6 @@ authRoutes.post("/login", authValidator(loginSchema), async (c) => {
     const { login, senha } = c.req.valid("json") as z.infer<typeof loginSchema>;
     const { authServiceUrl } = getServiceUrls();
     const body = JSON.stringify({ email: login, password: senha });
-      console.log(1, body);
       const response = await fetch(`${authServiceUrl}/auth/login`, {
       method: "POST",
       headers: {
@@ -78,7 +77,6 @@ authRoutes.post("/login", authValidator(loginSchema), async (c) => {
       access_token: responseData.accessToken,
       token_type: responseData.tokenType,
     };
-      console.log('generating token:', responseData.accessToken);
       return c.json(mappedData, response.status as any);
   } catch (error) {
     return c.json({ error: "Serviço de autenticação indisponível" }, 503);
