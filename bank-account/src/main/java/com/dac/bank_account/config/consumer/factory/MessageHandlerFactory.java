@@ -25,6 +25,7 @@ public class MessageHandlerFactory {
         strategies.put(AccountAction.UPDATE_LIMIT, updateLimitHandler);
         strategies.put(AccountAction.DELETE_MANAGER, deleteManagerHandler);
         strategies.put(AccountAction.NEW_MANAGER, newManagerHandler);
+        strategies.put(AccountAction.ASSIGN_ACCOUNT_TO_NEW_MANAGER, newManagerHandler);
     }
 
     public AccountMessageHandler getStrategy(AccountAction action) {

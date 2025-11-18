@@ -3,6 +3,7 @@ package com.bank.manager.config.consumer;
 import com.bank.manager.config.ManagerSagaEvent;
 import com.bank.manager.config.producer.ManagerSagaProducer;
 import com.bank.manager.model.Manager;
+import com.bank.manager.model.ManagerType;
 import com.bank.manager.repository.ManagerRepository;
 import com.bank.manager.service.ManagerService;
 import com.fasterxml.jackson.core.JsonParser;
@@ -45,7 +46,9 @@ public class ManagerSagaConsumer {
         String action = (String) message.get("action");
 
         try {
-            if ("ASSIGN_MANAGER".equals(action)) {
+            if ("CREATE_MANAGER".equals(action)) {
+                handleCreateManager(sagaId, message);
+            } else if ("ASSIGN_MANAGER".equals(action)) {
                 handleAssignManager(sagaId, message);
             } else if ("UNASSIGN_MANAGER".equals(action)) {
                 handleUnassignManager(sagaId, message);
@@ -62,6 +65,51 @@ public class ManagerSagaConsumer {
         } catch (Exception e) {
             log.error("Error processing saga message", e);
             managerSagaProducer.sendFailureResult(sagaId, action, e.getMessage());
+        }
+    }
+
+    private void handleCreateManager(String sagaId, Map<String, Object> message) {
+        log.info("Creating manager for saga {}", sagaId);
+
+        try {
+            String cpf = (String) message.get("cpf");
+            String name = (String) message.get("name");
+            String email = (String) message.get("email");
+            String password = (String) message.get("password");
+            String type = (String) message.get("type");
+
+            // Check if manager already exists
+            Optional<Manager> existing = managerRepository.findByCpf(cpf);
+            if (existing.isPresent()) {
+                log.error("Manager with CPF {} already exists", cpf);
+                managerSagaProducer.sendFailureResult(sagaId, "CREATE_MANAGER", "Manager with this CPF already exists");
+                return;
+            }
+
+            // Create new manager with accountCount = 0
+            Manager manager = new Manager();
+            manager.setCpf(cpf);
+            manager.setName(name);
+            manager.setEmail(email);
+            manager.setPassword(password); // Will be hashed by Auth service
+            manager.setType(ManagerType.valueOf(type));
+            manager.setAccountCount(0);
+
+            Manager savedManager = managerRepository.save(manager);
+
+            log.info("Created manager {} (ID: {}) for saga {}", savedManager.getName(), savedManager.getId(), sagaId);
+
+            // Send success result with managerId
+            Map<String, Object> responseResult = new HashMap<>();
+            responseResult.put("managerId", savedManager.getId());
+            responseResult.put("cpf", savedManager.getCpf());
+            responseResult.put("name", savedManager.getName());
+            responseResult.put("email", savedManager.getEmail());
+
+            managerSagaProducer.sendSuccessResult(sagaId, "CREATE_MANAGER", responseResult);
+        } catch (Exception e) {
+            log.error("Error creating manager for saga {}", sagaId, e);
+            managerSagaProducer.sendFailureResult(sagaId, "CREATE_MANAGER", e.getMessage());
         }
     }
 

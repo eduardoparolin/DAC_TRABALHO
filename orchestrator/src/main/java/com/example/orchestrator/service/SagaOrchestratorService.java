@@ -187,6 +187,35 @@ public class SagaOrchestratorService {
   }
 
   @Transactional
+  public String startCreateManagerSaga(SagaRequest request) {
+    String sagaId = UUID.randomUUID().toString();
+    log.info("Starting CREATE_MANAGER saga with id: {}", sagaId);
+
+    // Create saga
+    Saga saga = new Saga(sagaId, "PENDING", Instant.now());
+    sagaRepository.save(saga);
+
+    // Initialize saga context with all data from request
+    Map<String, Object> context = new HashMap<>();
+    context.put("sagaId", sagaId);
+    Map<String, Object> data = request.getData();
+
+    if (data != null) {
+      context.put("cpf", data.get("cpf"));
+      context.put("name", data.get("name"));
+      context.put("email", data.get("email"));
+      context.put("password", data.get("password"));
+      context.put("type", data.get("type"));
+    }
+    sagaContexts.put(sagaId, context);
+
+    // Start with CREATE_MANAGER step
+    createManagerStep(sagaId);
+
+    return sagaId;
+  }
+
+  @Transactional
   public String startApproveClientSaga(SagaRequest request) {
     String sagaId = UUID.randomUUID().toString();
     log.info("Starting APPROVE_CLIENT saga with id: {}", sagaId);
@@ -268,6 +297,21 @@ public class SagaOrchestratorService {
     log.info("Advancing saga {} after completing action: '{}'", sagaId, completedAction);
 
     switch (completedAction) {
+      case "CREATE_MANAGER":
+      case "CREATE_MANAGER_RESULT":
+        log.info("Matched CREATE_MANAGER, proceeding to createManagerAuthStep");
+        createManagerAuthStep(sagaId);
+        break;
+      case "CREATE_MANAGER_AUTH":
+      case "CREATE_MANAGER_AUTH_RESULT":
+        log.info("Matched CREATE_MANAGER_AUTH, proceeding to assignAccountToNewManagerStep");
+        assignAccountToNewManagerStep(sagaId);
+        break;
+      case "ASSIGN_ACCOUNT_TO_NEW_MANAGER":
+      case "ASSIGN_ACCOUNT_TO_NEW_MANAGER_RESULT":
+        log.info("Matched ASSIGN_ACCOUNT_TO_NEW_MANAGER, completing CREATE_MANAGER saga");
+        completeManagerCreationSaga(sagaId);
+        break;
       case "DELETE":
       case "DELETE_RESULT":
         log.info("Matched DELETE, completing saga");
@@ -681,6 +725,104 @@ public class SagaOrchestratorService {
     sagaProducer.sendToAuthService(payload);
   }
 
+  private void createManagerStep(String sagaId) {
+    log.info("Step 1: Creating manager for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("CREATE_MANAGER", "PENDING",
+        "Creating manager", "DELETE_MANAGER_COMPENSATION");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> managerRequest = new HashMap<>();
+    managerRequest.put("sagaId", sagaId);
+    managerRequest.put("action", "CREATE_MANAGER");
+    managerRequest.put("cpf", context.get("cpf"));
+    managerRequest.put("name", context.get("name"));
+    managerRequest.put("email", context.get("email"));
+    managerRequest.put("password", context.get("password"));
+    managerRequest.put("type", context.get("type"));
+
+    sagaProducer.sendToManagerService(managerRequest);
+  }
+
+  private void createManagerAuthStep(String sagaId) {
+    log.info("Step 2: Creating manager auth for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("CREATE_MANAGER_AUTH", "PENDING",
+        "Creating manager auth user", "ROLLBACK_CREATE_MANAGER_AUTH");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    AuthPayload payload = new AuthPayload();
+    payload.setAction("CREATE_MANAGER_AUTH");
+    payload.setMessageSource("orchestrator");
+    payload.setSagaId(sagaId);
+
+    AuthPayloadData data = new AuthPayloadData();
+    data.setId((Long) context.get("managerId"));
+    data.setName(context.get("name").toString());
+    data.setCpf(context.get("cpf").toString());
+    data.setEmail((String) context.get("email"));
+    data.setPassword((String) context.get("password"));
+    data.setRole("GERENTE");
+
+    payload.setData(data);
+
+    sagaProducer.sendToAuthService(payload);
+  }
+
+  private void assignAccountToNewManagerStep(String sagaId) {
+    log.info("Step 3: Assigning account to new manager for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("ASSIGN_ACCOUNT_TO_NEW_MANAGER", "PENDING",
+        "Assigning account to new manager", "REVERT_ACCOUNT_ASSIGNMENT");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> accountRequest = new HashMap<>();
+    accountRequest.put("sagaId", sagaId);
+    accountRequest.put("action", "ASSIGN_ACCOUNT_TO_NEW_MANAGER");
+    accountRequest.put("newManagerId", context.get("managerId"));
+
+    sagaProducer.sendToAccountService(accountRequest);
+  }
+
+  private void completeManagerCreationSaga(String sagaId) {
+    log.info("Completing CREATE_MANAGER saga {}", sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElse(null);
+    if (saga == null) {
+      log.error("Saga not found in database for sagaId: {}. Cannot complete saga.", sagaId);
+      sagaContexts.remove(sagaId);
+      return;
+    }
+
+    saga.setStatus("COMPLETED");
+    sagaRepository.save(saga);
+
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    if (context != null) {
+      System.out.println("========================================");
+      System.out.println("MANAGER CREATED - SAGA: " + sagaId);
+      System.out.println("========================================");
+      System.out.println("Manager ID: " + context.get("managerId"));
+      System.out.println("Nome: " + context.get("name"));
+      System.out.println("CPF: " + context.get("cpf"));
+      System.out.println("Email: " + context.get("email"));
+      System.out.println("Type: " + context.get("type"));
+      System.out.println("========================================");
+    }
+
+    // Do not remove context yet - API Gateway needs it for response
+  }
+
   private void completeSaga(String sagaId , String title) {
     log.info("Step 7: Completing saga {}", sagaId);
 
@@ -841,5 +983,13 @@ public class SagaOrchestratorService {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  public Map<String, Object> getSagaContext(String sagaId) {
+    return sagaContexts.get(sagaId);
+  }
+
+  public void removeSagaContext(String sagaId) {
+    sagaContexts.remove(sagaId);
   }
 }

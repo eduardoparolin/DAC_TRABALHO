@@ -230,14 +230,139 @@ managerRoutes.get(
 
 managerRoutes.post(
   "/",
+  authMiddleware,
   zValidator("json", createManagerSchemaInput),
   async (c) => {
-    return c.json(createManagerMock, 201);
+    const roleValidation = checkRole(c, "ROLE_ADMINISTRADOR");
+    if (!roleValidation.authorized) {
+      return roleValidation.response;
+    }
+
+    const body = c.req.valid("json");
+    const { managerServiceUrl } = getServiceUrls();
+    const orchestratorServiceUrl = process.env.ORCHESTRATOR_SERVICE_URL;
+
+    if (!managerServiceUrl || !orchestratorServiceUrl) {
+      return c.json({ error: "Serviços não configurados" }, 500);
+    }
+
+    try {
+      // Step 1: Check if manager with CPF already exists (immediate 409 check)
+      const checkResponse = await fetchWithAuth(
+        c,
+        `${managerServiceUrl}/manager/cpf/${body.cpf}`
+      );
+
+      if (checkResponse.ok) {
+        // Manager already exists
+        return c.json({ error: "Gerente com este CPF já existe" }, 409);
+      }
+
+      // Step 2: Start saga orchestration
+      const sagaResponse = await fetchWithAuth(
+        c,
+        `${orchestratorServiceUrl}/api/saga/manager/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            data: {
+              cpf: body.cpf,
+              name: body.nome,
+              email: body.email,
+              password: body.senha,
+              type: body.tipo,
+            },
+          }),
+        }
+      );
+
+      if (!sagaResponse.ok) {
+        const error = await sagaResponse.json();
+        return c.json(
+          { error: error.error || "Erro ao criar gerente" },
+          sagaResponse.status as any
+        );
+      }
+
+      const saga = await sagaResponse.json();
+      const sagaId = saga.sagaId;
+
+      // Step 3: Poll for saga completion (synchronous response)
+      const maxAttempts = 60; // 30 seconds max (500ms * 60)
+      let attempts = 0;
+      let sagaCompleted = false;
+      let sagaResult: any = null;
+
+      while (attempts < maxAttempts && !sagaCompleted) {
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Wait 500ms
+
+        const statusResponse = await fetchWithAuth(
+          c,
+          `${orchestratorServiceUrl}/api/saga/${sagaId}`
+        );
+
+        if (statusResponse.ok) {
+          sagaResult = await statusResponse.json();
+
+          if (sagaResult.status === "COMPLETED") {
+            sagaCompleted = true;
+          } else if (sagaResult.status === "FAILED") {
+            return c.json(
+              { error: "Erro ao criar gerente: Saga falhou" },
+              500
+            );
+          }
+        }
+
+        attempts++;
+      }
+
+      if (!sagaCompleted) {
+        return c.json(
+          { error: "Timeout: A criação do gerente está demorando" },
+          408
+        );
+      }
+
+      // Step 4: Return created manager data
+      const managerData = sagaResult.data;
+      return c.json(
+        {
+          cpf: managerData.cpf,
+          nome: managerData.name,
+          email: managerData.email,
+          tipo: managerData.type,
+        },
+        201
+      );
+    } catch (error) {
+      console.error("Erro ao criar gerente:", error);
+      return c.json({ error: "Erro interno do servidor" }, 500);
+    }
   }
 );
 
 managerRoutes.get("/:cpf", zValidator("param", CPFParamSchema), async (c) => {
-  return c.json(getManagerByCPFMock, 200);
+    const { managerServiceUrl } = getServiceUrls();
+    const orchestratorServiceUrl = process.env.ORCHESTRATOR_SERVICE_URL;
+
+    if (!managerServiceUrl || !orchestratorServiceUrl) {
+        return c.json({ error: "Serviços não configurados" }, 500);
+    }
+
+    const { cpf } = c.req.param();
+
+    const checkResponse = await fetchWithAuth(
+        c,
+        `${managerServiceUrl}/manager/cpf/${cpf}`
+    );
+    if (checkResponse.ok) {
+        let gerente = await checkResponse.json();
+        gerente = {...gerente, nome: gerente.name, tipo: gerente.type};
+        return c.json(gerente, 200);
+    }
+  return c.json(await checkResponse.json(), checkResponse.status as any);
 });
 
 managerRoutes.delete(
