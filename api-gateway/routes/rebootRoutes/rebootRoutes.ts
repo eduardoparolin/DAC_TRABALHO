@@ -59,10 +59,10 @@ rebootRoutes.get("/", async (c) => {
     const managerPool = new Pool({ ...postgresConfig, database: "manager" });
     try {
       await managerPool.query(`
-        INSERT INTO manager (account_count, id, cpf, name, email, password, type) VALUES
-        (2, 98574307084, '98574307084', 'Geniéve', 'ger1@bantads.com.br', '${passwordHash}', 'GERENTE'),
-        (2, 64065268052, '64065268052', 'Godophredo', 'ger2@bantads.com.br', '${passwordHash}', 'GERENTE'),
-        (1, 23862179060, '23862179060', 'Gyândula', 'ger3@bantads.com.br', '${passwordHash}', 'GERENTE')
+        INSERT INTO manager (id, cpf, name, email, password, type) VALUES
+        ( 98574307084, '98574307084', 'Geniéve', 'ger1@bantads.com.br', '${passwordHash}', 'GERENTE'),
+        (64065268052, '64065268052', 'Godophredo', 'ger2@bantads.com.br', '${passwordHash}', 'GERENTE'),
+        (23862179060, '23862179060', 'Gyândula', 'ger3@bantads.com.br', '${passwordHash}', 'GERENTE')
       `);
     } finally {
       await managerPool.end();

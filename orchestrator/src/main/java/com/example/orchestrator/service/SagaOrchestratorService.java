@@ -308,17 +308,23 @@ public class SagaOrchestratorService {
         break;
       case "CREATE_MANAGER_AUTH":
       case "CREATE_MANAGER_AUTH_RESULT":
-        log.info("Matched CREATE_MANAGER_AUTH, proceeding to identify account transfer candidate");
-        identifyAccountForNewManagerStep(sagaId);
+        log.info("Matched CREATE_MANAGER_AUTH, proceeding to balance manager accounts");
+        balanceManagerAccountsStep(sagaId);
         break;
+      case "BALANCE_MANAGER_ACCOUNTS":
+      case "BALANCE_MANAGER_ACCOUNTS_RESULT":
+        log.info("Matched BALANCE_MANAGER_ACCOUNTS, completing CREATE_MANAGER saga");
+        completeManagerCreationSaga(sagaId);
+        break;
+      // Legacy actions for backward compatibility (can be removed after migration)
       case "FIND_ACCOUNT_FOR_NEW_MANAGER":
       case "FIND_ACCOUNT_FOR_NEW_MANAGER_RESULT":
-        log.info("Matched FIND_ACCOUNT_FOR_NEW_MANAGER, deciding if there is an account to transfer");
+        log.info("Legacy: Matched FIND_ACCOUNT_FOR_NEW_MANAGER, deciding if there is an account to transfer");
         handleAccountSelectionForNewManager(sagaId);
         break;
       case "ASSIGN_ACCOUNT_TO_NEW_MANAGER":
       case "ASSIGN_ACCOUNT_TO_NEW_MANAGER_RESULT":
-        log.info("Matched ASSIGN_ACCOUNT_TO_NEW_MANAGER, proceeding to decrement old manager account count");
+        log.info("Legacy: Matched ASSIGN_ACCOUNT_TO_NEW_MANAGER, proceeding to decrement old manager account count");
         decrementOldManagerAccountCountStep(sagaId);
         break;
       case "DECREMENT_ACCOUNT_COUNT":
@@ -328,14 +334,15 @@ public class SagaOrchestratorService {
         break;
       case "INCREMENT_ACCOUNT_COUNT":
       case "INCREMENT_ACCOUNT_COUNT_RESULT":
-        log.info("Matched INCREMENT_ACCOUNT_COUNT, determining next step based on saga type");
+        log.info("Legacy: Matched INCREMENT_ACCOUNT_COUNT (deprecated - accountCount removed)");
         Map<String, Object> ctx = sagaContexts.get(sagaId);
         String sagaType = ctx != null ? (String) ctx.get("sagaType") : null;
         if ("CREATE_MANAGER".equals(sagaType)) {
-          log.info("CREATE_MANAGER saga: completing after incrementing new manager account count");
+          log.info("Legacy CREATE_MANAGER saga: completing (this path should no longer be used)");
           completeManagerCreationSaga(sagaId);
         } else {
-          log.info("APPROVE_CLIENT saga: proceeding to updateAccountStatusStep");
+          log.warn("Legacy APPROVE_CLIENT saga tried to increment account count - this should not happen anymore");
+          log.info("Recovering by proceeding to updateAccountStatusStep");
           updateAccountStatusStep(sagaId);
         }
         break;
@@ -390,8 +397,8 @@ public class SagaOrchestratorService {
         break;
       case "APPROVE_CLIENT":
       case "APPROVE_CLIENT_RESULT":
-        log.info("Matched APPROVE_CLIENT, proceeding to incrementAccountCountStep");
-        incrementAccountCountStep(sagaId);
+        log.info("Matched APPROVE_CLIENT, proceeding to updateAccountStatusStep (skipping increment - no longer needed)");
+        updateAccountStatusStep(sagaId);
         break;
       case "UPDATE_ACCOUNT_STATUS":
       case "UPDATE_ACCOUNT_STATUS_RESULT":
@@ -628,7 +635,14 @@ public class SagaOrchestratorService {
     sagaProducer.sendToClientService(request);
   }
 
+  /**
+   * @deprecated No longer used - accountCount field removed from Manager entity.
+   * Manager account counts are now calculated dynamically when needed.
+   * This method is kept for backward compatibility only.
+   */
+  @Deprecated
   private void incrementAccountCountStep(String sagaId) {
+    log.warn("DEPRECATED: incrementAccountCountStep called for saga {} - this should not happen", sagaId);
     log.info("Step 4.5: Incrementing manager account count for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
 
@@ -796,6 +810,32 @@ public class SagaOrchestratorService {
 
     sagaProducer.sendToAuthService(payload);
   }
+
+  /**
+   * Simplified step 3: Balance manager accounts
+   * This consolidated step handles all account rebalancing logic in the bank-account service.
+   * It replaces the old multi-step process (FIND + ASSIGN + DECREMENT + INCREMENT).
+   */
+  private void balanceManagerAccountsStep(String sagaId) {
+    log.info("Step 3: Balancing manager accounts for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("BALANCE_MANAGER_ACCOUNTS", "PENDING",
+        "Balancing accounts among managers", null); // No compensation needed (atomic operation)
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> accountRequest = new HashMap<>();
+    accountRequest.put("sagaId", sagaId);
+    accountRequest.put("action", "BALANCE_MANAGER_ACCOUNTS");
+    accountRequest.put("newManagerId", context.get("managerId"));
+
+    sagaProducer.sendToAccountService(accountRequest);
+  }
+
+  // ==================== LEGACY METHODS (for backward compatibility) ====================
+  // These can be removed after full migration to simplified saga
 
   private void identifyAccountForNewManagerStep(String sagaId) {
     log.info("Step 2.5: Checking MS-bank-account for a transferable account for saga {}", sagaId);

@@ -97,14 +97,53 @@ customerRoutes.get(
             }
 
             const clients = await clientsResponse.json();
-            const clientsMapped = clients.map((client: any) => ({
-                cpf: client.cpf,
-                nome: client.name,
-                email: client.email,
-                salario: client.salary,
-                contaId: client.accountId,
-                gerenteId: client.managerId,
-            }));
+
+            // Fetch accounts to get managerId from each account
+            const {bankAccountServiceUrl} = getServiceUrls();
+            const accountNumbers = Array.from(
+                new Set(
+                    clients
+                        .map((client: any) => client.accountId)
+                        .filter((accountId: any) => !!accountId)
+                        .map((accountId: any) => String(accountId))
+                )
+            );
+
+            let accountsMap = new Map<string, any>();
+            if (accountNumbers.length > 0) {
+                const accountsResponse = await fetchWithAuth(
+                    c,
+                    `${bankAccountServiceUrl}/query/contas/buscar?incluirTransacoes=false`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ accountNumbers }),
+                    }
+                );
+
+                if (accountsResponse.ok) {
+                    const accounts = await accountsResponse.json();
+                    accounts.forEach((account: any) => {
+                        if (account?.numero) {
+                            accountsMap.set(String(account.numero), account);
+                        }
+                    });
+                }
+            }
+
+            const clientsMapped = clients.map((client: any) => {
+                const account = client.accountId ? accountsMap.get(String(client.accountId)) : null;
+                return {
+                    cpf: client.cpf,
+                    nome: client.name,
+                    email: client.email,
+                    salario: client.salary,
+                    contaId: client.accountId,
+                    gerenteId: account?.gerente ?? null, // Get managerId from account
+                };
+            });
 
             return c.json(clientsMapped, 200);
         }
@@ -163,14 +202,53 @@ customerRoutes.get(
                 }
 
                 const clients = await clientsResponse.json();
-                const clientsMapped = clients.map((client: any) => ({
-                    cpf: client.cpf,
-                    nome: client.name,
-                    email: client.email,
-                    salario: client.salary,
-                    contaId: client.accountId,
-                    gerenteId: client.managerId,
-                }));
+
+                // Fetch accounts to get managerId from each account
+                const {bankAccountServiceUrl: bankAcctUrl} = getServiceUrls();
+                const accountNumbers = Array.from(
+                    new Set(
+                        clients
+                            .map((client: any) => client.accountId)
+                            .filter((accountId: any) => !!accountId)
+                            .map((accountId: any) => String(accountId))
+                    )
+                );
+
+                let accountsMap = new Map<string, any>();
+                if (accountNumbers.length > 0) {
+                    const accountsResponse = await fetchWithAuth(
+                        c,
+                        `${bankAcctUrl}/query/contas/buscar?incluirTransacoes=false`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ accountNumbers }),
+                        }
+                    );
+
+                    if (accountsResponse.ok) {
+                        const accounts = await accountsResponse.json();
+                        accounts.forEach((account: any) => {
+                            if (account?.numero) {
+                                accountsMap.set(String(account.numero), account);
+                            }
+                        });
+                    }
+                }
+
+                const clientsMapped = clients.map((client: any) => {
+                    const account = client.accountId ? accountsMap.get(String(client.accountId)) : null;
+                    return {
+                        cpf: client.cpf,
+                        nome: client.name,
+                        email: client.email,
+                        salario: client.salary,
+                        contaId: client.accountId,
+                        gerenteId: account?.gerente ?? null, // Get managerId from account
+                    };
+                });
 
                 return c.json(clientsMapped, 200);
             }
@@ -223,9 +301,22 @@ customerRoutes.get(
 
                 const accounts = await accountsResponse.json();
 
-                const managerIds = clients
-                    .map((client: any) => client.managerId)
-                    .filter((managerId: any) => managerId != null);
+                // Create account map for quick lookup
+                const accountMap = new Map<string, any>();
+                accounts.forEach((account: any) => {
+                    if (account?.numero) {
+                        accountMap.set(String(account.numero), account);
+                    }
+                });
+
+                // Extract manager IDs from accounts (not from clients)
+                const managerIds = Array.from(
+                    new Set(
+                        accounts
+                            .map((acc: any) => acc.gerente)
+                            .filter((managerId: any) => managerId != null)
+                    )
+                );
 
                 const managersResponse = await fetchWithAuth(
                     c,
@@ -249,12 +340,10 @@ customerRoutes.get(
                 const managers = await managersResponse.json();
 
                 const clientsWithAccountsAndManagers = clients.map((client: any) => {
-                    const account = accounts.find(
-                        (acc: any) => acc.numero === client.accountId
-                    );
-                    const manager = managers.find(
-                        (mgr: any) => mgr.id === client.managerId
-                    );
+                    const account = client.accountId ? accountMap.get(String(client.accountId)) : null;
+                    // Find manager by the managerId from the account (not from client)
+                    const managerId = account?.gerente;
+                    const manager = managerId ? managers.find((mgr: any) => mgr.id === managerId) : null;
                     return {
                         ...client,
                         conta: account || null,

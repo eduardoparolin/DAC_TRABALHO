@@ -21,12 +21,14 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
     @Query("UPDATE Account a SET a.managerId = :newManagerId WHERE a.managerId = :oldManagerId")
     int updateManagerForAccounts(Long oldManagerId, Long newManagerId);
 
-    //Encontra o managerId que possui mais contas associadas, em caso de empate retorna o que possui menor soma de saldo positivo, saga de novo gerente
+    //Encontra o managerId que possui mais contas com saldo positivo associadas
+    //Em caso de empate, retorna o que possui menor soma de saldo positivo
+    //Usado na saga de novo gerente para encontrar o gerente que vai doar uma conta
     @Query(
             value = """
         SELECT managerId
         FROM account
-        WHERE balance > 0
+        WHERE balance > 0 AND status = 'ATIVA'
         GROUP BY managerId
         ORDER BY COUNT(*) DESC, SUM(balance) ASC
         LIMIT 1
@@ -34,6 +36,20 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
             nativeQuery = true
     )
     Long findManagerWithMostAccountsAndLowestBalance();
+
+    //Encontra a conta com menor saldo positivo de um gerente específico
+    //Usado para selecionar qual conta será transferida para o novo gerente
+    @Query(
+            value = """
+        SELECT *
+        FROM account
+        WHERE managerId = :managerId AND balance > 0 AND status = 'ATIVA'
+        ORDER BY balance ASC
+        LIMIT 1
+    """,
+            nativeQuery = true
+    )
+    Optional<Account> findAccountWithLowestPositiveBalance(Long managerId);
 
     //Retorna uma lista de arrays contendo o managerId e a contagem de contas associadas a ele, saga de novo gerente
     @Query("SELECT a.managerId, COUNT(a) FROM Account a GROUP BY a.managerId")

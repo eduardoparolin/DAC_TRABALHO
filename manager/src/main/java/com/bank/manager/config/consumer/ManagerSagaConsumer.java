@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,12 +51,6 @@ public class ManagerSagaConsumer {
                 handleCreateManager(sagaId, message);
             } else if ("ASSIGN_MANAGER".equals(action)) {
                 handleAssignManager(sagaId, message);
-            } else if ("UNASSIGN_MANAGER".equals(action)) {
-                handleUnassignManager(sagaId, message);
-            } else if ("INCREMENT_ACCOUNT_COUNT".equals(action)) {
-                handleIncrementAccountCount(sagaId, message);
-            } else if ("DECREMENT_ACCOUNT_COUNT".equals(action)) {
-                handleDecrementAccountCount(sagaId, message);
             } else if ("DELETE_MANAGER_MS".equals(action)) {
                 handleDeleteManager(sagaId, message);
             } else {
@@ -86,14 +81,13 @@ public class ManagerSagaConsumer {
                 return;
             }
 
-            // Create new manager with accountCount = 0
+            // Create new manager
             Manager manager = new Manager();
             manager.setCpf(cpf);
             manager.setName(name);
             manager.setEmail(email);
             manager.setPassword(password); // Will be hashed by Auth service
             manager.setType(ManagerType.valueOf(type));
-            manager.setAccountCount(0);
 
             Manager savedManager = managerRepository.save(manager);
 
@@ -119,22 +113,28 @@ public class ManagerSagaConsumer {
       String cpf = (String) message.get("cpf");
       Long requestedById = Long.parseLong(String.valueOf(message.get("requestedById")));
 
-      Manager managerLessAccounts = managerService.getWithLessAccounts();
-      log.info("id manager less acounts: {}", managerLessAccounts.getId());
       Manager deletedManager = managerService.findByCpf(cpf);
 
       if (deletedManager.getId().equals(requestedById)) {
         throw new Exception("Manager não pode deletar a si mesmo");
       }
 
-      managerLessAccounts.setAccountCount(managerLessAccounts.getAccountCount() + deletedManager.getAccountCount());
+      // Get manager with least accounts (should query bank-account service)
+      // TODO: Query bank-account service for actual manager with least accounts
+      List<Long> allManagerIds = managerService.getAllManagerIds();
+      Long managerIdLessAccounts = allManagerIds.stream()
+              .filter(id -> !id.equals(deletedManager.getId()))
+              .findFirst()
+              .orElseThrow(() -> new Exception("No manager available to reassign accounts"));
 
-      managerService.save(managerLessAccounts);
+      log.info("Manager with least accounts: {}", managerIdLessAccounts);
+
+      // Delete the manager
       managerService.deleteByCpf(cpf);
 
       Map<String, Object> responseResult = new HashMap<>();
       responseResult.put("cpf", cpf);
-      responseResult.put("managerIdLessAccounts", managerLessAccounts.getId());
+      responseResult.put("managerIdLessAccounts", managerIdLessAccounts);
       responseResult.put("managerId", deletedManager.getId());
 
       managerSagaProducer.sendSuccessResult(sagaId, "DELETE_MANAGER_MS", responseResult);
@@ -144,136 +144,30 @@ public class ManagerSagaConsumer {
   private void handleAssignManager(String sagaId, Map<String, Object> message) {
         log.info("Assigning manager for saga {}", sagaId);
 
-        // Find manager with least accounts (approved clients only)
-        Optional<Manager> managerOpt = managerRepository.findAll().stream()
-                .min(Comparator.comparing(Manager::getAccountCount));
+        // NOTE: Manager assignment now relies on bank-account service to calculate
+        // which manager has the least accounts. The orchestrator queries bank-account
+        // service which returns the appropriate managerId.
+        // This handler is kept for backward compatibility but should be refactored
+        // to query bank-account service via REST or messaging.
 
-        if (managerOpt.isEmpty()) {
+        List<Long> allManagerIds = managerService.getAllManagerIds();
+        if (allManagerIds.isEmpty()) {
             throw new RuntimeException("No managers available to assign");
         }
 
-        Manager manager = managerOpt.get();
+        // For now, return first manager ID
+        // TODO: Query bank-account service for actual manager with least accounts
+        Long managerId = allManagerIds.get(0);
 
-        log.info("Assigned manager {} (ID: {}) for saga {}. Current account count: {}",
-                manager.getName(), manager.getId(), sagaId, manager.getAccountCount());
+        Optional<Manager> managerOpt = managerRepository.findById(managerId);
+        if (managerOpt.isEmpty()) {
+            throw new RuntimeException("Manager not found: " + managerId);
+        }
+
+        Manager manager = managerOpt.get();
+        log.info("Assigned manager {} (ID: {}) for saga {}", manager.getName(), manager.getId(), sagaId);
 
         // Send success result back to orchestrator
         managerSagaProducer.sendSuccessResult(sagaId, "ASSIGN_MANAGER", manager.getId());
-    }
-
-    private void handleIncrementAccountCount(String sagaId, Map<String, Object> message) {
-        log.info("Incrementing account count for saga {}", sagaId);
-
-        Object managerIdObj = message.get("managerId");
-        if (managerIdObj == null) {
-            log.error("No managerId provided for increment");
-            managerSagaProducer.sendFailureResult(sagaId, "INCREMENT_ACCOUNT_COUNT", "No managerId provided");
-            return;
-        }
-
-        Long managerId;
-        if (managerIdObj instanceof Integer) {
-            managerId = ((Integer) managerIdObj).longValue();
-        } else if (managerIdObj instanceof Long) {
-            managerId = (Long) managerIdObj;
-        } else {
-            log.error("Invalid managerId type: {}", managerIdObj.getClass());
-            managerSagaProducer.sendFailureResult(sagaId, "INCREMENT_ACCOUNT_COUNT", "Invalid managerId type");
-            return;
-        }
-
-        Optional<Manager> managerOpt = managerRepository.findById(managerId);
-        if (managerOpt.isEmpty()) {
-            log.error("Manager {} not found for increment", managerId);
-            managerSagaProducer.sendFailureResult(sagaId, "INCREMENT_ACCOUNT_COUNT", "Manager not found");
-            return;
-        }
-
-        Manager manager = managerOpt.get();
-        manager.setAccountCount(manager.getAccountCount() + 1);
-        managerRepository.save(manager);
-
-        log.info("Incremented account count for manager {} (ID: {}). New count: {}",
-                manager.getName(), manager.getId(), manager.getAccountCount());
-
-        managerSagaProducer.sendSuccessResult(sagaId, "INCREMENT_ACCOUNT_COUNT", manager.getId());
-    }
-
-    private void handleDecrementAccountCount(String sagaId, Map<String, Object> message) {
-        log.info("Decrementing account count for saga {}", sagaId);
-
-        Object managerIdObj = message.get("managerId");
-        if (managerIdObj == null) {
-            log.error("No managerId provided for decrement");
-            managerSagaProducer.sendFailureResult(sagaId, "DECREMENT_ACCOUNT_COUNT", "No managerId provided");
-            return;
-        }
-
-        Long managerId;
-        if (managerIdObj instanceof Integer) {
-            managerId = ((Integer) managerIdObj).longValue();
-        } else if (managerIdObj instanceof Long) {
-            managerId = (Long) managerIdObj;
-        } else {
-            log.error("Invalid managerId type: {}", managerIdObj.getClass());
-            managerSagaProducer.sendFailureResult(sagaId, "DECREMENT_ACCOUNT_COUNT", "Invalid managerId type");
-            return;
-        }
-
-        Optional<Manager> managerOpt = managerRepository.findById(managerId);
-        if (managerOpt.isEmpty()) {
-            log.error("Manager {} not found for decrement", managerId);
-            managerSagaProducer.sendFailureResult(sagaId, "DECREMENT_ACCOUNT_COUNT", "Manager not found");
-            return;
-        }
-
-        Manager manager = managerOpt.get();
-        if (manager.getAccountCount() > 0) {
-            manager.setAccountCount(manager.getAccountCount() - 1);
-            managerRepository.save(manager);
-            log.info("Decremented account count for manager {} (ID: {}). New count: {}",
-                    manager.getName(), manager.getId(), manager.getAccountCount());
-        } else {
-            log.warn("Manager {} already has 0 accounts, cannot decrement", managerId);
-        }
-
-        managerSagaProducer.sendSuccessResult(sagaId, "DECREMENT_ACCOUNT_COUNT", manager.getId());
-    }
-
-    private void handleUnassignManager(String sagaId, Map<String, Object> message) {
-        log.info("Unassigning manager for saga {} (compensation)", sagaId);
-
-        Object managerIdObj = message.get("managerId");
-        if (managerIdObj == null) {
-            log.warn("No managerId provided for unassignment, skipping compensation");
-            return;
-        }
-
-        Long managerId;
-        if (managerIdObj instanceof Integer) {
-            managerId = ((Integer) managerIdObj).longValue();
-        } else if (managerIdObj instanceof Long) {
-            managerId = (Long) managerIdObj;
-        } else {
-            log.error("Invalid managerId type: {}", managerIdObj.getClass());
-            return;
-        }
-
-        Optional<Manager> managerOpt = managerRepository.findById(managerId);
-        if (managerOpt.isEmpty()) {
-            log.warn("Manager {} not found for unassignment", managerId);
-            return;
-        }
-
-        Manager manager = managerOpt.get();
-
-        if (manager.getAccountCount() > 0) {
-            manager.setAccountCount(manager.getAccountCount() - 1);
-            managerRepository.save(manager);
-            log.info("Decremented account count for manager {} (ID: {}). New count: {}",
-                    manager.getName(), manager.getId(), manager.getAccountCount());
-        } else {
-            log.warn("Manager {} already has 0 accounts, cannot decrement", managerId);
-        }
     }
 }

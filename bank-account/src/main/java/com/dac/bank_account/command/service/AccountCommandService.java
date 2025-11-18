@@ -249,6 +249,78 @@ public class AccountCommandService {
                 ));
     }
 
+    /**
+     * Consolidated method for balancing manager accounts when a new manager is created.
+     * This method handles all the logic for determining if an account should be reassigned
+     * and performs the reassignment in a single transaction.
+     *
+     * Logic:
+     * 1. Check if there are existing managers with >1 account
+     * 2. If not, return empty (no rebalancing needed)
+     * 3. Find manager with most accounts (tie-breaker: lowest total balance)
+     * 4. Find account with lowest positive balance from that manager
+     * 5. Reassign that account to the new manager
+     *
+     * @param newManagerId The ID of the newly created manager
+     * @return Map with oldManagerId and accountId if reassignment occurred, empty otherwise
+     */
+    @Transactional("commandTransactionManager")
+    public Map<String, Long> balanceManagerAccounts(Long newManagerId) {
+        // Get all manager account counts (only ACTIVE accounts with positive balance)
+        Map<Long, Long> managerAccountsCount = accountCommandRepository.findManagerAccountCountsRaw().stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]));
+
+        // No managers with accounts - no rebalancing needed
+        if (managerAccountsCount.isEmpty()) {
+            return Map.of();
+        }
+
+        // Only one manager exists (should be the newly created one) - no rebalancing needed
+        if (managerAccountsCount.size() == 1) {
+            return Map.of();
+        }
+
+        // Check if any manager has more than 1 account
+        boolean anyManagerHasMultipleAccounts = managerAccountsCount.values().stream()
+                .anyMatch(count -> count > 1);
+
+        if (!anyManagerHasMultipleAccounts) {
+            return Map.of();
+        }
+
+        // Find manager with most accounts (positive balance only)
+        // Tie-breaker: manager with lowest total positive balance
+        Long oldManagerId = accountCommandRepository.findManagerWithMostAccountsAndLowestBalance();
+
+        if (oldManagerId == null) {
+            return Map.of();
+        }
+
+        // Find account with lowest positive balance from that manager
+        Optional<Account> accountToTransfer = accountCommandRepository.findAccountWithLowestPositiveBalance(oldManagerId);
+
+        if (accountToTransfer.isEmpty()) {
+            return Map.of();
+        }
+
+        Account account = accountToTransfer.get();
+
+        // Reassign account to new manager
+        account.setManagerId(newManagerId);
+        accountCommandRepository.save(account);
+
+        // Publish event
+        AssignedNewManager event = accountMapper.toAssignedNewManager(account.getAccountNumber(), newManagerId);
+        eventPublisher.publishEvent("bank.account", event);
+
+        return Map.of(
+                "oldManagerId", oldManagerId,
+                "newManagerId", newManagerId,
+                "accountId", account.getId());
+    }
+
     private Optional<Account> findEligibleAccountForReassignment() {
         Map<Long, Long> managerAccountsCount = accountCommandRepository.findManagerAccountCountsRaw().stream()
                 .collect(Collectors.toMap(
@@ -281,8 +353,8 @@ public class AccountCommandService {
             return Optional.empty();
         }
 
-        return accountCommandRepository.findFirstByManagerIdAndStatus(oldManagerId,
-                AccountStatus.ATIVA);
+        // Use new method to find account with lowest positive balance
+        return accountCommandRepository.findAccountWithLowestPositiveBalance(oldManagerId);
     }
 
     public String generateAccountNumber() {

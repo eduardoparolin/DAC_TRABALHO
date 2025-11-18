@@ -7,5 +7,6 @@ public enum AccountAction {
     DELETE_MANAGER,
     NEW_MANAGER,
     FIND_ACCOUNT_FOR_NEW_MANAGER,
-    ASSIGN_ACCOUNT_TO_NEW_MANAGER
+    ASSIGN_ACCOUNT_TO_NEW_MANAGER,
+    BALANCE_MANAGER_ACCOUNTS  // Consolidated action for simplified saga
 }

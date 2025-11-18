@@ -20,6 +20,23 @@ public class NewManagerHandler implements AccountMessageHandler {
 
     @Override
     public void handle(AccountSagaEvent event){
+        // New consolidated action for simplified saga
+        if (event.getAction() == AccountAction.BALANCE_MANAGER_ACCOUNTS) {
+            Long newManagerId = event.getNewManagerId();
+            if (newManagerId == null) {
+                throw new IllegalArgumentException("newManagerId is required for BALANCE_MANAGER_ACCOUNTS");
+            }
+
+            Map<String, Long> result = accountCommandService.balanceManagerAccounts(newManagerId);
+
+            if (!result.isEmpty()) {
+                event.setOldManagerId(result.get("oldManagerId"));
+                event.setAccountId(result.get("accountId"));
+            }
+            return;
+        }
+
+        // Legacy: Find account for new manager (to be deprecated)
         if (event.getAction() == AccountAction.FIND_ACCOUNT_FOR_NEW_MANAGER) {
             Optional<AccountReassignmentCandidateDTO> candidate = accountCommandService.findAccountForNewManager();
             candidate.ifPresent(result -> {
@@ -30,6 +47,7 @@ public class NewManagerHandler implements AccountMessageHandler {
             return;
         }
 
+        // Legacy: Assign account to new manager (to be deprecated)
         NewManagerDTO dto = new NewManagerDTO(
                 event.getNewManagerId(),
                 event.getOldManagerId(),

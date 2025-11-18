@@ -122,18 +122,28 @@ const buildManagersDashboard = async (
         manager?.id !== undefined && manager?.id !== null
           ? Number(manager.id)
           : null;
+      // Filter clients by checking the managerId from their account (not from client object)
       const managerClients =
         managerId === null
           ? []
-          : clients.filter(
-              (client: any) =>
-                client.managerId !== null &&
-                client.managerId !== undefined &&
-                Number(client.managerId) === managerId &&
-                client.approvalDate
-            );
+          : clients.filter((client: any) => {
+              if (!client.approvalDate) return false;
 
-      let saldoPositivo = 0;
+              const accountNumber = client.accountId ? String(client.accountId) : null;
+              if (!accountNumber) return false;
+
+              const account = accountByNumber.get(accountNumber);
+              if (!account) return false;
+
+              // Get managerId from the account, not from the client
+              const accountManagerId = account.gerente !== null && account.gerente !== undefined
+                ? Number(account.gerente)
+                : null;
+
+              return accountManagerId === managerId;
+            });
+        console.log(clients);
+        let saldoPositivo = 0;
       let saldoNegativo = 0;
 
       const clientes = managerClients.map((client: any) => {

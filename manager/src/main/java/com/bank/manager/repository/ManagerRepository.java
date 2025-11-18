@@ -13,5 +13,8 @@ public interface ManagerRepository extends JpaRepository<Manager, Long> {
     Optional<Manager> findByCpf(String cpf);
     Optional<Manager> findByEmail(String email);
     List<Manager> findByIdIn(List<Long> managerIds);
-    Manager findFirstByOrderByAccountCountAsc();
+
+    // Get all manager IDs (to be used with bank-account service for counting)
+    @org.springframework.data.jpa.repository.Query("SELECT m.id FROM Manager m")
+    List<Long> findAllManagerIds();
 }

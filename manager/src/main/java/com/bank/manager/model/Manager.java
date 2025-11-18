@@ -18,7 +18,4 @@ public class Manager {
 
     @Enumerated(EnumType.STRING)
     private ManagerType type;
-
-    @Column(name = "account_count")
-    private Integer accountCount = 0;
 }

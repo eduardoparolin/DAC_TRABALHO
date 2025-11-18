@@ -115,11 +115,15 @@ public class ManagerService {
                 .toList();
     }
 
-    public Manager getWithLessAccounts() {
-        return repository.findFirstByOrderByAccountCountAsc();
-    }
-
     public Manager save(Manager manager) {
         return repository.save(manager);
+    }
+
+    public List<Long> getAllManagerIds() {
+        return repository.findAllManagerIds();
+    }
+
+    public Long countManagers() {
+        return repository.count();
     }
 }

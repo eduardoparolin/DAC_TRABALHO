@@ -27,6 +27,7 @@ public class MessageHandlerFactory {
         strategies.put(AccountAction.NEW_MANAGER, newManagerHandler);
         strategies.put(AccountAction.FIND_ACCOUNT_FOR_NEW_MANAGER, newManagerHandler);
         strategies.put(AccountAction.ASSIGN_ACCOUNT_TO_NEW_MANAGER, newManagerHandler);
+        strategies.put(AccountAction.BALANCE_MANAGER_ACCOUNTS, newManagerHandler);
     }
 
     public AccountMessageHandler getStrategy(AccountAction action) {
