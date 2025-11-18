@@ -8,5 +8,5 @@ public class AccountSagaEvent {
     private String action;
     private Long clientId;
     private Boolean isApproved;
-    private Long accountId;
+    private String accountId;
 }

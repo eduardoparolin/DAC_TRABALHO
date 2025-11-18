@@ -189,7 +189,7 @@ public class ClientService {
     @Transactional
     public void linkAccount(ClientLinkAccountDTO req) {
         Long clientId = req.getClientId();
-        Long accountNumber = req.getAccountNumber();
+        String accountNumber = req.getAccountNumber();
         log.info("Linking account {} to client {}", accountNumber, clientId);
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
@@ -205,7 +205,7 @@ public class ClientService {
     public void approveClient(ClientApproveDTO req) {
         Long clientId = req.getClientId();
         Long managerId = req.getManagerId();
-        Long accountNumber = req.getAccountNumber();
+        String accountNumber = req.getAccountNumber();
         Client client = repo.findById(clientId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado: " + clientId));
 
@@ -220,7 +220,7 @@ public class ClientService {
             client.setAccountId(accountNumber);
         }
         // Use the existing accountId if accountNumber is not provided or already set
-        Long finalAccountNumber = client.getAccountId() != null ? client.getAccountId() : accountNumber;
+        String finalAccountNumber = client.getAccountId() != null ? client.getAccountId() : accountNumber;
         client.setApprovalDate(OffsetDateTime.now());
 
         repo.save(client);

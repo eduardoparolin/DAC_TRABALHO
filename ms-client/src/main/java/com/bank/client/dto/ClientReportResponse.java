@@ -14,6 +14,6 @@ public class ClientReportResponse {
     private String name;
     private String email;
     private BigDecimal salary;
-    private Long accountId;
+    private String accountId;
     private Long managerId;
 }

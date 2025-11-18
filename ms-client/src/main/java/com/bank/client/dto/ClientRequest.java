@@ -27,5 +27,5 @@ public class ClientRequest {
     private String city;
     private String state;
     private Long managerId;
-    private Long accountNumber;
+    private String accountNumber;
 }

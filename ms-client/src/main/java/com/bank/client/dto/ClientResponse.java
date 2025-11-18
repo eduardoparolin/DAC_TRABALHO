@@ -17,7 +17,7 @@ public class ClientResponse {
     private String cpf;
     private String phone;
     private BigDecimal salary;
-    private Long accountId;
+    private String accountId;
     private String status;
     private String rejectionReason;
     private Long managerId;

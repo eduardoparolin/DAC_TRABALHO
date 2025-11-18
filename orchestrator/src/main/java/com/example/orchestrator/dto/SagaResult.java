@@ -10,7 +10,7 @@ public class SagaResult {
   private String status;
   private String error;
   private Long clientId;
-  private Long accountId;
+  private String accountId;
   private Long transactionId;
   private Long managerId;
   private String accountNumber;
@@ -69,11 +69,11 @@ public class SagaResult {
     this.clientId = clientId;
   }
 
-  public Long getAccountId() {
+  public String getAccountId() {
     return accountId;
   }
 
-  public void setAccountId(Long accountId) {
+  public void setAccountId(String accountId) {
     this.accountId = accountId;
   }
 

@@ -55,8 +55,8 @@ public class Client {
     @Column(nullable = false, length = 2)
     private String state;
 
-    @Column(unique = true)
-    private Long accountId;
+    @Column(unique = true, length = 255)
+    private String accountId;
 
     private Long managerId;
 

@@ -16,6 +16,5 @@ public class ClientApproveDTO {
     @NotNull
     private Long managerId;
 
-    @NotBlank
-    private Long accountNumber;
+    private String accountNumber;
 }

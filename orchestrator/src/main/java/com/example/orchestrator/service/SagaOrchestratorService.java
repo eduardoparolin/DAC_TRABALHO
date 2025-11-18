@@ -519,9 +519,9 @@ public class SagaOrchestratorService {
     log.info("Account number from context: {} (type: {})", accountNumberObj, accountNumberObj != null ? accountNumberObj.getClass().getName() : "null");
     if (accountNumberObj != null) {
       if (accountNumberObj instanceof String) {
-        request.setAccountNumber(Long.parseLong((String) accountNumberObj));
+        request.setAccountNumber((String) accountNumberObj);
       } else if (accountNumberObj instanceof Number) {
-        request.setAccountNumber(((Number) accountNumberObj).longValue());
+        request.setAccountNumber(String.valueOf(accountNumberObj));
       }
     }
     log.info("Sending LINK_ACCOUNT request with accountNumber: {}", request.getAccountNumber());

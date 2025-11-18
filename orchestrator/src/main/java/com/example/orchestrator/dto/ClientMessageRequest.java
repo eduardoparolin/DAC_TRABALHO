@@ -17,7 +17,7 @@ public class ClientMessageRequest {
   private String state;
   private Long clientId;
   private Long managerId;
-  private Long accountNumber;
+  private String accountNumber;
   private String rejectionReason;
 
   public ClientMessageRequest() {
@@ -144,11 +144,11 @@ public class ClientMessageRequest {
     this.managerId = managerId;
   }
 
-  public Long getAccountNumber() {
+  public String getAccountNumber() {
     return accountNumber;
   }
 
-  public void setAccountNumber(Long accountNumber) {
+  public void setAccountNumber(String accountNumber) {
     this.accountNumber = accountNumber;
   }
 
