@@ -198,6 +198,7 @@ public class SagaOrchestratorService {
     // Initialize saga context with all data from request
     Map<String, Object> context = new HashMap<>();
     context.put("sagaId", sagaId);
+    context.put("sagaType", "CREATE_MANAGER"); // Track saga type
     Map<String, Object> data = request.getData();
 
     if (data != null) {
@@ -291,6 +292,9 @@ public class SagaOrchestratorService {
     if(result.getManagerIdLessAccounts() != null) {
       context.put("managerIdLessAccounts", result.getManagerIdLessAccounts());
     }
+    if(result.getOldManagerId() != null) {
+      context.put("oldManagerId", result.getOldManagerId());
+    }
   }
 
   private void advanceToNextStep(String sagaId, String completedAction) {
@@ -304,13 +308,36 @@ public class SagaOrchestratorService {
         break;
       case "CREATE_MANAGER_AUTH":
       case "CREATE_MANAGER_AUTH_RESULT":
-        log.info("Matched CREATE_MANAGER_AUTH, proceeding to assignAccountToNewManagerStep");
-        assignAccountToNewManagerStep(sagaId);
+        log.info("Matched CREATE_MANAGER_AUTH, proceeding to identify account transfer candidate");
+        identifyAccountForNewManagerStep(sagaId);
+        break;
+      case "FIND_ACCOUNT_FOR_NEW_MANAGER":
+      case "FIND_ACCOUNT_FOR_NEW_MANAGER_RESULT":
+        log.info("Matched FIND_ACCOUNT_FOR_NEW_MANAGER, deciding if there is an account to transfer");
+        handleAccountSelectionForNewManager(sagaId);
         break;
       case "ASSIGN_ACCOUNT_TO_NEW_MANAGER":
       case "ASSIGN_ACCOUNT_TO_NEW_MANAGER_RESULT":
-        log.info("Matched ASSIGN_ACCOUNT_TO_NEW_MANAGER, completing CREATE_MANAGER saga");
-        completeManagerCreationSaga(sagaId);
+        log.info("Matched ASSIGN_ACCOUNT_TO_NEW_MANAGER, proceeding to decrement old manager account count");
+        decrementOldManagerAccountCountStep(sagaId);
+        break;
+      case "DECREMENT_ACCOUNT_COUNT":
+      case "DECREMENT_ACCOUNT_COUNT_RESULT":
+        log.info("Matched DECREMENT_ACCOUNT_COUNT, checking if it's part of CREATE_MANAGER saga");
+        handleDecrementAccountCountResult(sagaId);
+        break;
+      case "INCREMENT_ACCOUNT_COUNT":
+      case "INCREMENT_ACCOUNT_COUNT_RESULT":
+        log.info("Matched INCREMENT_ACCOUNT_COUNT, determining next step based on saga type");
+        Map<String, Object> ctx = sagaContexts.get(sagaId);
+        String sagaType = ctx != null ? (String) ctx.get("sagaType") : null;
+        if ("CREATE_MANAGER".equals(sagaType)) {
+          log.info("CREATE_MANAGER saga: completing after incrementing new manager account count");
+          completeManagerCreationSaga(sagaId);
+        } else {
+          log.info("APPROVE_CLIENT saga: proceeding to updateAccountStatusStep");
+          updateAccountStatusStep(sagaId);
+        }
         break;
       case "DELETE":
       case "DELETE_RESULT":
@@ -365,11 +392,6 @@ public class SagaOrchestratorService {
       case "APPROVE_CLIENT_RESULT":
         log.info("Matched APPROVE_CLIENT, proceeding to incrementAccountCountStep");
         incrementAccountCountStep(sagaId);
-        break;
-      case "INCREMENT_ACCOUNT_COUNT":
-      case "INCREMENT_ACCOUNT_COUNT_RESULT":
-        log.info("Matched INCREMENT_ACCOUNT_COUNT, proceeding to updateAccountStatusStep");
-        updateAccountStatusStep(sagaId);
         break;
       case "UPDATE_ACCOUNT_STATUS":
       case "UPDATE_ACCOUNT_STATUS_RESULT":
@@ -775,9 +797,70 @@ public class SagaOrchestratorService {
     sagaProducer.sendToAuthService(payload);
   }
 
+  private void identifyAccountForNewManagerStep(String sagaId) {
+    log.info("Step 2.5: Checking MS-bank-account for a transferable account for saga {}", sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("FIND_ACCOUNT_FOR_NEW_MANAGER", "PENDING",
+        "Finding account owned by manager with most accounts", null);
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    Map<String, Object> accountQuery = new HashMap<>();
+    accountQuery.put("sagaId", sagaId);
+    accountQuery.put("action", "FIND_ACCOUNT_FOR_NEW_MANAGER");
+
+    sagaProducer.sendToAccountService(accountQuery);
+  }
+
+  private void handleAccountSelectionForNewManager(String sagaId) {
+    Map<String, Object> context = sagaContexts.get(sagaId);
+    Long oldManagerId = null;
+    Object accountId = context != null ? context.get("accountId") : null;
+
+    if (context != null) {
+      Object oldManagerIdObj = context.get("oldManagerId");
+      if (oldManagerIdObj instanceof Integer) {
+        oldManagerId = ((Integer) oldManagerIdObj).longValue();
+      } else if (oldManagerIdObj instanceof Long) {
+        oldManagerId = (Long) oldManagerIdObj;
+      }
+    }
+
+    if (oldManagerId == null || accountId == null) {
+      log.info("No eligible manager/account pair returned from MS-bank-account for saga {}. Completing saga without transfer.", sagaId);
+      completeManagerCreationSaga(sagaId);
+      return;
+    }
+
+    assignAccountToNewManagerStep(sagaId);
+  }
+
   private void assignAccountToNewManagerStep(String sagaId) {
     log.info("Step 3: Assigning account to new manager for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
+
+    if (context == null) {
+      log.warn("Saga context not found for {}, skipping account assignment", sagaId);
+      completeManagerCreationSaga(sagaId);
+      return;
+    }
+
+    Long oldManagerId = null;
+    Object oldManagerIdObj = context.get("oldManagerId");
+    if (oldManagerIdObj instanceof Integer) {
+      oldManagerId = ((Integer) oldManagerIdObj).longValue();
+    } else if (oldManagerIdObj instanceof Long) {
+      oldManagerId = (Long) oldManagerIdObj;
+    }
+
+    Object accountId = context.get("accountId");
+    String accountIdValue = accountId != null ? accountId.toString() : null;
+    if (oldManagerId == null || accountIdValue == null) {
+      log.info("Saga {} does not have account transfer data, skipping assignment", sagaId);
+      completeManagerCreationSaga(sagaId);
+      return;
+    }
 
     Saga saga = sagaRepository.findById(sagaId).orElseThrow();
     SagaStep step = new SagaStep("ASSIGN_ACCOUNT_TO_NEW_MANAGER", "PENDING",
@@ -789,8 +872,61 @@ public class SagaOrchestratorService {
     accountRequest.put("sagaId", sagaId);
     accountRequest.put("action", "ASSIGN_ACCOUNT_TO_NEW_MANAGER");
     accountRequest.put("newManagerId", context.get("managerId"));
+    accountRequest.put("oldManagerId", oldManagerId);
+    accountRequest.put("accountId", accountIdValue);
 
     sagaProducer.sendToAccountService(accountRequest);
+  }
+
+  private void decrementOldManagerAccountCountStep(String sagaId) {
+    log.info("Step 4: Decrementing old manager account count for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Long oldManagerId = (Long) context.get("oldManagerId");
+
+    // If no oldManagerId was returned, it means no account was transferred
+    // (e.g., first manager being created, or only one manager with one account)
+    // In this case, skip the count updates and complete the saga
+    if (oldManagerId == null) {
+      log.info("No account was transferred, skipping manager count updates and completing saga");
+      completeManagerCreationSaga(sagaId);
+      return;
+    }
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("DECREMENT_ACCOUNT_COUNT", "PENDING",
+        "Decrementing old manager account count", "REVERT_DECREMENT_ACCOUNT_COUNT");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    // Decrement old manager's count
+    Map<String, Object> decrementRequest = new HashMap<>();
+    decrementRequest.put("sagaId", sagaId);
+    decrementRequest.put("action", "DECREMENT_ACCOUNT_COUNT");
+    decrementRequest.put("managerId", oldManagerId);
+
+    sagaProducer.sendToManagerService(decrementRequest);
+  }
+
+  private void handleDecrementAccountCountResult(String sagaId) {
+    log.info("Step 5: Decrement completed, now incrementing new manager account count for saga {}", sagaId);
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Long newManagerId = (Long) context.get("managerId");
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("INCREMENT_ACCOUNT_COUNT", "PENDING",
+        "Incrementing new manager account count", "REVERT_INCREMENT_ACCOUNT_COUNT");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    // Increment new manager's count
+    Map<String, Object> incrementRequest = new HashMap<>();
+    incrementRequest.put("sagaId", sagaId);
+    incrementRequest.put("action", "INCREMENT_ACCOUNT_COUNT");
+    incrementRequest.put("managerId", newManagerId);
+
+    sagaProducer.sendToManagerService(incrementRequest);
   }
 
   private void completeManagerCreationSaga(String sagaId) {

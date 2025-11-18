@@ -17,6 +17,7 @@ public class SagaResult {
   private String generatedPassword;
   private JSONPObject result;
   private Long managerIdLessAccounts;
+  private Long oldManagerId;
 
   public SagaResult() {
   }
@@ -142,5 +143,13 @@ public class SagaResult {
 
   public void setManagerIdLessAccounts(Long managerIdLessAccounts) {
     this.managerIdLessAccounts = managerIdLessAccounts;
+  }
+
+  public Long getOldManagerId() {
+    return oldManagerId;
+  }
+
+  public void setOldManagerId(Long oldManagerId) {
+    this.oldManagerId = oldManagerId;
   }
 }

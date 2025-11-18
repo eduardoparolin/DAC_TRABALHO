@@ -192,16 +192,71 @@ public class AccountCommandService {
     }
 
     @Transactional("commandTransactionManager")
-    public void assignAccountToNewManager(NewManagerDTO dto) {
+    public Map<String, Long> assignAccountToNewManager(NewManagerDTO dto) {
         Long newManagerId = dto.getNewManagerId();
+        Long requestedOldManagerId = dto.getOldManagerId();
+        Long requestedAccountId = dto.getAccountId();
 
+        if (requestedOldManagerId != null && requestedAccountId != null) {
+            Account account = accountCommandRepository.findById(requestedAccountId)
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Account not found with id: " + requestedAccountId));
+
+            if (!account.getManagerId().equals(requestedOldManagerId)) {
+                throw new ResourceNotFoundException(
+                        "Account " + requestedAccountId + " is not managed by manager id: " + requestedOldManagerId);
+            }
+
+            account.setManagerId(newManagerId);
+            accountCommandRepository.save(account);
+
+            AssignedNewManager event = accountMapper.toAssignedNewManager(account.getAccountNumber(), newManagerId);
+            eventPublisher.publishEvent("bank.account", event);
+
+            return Map.of(
+                    "oldManagerId", requestedOldManagerId,
+                    "newManagerId", newManagerId,
+                    "accountId", account.getId());
+        }
+
+        Optional<Account> accountToTransfer = findEligibleAccountForReassignment();
+
+        if (accountToTransfer.isEmpty()) {
+            return Map.of();
+        }
+
+        Account account = accountToTransfer.get();
+        Long oldManagerId = account.getManagerId();
+
+        account.setManagerId(newManagerId);
+        accountCommandRepository.save(account);
+
+        AssignedNewManager event = accountMapper.toAssignedNewManager(account.getAccountNumber(), newManagerId);
+        eventPublisher.publishEvent("bank.account", event);
+
+        return Map.of(
+                "oldManagerId", oldManagerId,
+                "newManagerId", newManagerId,
+                "accountId", account.getId());
+    }
+
+    public Optional<AccountReassignmentCandidateDTO> findAccountForNewManager() {
+        return findEligibleAccountForReassignment()
+                .map(account -> new AccountReassignmentCandidateDTO(
+                        account.getId(),
+                        account.getManagerId(),
+                        account.getAccountNumber()
+                ));
+    }
+
+    private Optional<Account> findEligibleAccountForReassignment() {
         Map<Long, Long> managerAccountsCount = accountCommandRepository.findManagerAccountCountsRaw().stream()
                 .collect(Collectors.toMap(
                         row -> (Long) row[0],
                         row -> (Long) row[1]));
 
         if (managerAccountsCount.isEmpty()) {
-            return;
+            return Optional.empty();
         }
 
         if (managerAccountsCount.size() == 1) {
@@ -209,7 +264,7 @@ public class AccountCommandService {
             Long count = managerAccountsCount.get(onlyManagerId);
 
             if (count <= 1) {
-                return;
+                return Optional.empty();
             }
         }
 
@@ -217,28 +272,17 @@ public class AccountCommandService {
                 .allMatch(count -> count == 1);
 
         if (allManagerHaveOneAccount) {
-            return;
+            return Optional.empty();
         }
 
         Long oldManagerId = accountCommandRepository.findManagerWithMostAccountsAndLowestBalance();
 
         if (oldManagerId == null) {
-            return;
+            return Optional.empty();
         }
 
-        Optional<Account> accountToTransfer = accountCommandRepository.findFirstByManagerIdAndStatus(oldManagerId,
+        return accountCommandRepository.findFirstByManagerIdAndStatus(oldManagerId,
                 AccountStatus.ATIVA);
-
-        if (accountToTransfer.isEmpty()) {
-            return;
-        }
-
-        Account account = accountToTransfer.get();
-        account.setManagerId(newManagerId);
-        accountCommandRepository.save(account);
-
-        AssignedNewManager event = accountMapper.toAssignedNewManager(account.getAccountNumber(), newManagerId);
-        eventPublisher.publishEvent("bank.account", event);
     }
 
     public String generateAccountNumber() {

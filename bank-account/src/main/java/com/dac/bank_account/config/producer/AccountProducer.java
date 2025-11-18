@@ -19,10 +19,14 @@ public class AccountProducer {
     private final String RESULT_QUEUE = "account-result-queue";
 
     public void sendSuccessResult(String sagaId, AccountAction action, Long managerId){
-        sendSuccessResult(sagaId, action, managerId, null, null);
+        sendSuccessResult(sagaId, action, managerId, null, null, null);
     }
 
     public void sendSuccessResult(String sagaId, AccountAction action, Long managerId, Long accountId, String accountNumber){
+        sendSuccessResult(sagaId, action, managerId, accountId, accountNumber, null);
+    }
+
+    public void sendSuccessResult(String sagaId, AccountAction action, Long managerId, Long accountId, String accountNumber, Long oldManagerId){
         log.info("Processamento de {} concluído com sucesso.", action);
         Map<String,Object> result = new HashMap<>();
         result.put("sagaId", sagaId);
@@ -39,6 +43,9 @@ public class AccountProducer {
         }
         if(accountNumber != null){
             result.put("accountNumber", accountNumber);
+        }
+        if(oldManagerId != null){
+            result.put("oldManagerId", oldManagerId);
         }
 
         rabbitTemplate.convertAndSend(RESULT_QUEUE, result);

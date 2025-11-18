@@ -21,11 +21,12 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
     @Query("UPDATE Account a SET a.managerId = :newManagerId WHERE a.managerId = :oldManagerId")
     int updateManagerForAccounts(Long oldManagerId, Long newManagerId);
 
-    //Encontra o managerId que possui mais contas associadas, em caso de empate retorna o que possui menor soma de saldo, saga de novo gerente
+    //Encontra o managerId que possui mais contas associadas, em caso de empate retorna o que possui menor soma de saldo positivo, saga de novo gerente
     @Query(
             value = """
         SELECT managerId
         FROM account
+        WHERE balance > 0
         GROUP BY managerId
         ORDER BY COUNT(*) DESC, SUM(balance) ASC
         LIMIT 1
