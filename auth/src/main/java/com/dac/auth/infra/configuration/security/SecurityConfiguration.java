@@ -30,7 +30,7 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/auth", "/auth/login", "/auth/logout").permitAll()
+                        .requestMatchers("/auth", "/auth/login", "/auth/logout", "/auth/token/status").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(tokenAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);

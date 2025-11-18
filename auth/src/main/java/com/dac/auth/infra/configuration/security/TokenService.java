@@ -87,6 +87,10 @@ public class TokenService {
         revokedTokenRepository.save(revoked);
     }
 
+    public boolean isTokenRevoked(String token) {
+        return revokedTokenRepository.existsByToken(token);
+    }
+
     public Date extractExpiration(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(getSigningKey())

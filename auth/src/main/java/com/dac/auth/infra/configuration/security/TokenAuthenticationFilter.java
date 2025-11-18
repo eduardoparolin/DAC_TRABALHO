@@ -35,7 +35,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null) {
             String requestPath = request.getRequestURI();
-            if (requestPath.equals("/auth/logout")) {
+            if (requestPath.equals("/auth/logout") || requestPath.equals("/auth/token/status")) {
                 UsernamePasswordAuthenticationToken usuarioEntity = tokenService.isValid(token);
                 if (usuarioEntity != null) {
                     SecurityContextHolder.getContext().setAuthentication(usuarioEntity);

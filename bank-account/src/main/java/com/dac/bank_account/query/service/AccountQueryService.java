@@ -75,6 +75,17 @@ public class AccountQueryService {
     }
 
     @Transactional("queryTransactionManager")
+    public List<AccountResponseDTO> getTop3AccountsGlobal() {
+        List<AccountView> accounts = accountQueryRepository.findTop3ByOrderByBalanceDesc();
+
+        if (accounts.isEmpty()) {
+            throw new ResourceNotFoundException("No accounts found");
+        }
+
+        return accountQueryMapper.toAccountResponseDTOList(accounts);
+    }
+
+    @Transactional("queryTransactionManager")
     public List<AccountResponseDTO> getAccounts(AccountsRequestDTO request) {
         List<String> accountNumbers = request.getAccountNumbers();
 

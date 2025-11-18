@@ -42,4 +42,10 @@ public class AuthServiceImpl implements AuthService {
         String token = authorizationHeader.replace("Bearer ", "");
         tokenService.invalidateToken(token);
     }
+
+    @Override
+    public boolean isTokenRevoked(String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "").trim();
+        return tokenService.isTokenRevoked(token);
+    }
 }

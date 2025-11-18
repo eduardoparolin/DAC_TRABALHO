@@ -36,7 +36,8 @@ managerRoutes.get("/", zValidator("query", getManagersSchema), async (c) => {
     }
 
     const managers = await response.json();
-    return c.json(managers, 200);
+      console.log('managers', managers);
+      return c.json(managers, 200);
   } catch (error) {
     console.error("Erro ao buscar gerentes:", error);
     return c.json({ error: "Erro interno do servidor" }, 500);

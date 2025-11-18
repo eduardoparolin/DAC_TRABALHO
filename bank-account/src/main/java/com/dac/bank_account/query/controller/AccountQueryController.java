@@ -23,6 +23,12 @@ public class AccountQueryController {
         return ResponseEntity.ok(dto);
     }
 
+    @GetMapping("/{numero}/saldo")
+    public ResponseEntity<BalanceResponseDTO> balanceGet(@PathVariable String numero) {
+        BalanceResponseDTO dto = accountQueryService.getBalance(numero);
+        return ResponseEntity.ok(dto);
+    }
+
     @PostMapping("/{numero}/extrato")
     public ResponseEntity<StatementResponseDTO> statement(@PathVariable String numero) {
         StatementResponseDTO dto = accountQueryService.getStatement(numero);
@@ -44,6 +50,12 @@ public class AccountQueryController {
     @GetMapping("/{idGerente}/gerente/top3")
     public ResponseEntity<List<AccountResponseDTO>> getTop3Accounts(@PathVariable String idGerente) {
         List<AccountResponseDTO> dto = accountQueryService.getTop3Accounts(idGerente);
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/top3")
+    public ResponseEntity<List<AccountResponseDTO>> getTop3AccountsGlobal() {
+        List<AccountResponseDTO> dto = accountQueryService.getTop3AccountsGlobal();
         return ResponseEntity.ok(dto);
     }
 

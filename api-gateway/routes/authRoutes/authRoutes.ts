@@ -90,6 +90,7 @@ authRoutes.post("/logout", authMiddleware, async (c) => {
     const jwtPayload = c.get("jwtPayload") as any;
 
     const email = jwtPayload?.email || jwtPayload?.sub;
+    const authorizationHeader = c.req.header("Authorization");
 
     if (!email) {
       return c.json({ error: "Email não encontrado no token" }, 400);
@@ -99,6 +100,7 @@ authRoutes.post("/logout", authMiddleware, async (c) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
       },
       body: JSON.stringify({ email }),
     });

@@ -6,4 +6,5 @@ import com.dac.auth.dto.auth.AuthResponseDTO;
 public interface AuthService {
     AuthResponseDTO login(AuthRequestDTO dto);
     void logout(String authorizationHeader);
+    boolean isTokenRevoked(String authorizationHeader);
 }

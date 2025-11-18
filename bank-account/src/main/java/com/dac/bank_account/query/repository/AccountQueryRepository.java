@@ -13,6 +13,8 @@ public interface AccountQueryRepository extends JpaRepository<AccountView, Long>
 
     List<AccountView> findTop3ByManagerIdOrderByBalanceDesc(Long managerId);
 
+    List<AccountView> findTop3ByOrderByBalanceDesc();
+
     Optional<AccountView> findByClientId(Long clientId);
 
     List<AccountView> findByAccountNumberIn(List<String> accountNumbers);

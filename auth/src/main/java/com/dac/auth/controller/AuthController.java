@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -21,10 +23,24 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
-        if (authorizationHeader != null) {
-            service.logout(authorizationHeader);
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+            return ResponseEntity.badRequest().build();
         }
+
+        service.logout(authorizationHeader);
+
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/token/status")
+    public ResponseEntity<Map<String, Boolean>> tokenStatus(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        boolean revoked = service.isTokenRevoked(authorizationHeader);
+
+        return ResponseEntity.ok(Map.of("revoked", revoked));
     }
 
 }

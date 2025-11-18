@@ -142,7 +142,6 @@ customerRoutes.get(
                 }
 
                 const managerData = await managerResponse.json();
-                console.log(1, managerData);
                 const managerIdFromToken = managerData.id;
                 const userRoles = jwtPayload?.roles || [];
                 const isAdmin = userRoles.includes("ROLE_ADMINISTRADOR");
@@ -157,7 +156,6 @@ customerRoutes.get(
                 const clientsResponse = await fetchWithAuth(c, url);
 
                 if (!clientsResponse.ok) {
-                    console.log(2, await clientsResponse.text());
                     return c.json(
                         {error: "Erro ao buscar clientes para aprovar"},
                         clientsResponse.status as any
@@ -217,7 +215,6 @@ customerRoutes.get(
                 );
 
                 if (!accountsResponse.ok) {
-                    console.log('accerr', await accountsResponse.text());
                     return c.json(
                         {error: "Erro ao buscar contas"},
                         accountsResponse.status as any
@@ -269,14 +266,10 @@ customerRoutes.get(
             }
 
             case "melhores_clientes": {
-                if (!managerId) {
-                    return c.json({error: "ID do gerente não encontrado"}, 400);
-                }
-
-                const {bankAccountServiceUrl} = getServiceUrls();
+                const {bankAccountServiceUrl, clientServiceUrl} = getServiceUrls();
                 const response = await fetchWithAuth(
                     c,
-                    `${bankAccountServiceUrl}/query/contas/${managerId}/gerente/top3`
+                    `${bankAccountServiceUrl}/query/contas/top3`
                 );
 
                 if (!response.ok) {
@@ -286,8 +279,42 @@ customerRoutes.get(
                     );
                 }
 
-                const data = await response.json();
-                return c.json(data, 200);
+                const accounts = await response.json();
+
+                // Enrich with client data (CPF, nome, cidade, estado)
+                const enrichedAccounts = await Promise.all(
+                    accounts.map(async (account: any) => {
+                        try {
+                            const clientResponse = await fetchWithAuth(
+                                c,
+                                `${clientServiceUrl}/clientes/${account.cliente}`
+                            );
+
+                            if (clientResponse.ok) {
+                                const clientData = await clientResponse.json();
+                                return {
+                                    cpf: clientData.cpf,
+                                    nome: clientData.name,
+                                    cidade: clientData.city,
+                                    estado: clientData.state,
+                                    saldo: account.saldo,
+                                };
+                            }
+                        } catch (error) {
+                            console.error(`Error fetching client ${account.cliente}:`, error);
+                        }
+                        // Fallback if client data cannot be fetched
+                        return {
+                            cpf: null,
+                            nome: null,
+                            cidade: null,
+                            estado: null,
+                            saldo: account.saldo,
+                        };
+                    })
+                );
+
+                return c.json(enrichedAccounts, 200);
             }
 
             default: {
@@ -322,19 +349,16 @@ customerRoutes.get(
             }
 
             const clientData = await clientResponse.json();
-            console.log('Client data:', JSON.stringify(clientData, null, 2));
 
             let accountData = null;
             if (clientData.accountId) {
                 try {
                     const {bankAccountServiceUrl} = getServiceUrls();
                     const accountUrl = `${bankAccountServiceUrl}/query/contas/${clientData.accountId}`;
-                    console.log('Fetching account from:', accountUrl);
                     const accountResponse = await fetchWithAuth(
                         c,
                         accountUrl
                     );
-                    console.log('Account response status:', accountResponse.status);
                     if (accountResponse.ok) {
                         accountData = await accountResponse.json();
                         console.log('Account data:', JSON.stringify(accountData, null, 2));
@@ -363,7 +387,6 @@ customerRoutes.get(
                     console.error("Erro ao buscar dados do gerente:", error);
                 }
             }
-            console.log(444, accountData);
             const composedResponse = {
                 cpf: clientData.cpf,
                 nome: clientData.name,

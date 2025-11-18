@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, Context } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import {
   movementRequestSchema,
@@ -22,7 +22,52 @@ export const accountRoutes = new Hono<{ Variables: AppVariables }>();
 
 const getServiceUrls = () => ({
   bankAccountServiceUrl: process.env.BANK_ACCOUNT_SERVICE_URL,
+  clientServiceUrl: process.env.CLIENT_SERVICE_URL,
 });
+
+const enrichBalanceResponse = async (
+  c: Context<{ Variables: AppVariables }>,
+  balanceData: any
+) => {
+  if (!balanceData) {
+    return balanceData;
+  }
+
+  const { clientServiceUrl } = getServiceUrls();
+
+  if (!clientServiceUrl) {
+    return balanceData;
+  }
+
+  const clientId = balanceData.cliente;
+
+  if (!clientId) {
+    return balanceData;
+  }
+
+  try {
+    const clientResponse = await fetchWithAuth(
+      c,
+      `${clientServiceUrl}/clientes/${clientId}`
+    );
+
+    if (!clientResponse.ok) {
+      return balanceData;
+    }
+
+    const clientData = await clientResponse.json();
+    if (clientData?.cpf) {
+      return {
+        ...balanceData,
+        cliente: clientData.cpf,
+      };
+    }
+  } catch (error) {
+    console.error("Erro ao enriquecer saldo com CPF do cliente:", error);
+  }
+
+  return balanceData;
+};
 
 accountRoutes.post(
   "/:numero/deposito",
@@ -56,7 +101,8 @@ accountRoutes.post(
       }
 
       const data = await response.json();
-      return c.json(data, 200);
+      const enrichedData = await enrichBalanceResponse(c, data);
+      return c.json(enrichedData, 200);
     } catch (error) {
       console.error("Erro ao realizar depósito:", error);
       return c.json({ error: "Erro interno do servidor" }, 500);
@@ -96,7 +142,8 @@ accountRoutes.post(
       }
 
       const data = await response.json();
-      return c.json(data, 200);
+      const enrichedData = await enrichBalanceResponse(c, data);
+      return c.json(enrichedData, 200);
     } catch (error) {
       console.error("Erro ao realizar saque:", error);
       return c.json({ error: "Erro interno do servidor" }, 500);
@@ -137,7 +184,8 @@ accountRoutes.post(
       }
 
       const data = await response.json();
-      return c.json(data, 200);
+      const enrichedData = await enrichBalanceResponse(c, data);
+      return c.json(enrichedData, 200);
     } catch (error) {
       console.error("Erro ao realizar transferência:", error);
       return c.json({ error: "Erro interno do servidor" }, 500);
@@ -174,7 +222,46 @@ accountRoutes.post(
       }
 
       const data = await response.json();
-      return c.json(data, 200);
+      const enrichedData = await enrichBalanceResponse(c, data);
+      return c.json(enrichedData, 200);
+    } catch (error) {
+      console.error("Erro ao consultar saldo:", error);
+      return c.json({ error: "Erro interno do servidor" }, 500);
+    }
+  }
+);
+
+accountRoutes.get(
+  "/:numero/saldo",
+  authMiddleware,
+  zValidator("param", accountNumberParamSchema),
+  async (c) => {
+    const { numero } = c.req.valid("param");
+    const { bankAccountServiceUrl } = getServiceUrls();
+
+    try {
+      const response = await fetchWithAuth(
+        c,
+        `${bankAccountServiceUrl}/query/contas/${numero}/saldo`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return c.json({ error: "Conta não encontrada" }, 404);
+        }
+        const errorData = await response.json();
+        return c.json(
+          { error: "Erro ao consultar saldo", details: errorData },
+          response.status as any
+        );
+      }
+
+      const data = await response.json();
+      const enrichedData = await enrichBalanceResponse(c, data);
+      return c.json(enrichedData, 200);
     } catch (error) {
       console.error("Erro ao consultar saldo:", error);
       return c.json({ error: "Erro interno do servidor" }, 500);
