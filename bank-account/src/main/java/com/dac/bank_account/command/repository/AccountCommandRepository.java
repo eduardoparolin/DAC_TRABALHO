@@ -26,12 +26,21 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
     //Usado na saga de novo gerente para encontrar o gerente que vai doar uma conta
     @Query(
             value = """
-        SELECT managerId
-        FROM account
-        WHERE balance > 0 AND status = 'ATIVA'
-        GROUP BY managerId
-        ORDER BY COUNT(*) DESC, SUM(balance) ASC
-        LIMIT 1
+        with d as (with b as (SELECT managerId, count(*) as c
+                              FROM account
+                              WHERE status = 'ATIVA'
+                              GROUP BY managerId
+                              ORDER BY COUNT(*) DESC)
+                   select b.managerid
+                   from b
+                   where b.c = (select max(b.c) from b))
+        select managerid
+        from account
+        where managerid in (select * from d)
+          and balance > 0
+        group by managerid
+        order by sum(balance) asc
+        limit 1
     """,
             nativeQuery = true
     )

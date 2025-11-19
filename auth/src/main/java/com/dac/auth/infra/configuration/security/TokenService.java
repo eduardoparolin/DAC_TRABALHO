@@ -50,8 +50,8 @@ public class TokenService {
 
         String token = Jwts.builder()
                 .issuer("bantads")
-//                .id(jti)
                 .claim(Claims.ID, jti)
+                .subject(user.getId())
                 .claim(ROLES_CLAIM, List.of("ROLE_" + user.getRole()))
                 .claim("email", user.getEmail())
                 .issuedAt(Date.from(now))

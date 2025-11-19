@@ -163,7 +163,7 @@ public class SagaOrchestratorService {
     if (data != null) {
         context.put("managerId", data.get("managerId"));
         context.put("cpf", data.get("cpf"));
-        context.put("requestedById", data.get("requestedById"));
+        context.put("requestedByEmail", data.get("requestedByEmail"));
         context.put("role", data.get("role"));
     }
 
@@ -180,7 +180,7 @@ public class SagaOrchestratorService {
     managerRequest.put("action", "DELETE_MANAGER_MS");
     managerRequest.put("cpf", context.get("cpf"));
     managerRequest.put("managerId", context.get("managerId"));
-    managerRequest.put("requestedById", context.get("requestedById"));
+    managerRequest.put("requestedByEmail", context.get("requestedByEmail"));
 
     sagaProducer.sendToManagerService(managerRequest);
     return sagaId;
@@ -348,8 +348,8 @@ public class SagaOrchestratorService {
         break;
       case "DELETE":
       case "DELETE_RESULT":
-        log.info("Matched DELETE, completing saga");
-        completeSaga(sagaId, "DELETE MANAGER");
+        log.info("Matched DELETE (auth deletion), completing DELETE_MANAGER saga");
+        completeDeleteManagerSaga(sagaId);
         break;
       case "DELETE_MANAGER":
       case "DELETE_MANAGER_RESULT":
@@ -358,8 +358,18 @@ public class SagaOrchestratorService {
         break;
       case "DELETE_MANAGER_MS":
       case "DELETE_MANAGER_MS_RESULT":
-        log.info("Matched DELETE_MANAGER_MS, proceeding to assignNewManagerToAccounts");
+        log.info("Matched DELETE_MANAGER_MS (validated), proceeding to reassign accounts to manager with fewest accounts");
         assignNewManagerToAccounts(sagaId);
+        break;
+      case "REASSIGN_ACCOUNTS_FOR_DELETED_MANAGER":
+      case "REASSIGN_ACCOUNTS_FOR_DELETED_MANAGER_RESULT":
+        log.info("Matched REASSIGN_ACCOUNTS_FOR_DELETED_MANAGER, proceeding to complete manager deletion");
+        completeManagerDeletion(sagaId);
+        break;
+      case "COMPLETE_MANAGER_DELETION":
+      case "COMPLETE_MANAGER_DELETION_RESULT":
+        log.info("Matched COMPLETE_MANAGER_DELETION, proceeding to delete manager auth");
+        deleteManagerAuth(sagaId);
         break;
       case "UPDATE":
       case "UPDATE_RESULT":
@@ -424,7 +434,7 @@ public class SagaOrchestratorService {
   }
 
   private void deleteManagerAuth(String sagaId) {
-    log.info("Step 3: Delete manager auth {}", sagaId);
+    log.info("Step 4: Delete manager auth for saga {}", sagaId);
     Map<String, Object> context = sagaContexts.get(sagaId);
 
     Saga saga = sagaRepository.findById(sagaId).orElseThrow();
@@ -440,8 +450,11 @@ public class SagaOrchestratorService {
 
     AuthPayloadData data = new AuthPayloadData();
     data.setId(Long.parseLong(String.valueOf(context.get("managerId"))));
-    data.setRole(context.get("role").toString());
-    payload.setRequestedById(Long.parseLong(String.valueOf(context.get("requestedById"))));
+    data.setRole("GERENTE");  // Manager role for auth service
+    data.setEmail((String) context.get("requestedByEmail")); // Optional: for audit trail
+
+    // requestedById is not needed for DELETE operation - it's handled by email validation in manager service
+    payload.setRequestedById(null);
     payload.setData(data);
 
     sagaProducer.sendToAuthService(payload);
@@ -494,23 +507,42 @@ public class SagaOrchestratorService {
   }
 
   private void assignNewManagerToAccounts(String sagaId) {
-    log.info("Step 2: Assigning new manager to accounts");
+    log.info("Step 2: Reassigning accounts from deleted manager to manager with fewest accounts");
     Map<String, Object> context = sagaContexts.get(sagaId);
 
     Saga saga = sagaRepository.findById(sagaId).orElseThrow();
-    SagaStep step = new SagaStep("DELETE_MANAGER_ACCOUNT", "PENDING",
-        "Deleting manager", "REVERT_DELETE_MANAGER_ACCOUNT");
+    SagaStep step = new SagaStep("REASSIGN_ACCOUNTS_FOR_DELETED_MANAGER", "PENDING",
+        "Reassigning accounts to manager with fewest accounts", "REVERT_REASSIGN_ACCOUNTS");
     step.setSaga(saga);
     sagaStepRepository.save(step);
 
-    Map<String, Object> updateManagersToAccount = new HashMap<>();
-    updateManagersToAccount.put("sagaId", sagaId);
-    updateManagersToAccount.put("action", "DELETE_MANAGER");
-    updateManagersToAccount.put("managerId", context.get("managerId"));
-    updateManagersToAccount.put("oldManagerId", context.get("managerId"));
-    updateManagersToAccount.put("newManagerId", context.get("managerIdLessAccounts"));
+    // Send to bank-account service to find manager with fewest accounts and reassign
+    Map<String, Object> reassignRequest = new HashMap<>();
+    reassignRequest.put("sagaId", sagaId);
+    reassignRequest.put("action", "REASSIGN_ACCOUNTS_FOR_DELETED_MANAGER");
+    reassignRequest.put("oldManagerId", context.get("managerId")); // The manager being deleted
 
-    sagaProducer.sendToAccountService(updateManagersToAccount);
+    sagaProducer.sendToAccountService(reassignRequest);
+  }
+
+  private void completeManagerDeletion(String sagaId) {
+    log.info("Step 3: Completing manager deletion from manager service");
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElseThrow();
+    SagaStep step = new SagaStep("COMPLETE_MANAGER_DELETION", "PENDING",
+        "Deleting manager from manager service", "REVERT_COMPLETE_MANAGER_DELETION");
+    step.setSaga(saga);
+    sagaStepRepository.save(step);
+
+    // Now that accounts are reassigned, delete the manager from manager service
+    Map<String, Object> deleteRequest = new HashMap<>();
+    deleteRequest.put("sagaId", sagaId);
+    deleteRequest.put("action", "COMPLETE_MANAGER_DELETION");
+    deleteRequest.put("cpf", context.get("cpf"));
+    deleteRequest.put("managerId", context.get("managerId"));
+
+    sagaProducer.sendToManagerService(deleteRequest);
   }
 
   private void assignManagerStep(String sagaId) {
@@ -1002,6 +1034,36 @@ public class SagaOrchestratorService {
     }
 
     // Do not remove context yet - API Gateway needs it for response
+  }
+
+  private void completeDeleteManagerSaga(String sagaId) {
+    log.info("Completing DELETE_MANAGER saga {}", sagaId);
+
+    Saga saga = sagaRepository.findById(sagaId).orElse(null);
+    if (saga == null) {
+      log.error("Saga not found in database for sagaId: {}. Cannot complete saga.", sagaId);
+      sagaContexts.remove(sagaId);
+      return;
+    }
+
+    saga.setStatus("COMPLETED");
+    sagaRepository.save(saga);
+
+    Map<String, Object> context = sagaContexts.get(sagaId);
+
+    if (context != null) {
+      System.out.println("========================================");
+      System.out.println("MANAGER DELETED - SAGA: " + sagaId);
+      System.out.println("========================================");
+      System.out.println("Manager ID: " + context.get("managerId"));
+      System.out.println("CPF: " + context.get("cpf"));
+      System.out.println("Manager Name: " + context.get("managerName"));
+      System.out.println("New Manager ID (accounts reassigned to): " + context.get("newManagerId"));
+      System.out.println("========================================");
+    }
+
+    // Clean up context
+    sagaContexts.remove(sagaId);
   }
 
   private void completeSaga(String sagaId , String title) {

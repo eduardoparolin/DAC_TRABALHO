@@ -376,9 +376,113 @@ managerRoutes.get("/:cpf", zValidator("param", CPFParamSchema), async (c) => {
 
 managerRoutes.delete(
   "/:cpf",
+  authMiddleware,
   zValidator("param", CPFParamSchema),
   async (c) => {
-    return c.json(getManagerByCPFMock, 200);
+    const roleValidation = checkRole(c, "ROLE_ADMINISTRADOR");
+    if (!roleValidation.authorized) {
+      return roleValidation.response;
+    }
+
+    const { cpf } = c.req.param();
+    const { managerServiceUrl } = getServiceUrls();
+    const orchestratorServiceUrl = process.env.ORCHESTRATOR_SERVICE_URL;
+
+    if (!managerServiceUrl || !orchestratorServiceUrl) {
+      return c.json({ error: "Serviços não configurados" }, 500);
+    }
+
+    try {
+      // Step 1: Check if manager exists
+      const checkResponse = await fetchWithAuth(
+        c,
+        `${managerServiceUrl}/manager/cpf/${cpf}`
+      );
+
+      if (!checkResponse.ok) {
+        return c.json({ error: "Gerente não encontrado" }, 404);
+      }
+
+      const managerData = await checkResponse.json();
+
+      // Get the requesting user's email/CPF from the JWT token
+      const jwtPayload = c.get("jwtPayload") as any;
+      const requestedByEmail = jwtPayload?.email || jwtPayload?.sub;
+
+      if (!requestedByEmail) {
+        return c.json({ error: "Email do usuário não encontrado no token" }, 401);
+      }
+
+      // Step 2: Start DELETE_MANAGER saga orchestration
+      const sagaResponse = await fetchWithAuth(
+        c,
+        `${orchestratorServiceUrl}/api/saga/manager`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            data: {
+              cpf: cpf,
+              managerId: managerData.id,
+              requestedByEmail: requestedByEmail,
+              role: "GERENTE",
+            },
+          }),
+        }
+      );
+
+      if (!sagaResponse.ok) {
+        const error = await sagaResponse.json();
+        return c.json(
+          { error: error.error || "Erro ao deletar gerente" },
+          sagaResponse.status as any
+        );
+      }
+
+      const saga = await sagaResponse.json();
+      const sagaId = saga.sagaId;
+
+      // Step 3: Poll for saga completion (synchronous response)
+      const maxAttempts = 60; // 30 seconds max (500ms * 60)
+      let attempts = 0;
+      let sagaCompleted = false;
+      let sagaResult: any = null;
+
+      while (attempts < maxAttempts && !sagaCompleted) {
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Wait 500ms
+
+        const statusResponse = await fetchWithAuth(
+          c,
+          `${orchestratorServiceUrl}/api/saga/${sagaId}`
+        );
+
+        if (statusResponse.ok) {
+          sagaResult = await statusResponse.json();
+
+          if (sagaResult.status === "COMPLETED") {
+            sagaCompleted = true;
+          } else if (sagaResult.status === "FAILED") {
+            const errorMessage = sagaResult.error || "Saga de deleção falhou";
+            return c.json({ error: errorMessage }, 500);
+          }
+        }
+
+        attempts++;
+      }
+
+      if (!sagaCompleted) {
+        return c.json(
+          { error: "Timeout: A deleção do gerente está demorando" },
+          408
+        );
+      }
+
+      // Step 4: Return success (204 No Content for successful deletion)
+      return c.body(null, 204);
+    } catch (error) {
+      console.error("Erro ao deletar gerente:", error);
+      return c.json({ error: "Erro interno do servidor" }, 500);
+    }
   }
 );
 

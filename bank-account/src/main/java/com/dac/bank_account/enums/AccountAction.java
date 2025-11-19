@@ -5,6 +5,7 @@ public enum AccountAction {
     UPDATE_ACCOUNT_STATUS,
     UPDATE_LIMIT,
     DELETE_MANAGER,
+    REASSIGN_ACCOUNTS_FOR_DELETED_MANAGER,  // Find manager with fewest accounts and reassign all accounts
     NEW_MANAGER,
     FIND_ACCOUNT_FOR_NEW_MANAGER,
     ASSIGN_ACCOUNT_TO_NEW_MANAGER,

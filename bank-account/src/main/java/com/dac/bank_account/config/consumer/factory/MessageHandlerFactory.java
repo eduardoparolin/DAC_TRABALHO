@@ -18,6 +18,7 @@ public class MessageHandlerFactory {
             UpdateStatusHandler updateStatusHandler,
             UpdateLimitHandler updateLimitHandler,
             DeleteManagerHandler deleteManagerHandler,
+            ReassignAccountsForDeletedManagerHandler reassignAccountsForDeletedManagerHandler,
             NewManagerHandler newManagerHandler,
             AssignManagerHandler assignManagerHandler
     ){
@@ -25,6 +26,7 @@ public class MessageHandlerFactory {
         strategies.put(AccountAction.UPDATE_ACCOUNT_STATUS, updateStatusHandler);
         strategies.put(AccountAction.UPDATE_LIMIT, updateLimitHandler);
         strategies.put(AccountAction.DELETE_MANAGER, deleteManagerHandler);
+        strategies.put(AccountAction.REASSIGN_ACCOUNTS_FOR_DELETED_MANAGER, reassignAccountsForDeletedManagerHandler);
         strategies.put(AccountAction.NEW_MANAGER, newManagerHandler);
         strategies.put(AccountAction.FIND_ACCOUNT_FOR_NEW_MANAGER, newManagerHandler);
         strategies.put(AccountAction.ASSIGN_ACCOUNT_TO_NEW_MANAGER, newManagerHandler);

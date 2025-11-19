@@ -53,6 +53,8 @@ public class ManagerSagaConsumer {
                 handleAssignManager(sagaId, message);
             } else if ("DELETE_MANAGER_MS".equals(action)) {
                 handleDeleteManager(sagaId, message);
+            } else if ("COMPLETE_MANAGER_DELETION".equals(action)) {
+                handleCompleteManagerDeletion(sagaId, message);
             } else {
                 log.warn("Unknown action: {}", action);
                 managerSagaProducer.sendFailureResult(sagaId, action, "Unknown action: " + action);
@@ -111,33 +113,59 @@ public class ManagerSagaConsumer {
       log.info("Delete manager for saga {}", sagaId);
 
       String cpf = (String) message.get("cpf");
-      Long requestedById = Long.parseLong(String.valueOf(message.get("requestedById")));
+      String requestedByEmail = (String) message.get("requestedByEmail");
 
       Manager deletedManager = managerService.findByCpf(cpf);
 
-      if (deletedManager.getId().equals(requestedById)) {
-        throw new Exception("Manager não pode deletar a si mesmo");
+      // Validation 1: Manager cannot delete themselves
+      // Compare by email since auth service and manager service use different ID systems
+      if (requestedByEmail != null && deletedManager.getEmail().equalsIgnoreCase(requestedByEmail)) {
+        throw new Exception("Manager cannot delete themselves");
       }
 
-      // Get manager with least accounts (should query bank-account service)
-      // TODO: Query bank-account service for actual manager with least accounts
-      List<Long> allManagerIds = managerService.getAllManagerIds();
-      Long managerIdLessAccounts = allManagerIds.stream()
-              .filter(id -> !id.equals(deletedManager.getId()))
-              .findFirst()
-              .orElseThrow(() -> new Exception("No manager available to reassign accounts"));
+      // Validation 2: Cannot delete the last manager in the system
+      Long totalManagers = managerService.countManagers();
+      if (totalManagers <= 1) {
+        throw new Exception("Cannot delete the last manager in the system. At least one manager must remain.");
+      }
 
-      log.info("Manager with least accounts: {}", managerIdLessAccounts);
+      log.info("Deleting manager ID {} (CPF: {}). Total managers before deletion: {}",
+               deletedManager.getId(), cpf, totalManagers);
 
-      // Delete the manager
-      managerService.deleteByCpf(cpf);
+      // Don't delete yet - just mark for deletion and send to orchestrator
+      // The orchestrator will coordinate with bank-account service to:
+      // 1. Find the manager with fewest accounts (excluding this one)
+      // 2. Reassign all accounts from this manager to that manager
+      // 3. Then complete the deletion
 
       Map<String, Object> responseResult = new HashMap<>();
       responseResult.put("cpf", cpf);
-      responseResult.put("managerIdLessAccounts", managerIdLessAccounts);
       responseResult.put("managerId", deletedManager.getId());
+      responseResult.put("managerName", deletedManager.getName());
 
       managerSagaProducer.sendSuccessResult(sagaId, "DELETE_MANAGER_MS", responseResult);
+    }
+
+    private void handleCompleteManagerDeletion(String sagaId, Map<String, Object> message) {
+      log.info("Completing manager deletion for saga {}", sagaId);
+
+      try {
+        String cpf = (String) message.get("cpf");
+
+        // Now actually delete the manager from the database
+        managerService.deleteByCpf(cpf);
+
+        log.info("Successfully deleted manager with CPF: {}", cpf);
+
+        Map<String, Object> responseResult = new HashMap<>();
+        responseResult.put("cpf", cpf);
+        responseResult.put("deleted", true);
+
+        managerSagaProducer.sendSuccessResult(sagaId, "COMPLETE_MANAGER_DELETION", responseResult);
+      } catch (Exception e) {
+        log.error("Error completing manager deletion for saga {}", sagaId, e);
+        managerSagaProducer.sendFailureResult(sagaId, "COMPLETE_MANAGER_DELETION", e.getMessage());
+      }
     }
 
 
