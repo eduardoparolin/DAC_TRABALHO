@@ -2,6 +2,7 @@ import { effect, inject, Injectable, signal } from '@angular/core';
 import { User, UserJson } from './user.model';
 import { Router } from '@angular/router';
 import { LoginResponse } from '../login/login.types';
+import {ClientAccountService} from '../utils/client-account.service';
 
 export interface UserWithBalance extends User {
   balance: number;

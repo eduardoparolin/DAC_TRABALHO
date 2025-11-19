@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { GetManagersResponse } from './manager.types';
+import {GetManagersResponse, GetManagersResponse2} from './manager.types';
 import { Manager } from './manager.model';
 
 @Injectable({
@@ -16,9 +16,9 @@ export class ManagersService {
 
   async getAllManagers() {
     const managersResponse = await lastValueFrom(
-      this.http.get<GetManagersResponse[]>(`${environment.baseUrl}/gerentes`)
+      this.http.get<GetManagersResponse2[]>(`${environment.baseUrl}/gerentes`)
     );
-    const managers = managersResponse.map((m) => Manager.fromJson(m));
+    const managers = managersResponse.map((m) => Manager.fromManagerJson(m));
     this.managers.set(managers);
     return managers;
   }

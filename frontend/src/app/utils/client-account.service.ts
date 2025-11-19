@@ -41,6 +41,8 @@ export class ClientAccountService {
         )
       );
       this.account.set(account);
+      console.log(this.account());
+
       return account;
     } finally {
       this.loading.set(false);

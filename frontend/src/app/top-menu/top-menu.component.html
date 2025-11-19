@@ -17,10 +17,10 @@
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'sacar'">Saque</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'transferir'">Transferência</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'extrato'">Extrato</div>
-      @if ((sessionService.meClient()?.balance ?? 0) < 0) {
-        <div class="balance negative">Saldo: {{ sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2' }}</div>
+      @if ((clientAccountService.account()?.saldo ?? 0) < 0) {
+        <div class="balance negative">Saldo: {{ clientAccountService.account()?.saldo | currency:'BRL':'symbol':'1.2-2' }}</div>
       } @else {
-        <div class="balance">Saldo: {{ sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2' }}</div>
+        <div class="balance">Saldo: {{ clientAccountService.account()?.saldo | currency:'BRL':'symbol':'1.2-2' }}</div>
       }
     }
   </div>

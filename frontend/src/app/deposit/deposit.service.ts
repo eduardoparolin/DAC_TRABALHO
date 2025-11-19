@@ -34,7 +34,7 @@ export class DepositService {
       const accountNumber = await this.accountService.getAccountNumber();
       await lastValueFrom(
         this.http.post(
-          `${environment.baseUrl}/contas/${accountNumber}/deposito`,
+          `${environment.baseUrl}/contas/${accountNumber}/depositar`,
           { valor: amount }
         )
       );
