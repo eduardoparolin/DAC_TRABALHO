@@ -634,7 +634,9 @@ customerRoutes.post(
             );
 
             if (cpfCheckResponse.ok) {
-                const {clienteExiste} = await cpfCheckResponse.json();
+                const body = await cpfCheckResponse.json();
+                console.log(cpfCheckResponse.status, clientData.cpf, body);
+                const {clienteExiste} = body;
                 if (clienteExiste) {
                     return c.json({error: "CPF já cadastrado"}, 409);
                 }
@@ -669,6 +671,7 @@ customerRoutes.post(
             }
 
             const data = await response.json();
+            await new Promise(resolve => setTimeout(resolve, 1000));//gambi
 
             return c.json(
                 {

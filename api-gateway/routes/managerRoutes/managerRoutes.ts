@@ -479,10 +479,75 @@ managerRoutes.delete(
 );
 
 managerRoutes.put(
-  "/",
+  "/:cpf",
+  authMiddleware,
+  zValidator("param", CPFParamSchema),
   zValidator("json", updateManagerSchemaInput),
   async (c) => {
-    return c.json(createManagerMock, 200);
+    // Authorization check - only admin can update managers
+    const roleValidation = checkRole(c, "ROLE_ADMINISTRADOR");
+    if (!roleValidation.authorized) {
+      return roleValidation.response;
+    }
+
+    const cpf = c.req.param("cpf");
+    const updateData = c.req.valid("json");
+    const { managerServiceUrl } = getServiceUrls();
+
+    if (!managerServiceUrl) {
+      return c.json({ error: "Serviço de gerente não configurado" }, 500);
+    }
+
+    try {
+      // Check if manager exists
+      const checkResponse = await fetchWithAuth(
+        c,
+        `${managerServiceUrl}/manager/cpf/${cpf}`
+      );
+
+      if (!checkResponse.ok) {
+        return c.json({ error: "Gerente não encontrado" }, 404);
+      }
+
+      // Call manager service to update
+      const response = await fetchWithAuth(
+        c,
+        `${managerServiceUrl}/manager/${cpf}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: updateData.nome,
+            email: updateData.email,
+            type: updateData.tipo,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        return c.json(
+          { error: error.error || "Erro ao atualizar gerente" },
+          response.status as any
+        );
+      }
+
+      const updatedManager = await response.json();
+
+      // Map response to Portuguese field names
+      return c.json(
+        {
+          cpf: updatedManager.cpf,
+          nome: updatedManager.name,
+          email: updatedManager.email,
+          tipo: updatedManager.type,
+        },
+        200
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar gerente:", error);
+      return c.json({ error: "Erro interno do servidor" }, 500);
+    }
   }
 );
 

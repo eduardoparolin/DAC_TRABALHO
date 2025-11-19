@@ -20,4 +20,5 @@ export const updateManagerSchemaInput = z.object({
   nome: z.string().optional(),
   email: z.email("Email inválido").min(1, "Email é obrigatório").optional(),
   senha: z.string().optional(),
+  tipo: z.string().optional(),
 });
