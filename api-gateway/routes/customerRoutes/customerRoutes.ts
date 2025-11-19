@@ -144,6 +144,7 @@ customerRoutes.get(
                     salario: client.salary,
                     contaId: client.accountId,
                     gerenteId: account?.gerente ?? null, // Get managerId from account
+                    conta: account
                 };
             });
 

@@ -7,13 +7,11 @@ import {SessionService} from '../session/session.service';
 import {ErrorHandlerService} from '../utils/error-handler.service';
 
 type TopAccountResponse = {
-  cliente: string;
-  numero: string;
+  cpf: string;
+  cidade: string;
+  estado: string;
   saldo: number;
-  limite: number;
-  gerente: string;
-  criacao: string;
-  status: string;
+  nome: string;
 };
 
 @Injectable({
@@ -49,20 +47,20 @@ export class ClientLeaderboardService {
         const clientJson = {
           tipo: 'CLIENTE',
           usuario: {
-            id: Number(account.cliente),
-            cpf: account.cliente,
-            name: `Cliente ${account.cliente}`,
+            id: 0,
+            cpf: account.cpf,
+            name: account.nome,
             phone: '',
             email: '',
           },
           saldo: account.saldo ?? 0,
-          limite: account.limite ?? 0,
+          limite: 0,
           salario: 0,
-          cidade: '',
-          estado: '',
+          cidade: account.cidade,
+          estado: account.estado,
           telefone: '',
-          numero_conta: account.numero ?? '',
-          gerente: account.gerente,
+          numero_conta: '',
+          gerente: '',
           gerente_nome: '',
         };
 

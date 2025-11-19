@@ -27,7 +27,7 @@ export const routes: Routes = [
   {
     path: 'clientes',
     component: ClientsComponent,
-    canActivate: [authGuard, adminGuard]
+    canActivate: [authGuard, managerGuard]
   },
   {
     path: 'dashboard-admin',

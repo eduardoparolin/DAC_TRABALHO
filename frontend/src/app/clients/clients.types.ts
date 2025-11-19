@@ -22,6 +22,8 @@ export type ClientReportResponse = {
   email: string;
   phone?: string;
   salary: number;
+  salario: number;
+  contaId: string;
   accountId?: number;
   status?: string;
   managerId?: number;

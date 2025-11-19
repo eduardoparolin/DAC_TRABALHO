@@ -5,6 +5,7 @@ import {lastValueFrom} from 'rxjs';
 import {ClientDetailsResponse, ClientReportResponse} from './clients.types';
 import {Client, ClientJson} from './client.model';
 import {ErrorHandlerService} from '../utils/error-handler.service';
+import {SessionService} from '../session/session.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,13 +16,17 @@ export class ClientsService {
   http = inject(HttpClient);
   errorHandler = inject(ErrorHandlerService);
   loading = signal(false);
+  sessionService = inject(SessionService);
   constructor() { }
 
   getClients(
-    filtro: 'para_aprovar' | 'adm_relatorio_clientes' | 'melhores_clientes',
+    filtro: 'para_aprovar' | 'adm_relatorio_clientes' | 'melhores_clientes' | null,
     options: { managerId?: string } = {}
   ) {
-    const params: Record<string, string> = { filtro };
+    const params: Record<string, string> = {};
+    if (filtro) {
+      params['filtro'] = filtro;
+    }
     if (options.managerId) {
       params['managerId'] = options.managerId;
     }
@@ -39,7 +44,7 @@ export class ClientsService {
   async getAllClients() {
     this.loading.set(true);
     try {
-      const clientsResponse = await this.getClients('adm_relatorio_clientes');
+      const clientsResponse = await this.getClients(null, {managerId: String(this.sessionService.user()?.id)});
       const clients = clientsResponse.map(client => this.mapClient(client));
       this.clients.set(clients);
       this.filteredClients.set(clients);
@@ -76,11 +81,11 @@ export class ClientsService {
       },
       saldo: account?.saldo ?? 0,
       limite: account?.limite ?? 0,
-      salario: Number(client.salary) ?? 0,
+      salario: Number(client.salario) ?? 0,
       cidade: client.city,
       estado: client.state,
       telefone: client.phone,
-      numero_conta: account?.numero,
+      numero_conta: account?.numero ?? client.contaId,
       gerente: manager?.cpf,
       gerente_nome: manager?.name,
     };
