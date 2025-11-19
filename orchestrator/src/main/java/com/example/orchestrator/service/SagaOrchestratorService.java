@@ -163,8 +163,6 @@ public class SagaOrchestratorService {
     if (data != null) {
         context.put("managerId", data.get("managerId"));
         context.put("cpf", data.get("cpf"));
-        context.put("requestedByEmail", data.get("requestedByEmail"));
-        context.put("role", data.get("role"));
     }
 
     sagaContexts.put(sagaId, context);
@@ -180,7 +178,6 @@ public class SagaOrchestratorService {
     managerRequest.put("action", "DELETE_MANAGER_MS");
     managerRequest.put("cpf", context.get("cpf"));
     managerRequest.put("managerId", context.get("managerId"));
-    managerRequest.put("requestedByEmail", context.get("requestedByEmail"));
 
     sagaProducer.sendToManagerService(managerRequest);
     return sagaId;
@@ -453,8 +450,12 @@ public class SagaOrchestratorService {
     data.setRole("GERENTE");  // Manager role for auth service
     data.setEmail((String) context.get("requestedByEmail")); // Optional: for audit trail
 
-    // requestedById is not needed for DELETE operation - it's handled by email validation in manager service
-    payload.setRequestedById(null);
+    Long requestedById = extractLongValue(context.get("requestedById"));
+    if (requestedById == null) {
+      log.warn("RequestedById missing in saga context for {} - auth deletion will fail if requester validation is required", sagaId);
+    }
+
+    payload.setRequestedById(requestedById);
     payload.setData(data);
 
     sagaProducer.sendToAuthService(payload);
@@ -1215,6 +1216,23 @@ public class SagaOrchestratorService {
     event.setClientId((Long) context.get("clientId"));
     event.setIsApproved(false);
     sagaProducer.sendToAccountService(event);
+  }
+
+  private Long extractLongValue(Object value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value instanceof Number) {
+      return ((Number) value).longValue();
+    }
+
+    try {
+      return Long.parseLong(String.valueOf(value));
+    } catch (NumberFormatException ex) {
+      log.warn("Unable to parse numeric value from '{}'", value);
+      return null;
+    }
   }
 
   private String convertMapToString(Map<String, Object> data) {

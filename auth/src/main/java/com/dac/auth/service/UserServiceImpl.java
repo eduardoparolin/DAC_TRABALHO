@@ -105,9 +105,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id, Long requesterId, Role role) {
         log.info("Excluindo usuario");
-        if (requesterId.equals(id)) {
-            throw new ApiException("Usuário não pode deletar a si mesmo", HttpStatus.BAD_REQUEST);
-        }
+//        if (requesterId == null) {
+//            throw new ApiException("Identificador do solicitante é obrigatório.", HttpStatus.BAD_REQUEST);
+//        }
+//
+//        if (requesterId.equals(id)) {
+//            throw new ApiException("Usuário não pode deletar a si mesmo", HttpStatus.BAD_REQUEST);
+//        }
 
         User user = findById(id, role);
         repository.delete(user);

@@ -136,7 +136,8 @@ const buildManagersDashboard = async (
               if (!account) return false;
 
               // Get managerId from the account, not from the client
-              const accountManagerId = account.gerente !== null && account.gerente !== undefined
+                console.log(account.gerente, accountNumber);
+                const accountManagerId = account.gerente !== null && account.gerente !== undefined
                 ? Number(account.gerente)
                 : null;
 
@@ -405,13 +406,7 @@ managerRoutes.delete(
 
       const managerData = await checkResponse.json();
 
-      // Get the requesting user's email/CPF from the JWT token
       const jwtPayload = c.get("jwtPayload") as any;
-      const requestedByEmail = jwtPayload?.email || jwtPayload?.sub;
-
-      if (!requestedByEmail) {
-        return c.json({ error: "Email do usuário não encontrado no token" }, 401);
-      }
 
       // Step 2: Start DELETE_MANAGER saga orchestration
       const sagaResponse = await fetchWithAuth(
@@ -424,8 +419,6 @@ managerRoutes.delete(
             data: {
               cpf: cpf,
               managerId: managerData.id,
-              requestedByEmail: requestedByEmail,
-              role: "GERENTE",
             },
           }),
         }
@@ -477,8 +470,7 @@ managerRoutes.delete(
         );
       }
 
-      // Step 4: Return success (204 No Content for successful deletion)
-      return c.body(null, 204);
+      return c.json({}, 200);
     } catch (error) {
       console.error("Erro ao deletar gerente:", error);
       return c.json({ error: "Erro interno do servidor" }, 500);

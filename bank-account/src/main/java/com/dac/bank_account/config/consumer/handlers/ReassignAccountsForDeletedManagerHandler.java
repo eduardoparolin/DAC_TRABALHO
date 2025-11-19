@@ -1,7 +1,9 @@
 package com.dac.bank_account.config.consumer.handlers;
 
+import com.dac.bank_account.command.dto.AccountCommandMapper;
+import com.dac.bank_account.command.events.EventPublisher;
+import com.dac.bank_account.command.events.cqrs.RemovedManagerEvent;
 import com.dac.bank_account.command.repository.AccountCommandRepository;
-import com.dac.bank_account.command.service.AccountCommandService;
 import com.dac.bank_account.config.consumer.AccountSagaEvent;
 import com.dac.bank_account.config.consumer.handlers.interfaces.AccountMessageHandler;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ import java.util.List;
 public class ReassignAccountsForDeletedManagerHandler implements AccountMessageHandler {
 
     private final AccountCommandRepository accountCommandRepository;
+    private final EventPublisher eventPublisher;
+    private final AccountCommandMapper accountMapper;
 
     @Override
     @Transactional("commandTransactionManager")
@@ -66,6 +70,12 @@ public class ReassignAccountsForDeletedManagerHandler implements AccountMessageH
 
         log.info("Successfully reassigned {} accounts from manager {} to manager {}",
                  updatedCount, deletedManagerId, targetManagerId);
+
+        // Publish CQRS event to sync the query database
+        RemovedManagerEvent removedManagerEvent = accountMapper.toRemovedManagerEvent(deletedManagerId, targetManagerId);
+        eventPublisher.publishEvent("bank.account", removedManagerEvent);
+
+        log.info("Published RemovedManagerEvent for CQRS synchronization");
 
         // Store the target manager ID in the event for the saga to use
         event.setNewManagerId(targetManagerId);
