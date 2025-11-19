@@ -19,6 +19,7 @@ export type ClientReportResponse = {
   id: number;
   cpf: string;
   name: string;
+  nome?: string;
   email: string;
   phone?: string;
   salary: number;
@@ -28,12 +29,17 @@ export type ClientReportResponse = {
   status?: string;
   managerId?: number;
   street?: string;
+  gerenteId?: string;
   complement?: string;
   zipCode?: string;
   city?: string;
   state?: string;
   conta?: AccountInfoResponse | null;
   gerente?: ManagerInfoResponse | null;
+  myManager?: {
+    cpf?: string;
+    name?: string;
+  };
 };
 
 export type ClientDetailsResponse = {

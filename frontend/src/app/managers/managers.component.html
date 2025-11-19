@@ -29,7 +29,9 @@
     </th>
     <td mat-cell *matCellDef="let element">
       <mat-icon (click)="editManager(element)">edit</mat-icon>
-      <mat-icon (click)="deleteManager(1)">delete</mat-icon>
+      @if (this.service.managers().length > 1) {
+        <mat-icon (click)="deleteManager(element.cpf)">delete</mat-icon>
+      }
     </td>
   </ng-container>
 

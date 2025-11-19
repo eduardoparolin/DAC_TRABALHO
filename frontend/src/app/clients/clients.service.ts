@@ -41,10 +41,10 @@ export class ClientsService {
     );
   }
 
-  async getAllClients() {
+  async getAllClients(skipMangerId = false) {
     this.loading.set(true);
     try {
-      const clientsResponse = await this.getClients(null, {managerId: String(this.sessionService.user()?.id)});
+      const clientsResponse = await this.getClients(null, {managerId: skipMangerId ? undefined : String(this.sessionService.user()?.id)});
       const clients = clientsResponse.map(client => this.mapClient(client));
       this.clients.set(clients);
       this.filteredClients.set(clients);
@@ -75,7 +75,7 @@ export class ClientsService {
       usuario: {
         id: client.id,
         cpf: client.cpf,
-        name: client.name,
+        name: client.name ?? client.nome ?? '',
         phone: client.phone ?? '',
         email: client.email,
       },
@@ -86,8 +86,8 @@ export class ClientsService {
       estado: client.state,
       telefone: client.phone,
       numero_conta: account?.numero ?? client.contaId,
-      gerente: manager?.cpf,
-      gerente_nome: manager?.name,
+      gerente: client.myManager?.cpf ?? manager?.cpf ?? client.gerenteId,
+      gerente_nome: client.myManager?.name ?? manager?.name,
     };
 
     return Client.fromJson(clientJson);

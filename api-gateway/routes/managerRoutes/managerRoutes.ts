@@ -6,10 +6,6 @@ import {
   getManagersSchema,
   updateManagerSchemaInput,
 } from "./managerRoutesSchema";
-import {
-  createManagerMock,
-  getManagerByCPFMock,
-} from "./managerRoutes.mock";
 import { AppVariables } from "../../types/context";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 import { authMiddleware } from "../../middleware/auth";

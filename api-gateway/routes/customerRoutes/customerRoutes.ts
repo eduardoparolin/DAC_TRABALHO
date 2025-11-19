@@ -67,7 +67,7 @@ customerRoutes.get(
                 return roleValidation.response;
             }
 
-            const {clientServiceUrl} = getServiceUrls();
+            const {clientServiceUrl, managerServiceUrl} = getServiceUrls();
 
             // Build URL - if managerId is provided, filter by manager, otherwise get all
             let url: string;
@@ -134,9 +134,25 @@ customerRoutes.get(
                     });
                 }
             }
+            const managersResponse = await fetchWithAuth(
+                c,
+                `${managerServiceUrl}/manager/gerentes`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({managerIds: [...accountsMap.values()].map((a) => a.gerente)}),
+                }
+            );
+            let managers = [];
+            if (managersResponse.ok) {
+                managers = await managersResponse.json();
+            }
 
             const clientsMapped = clients.map((client: any) => {
                 const account = client.accountId ? accountsMap.get(String(client.accountId)) : null;
+                const myManager = managers.find(((m: any) => String(m.id) === String(account.gerente)))
                 return {
                     cpf: client.cpf,
                     nome: client.name,
@@ -144,7 +160,8 @@ customerRoutes.get(
                     salario: client.salary,
                     contaId: client.accountId,
                     gerenteId: account?.gerente ?? null, // Get managerId from account
-                    conta: account
+                    conta: account,
+                    myManager
                 };
             });
 

@@ -26,10 +26,13 @@ export class ManagersComponent implements OnInit {
     this.service.getAllManagers();
   }
 
-  deleteManager(id: number) {
+  deleteManager(cpf: string) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent, { width: '250px' });
-    dialogRef.afterClosed().subscribe(() => {
-      this._snackBar.open('Gerente removido com sucesso');
+    dialogRef.afterClosed().subscribe(async (value) => {
+      if (value) {
+        await this.service.removeManager(cpf);
+        this._snackBar.open('Gerente removido com sucesso');
+      }
     });
   }
 

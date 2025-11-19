@@ -19,7 +19,15 @@ export class ManagersService {
       this.http.get<GetManagersResponse2[]>(`${environment.baseUrl}/gerentes`)
     );
     const managers = managersResponse.map((m) => Manager.fromManagerJson(m));
+    managers.sort((a, b) => a.name.localeCompare(b.name));
     this.managers.set(managers);
     return managers;
+  }
+
+  async removeManager(cpf: string) {
+    const managersResponse = await lastValueFrom(
+      this.http.delete(`${environment.baseUrl}/gerentes/${cpf}`)
+    );
+    await this.getAllManagers();
   }
 }

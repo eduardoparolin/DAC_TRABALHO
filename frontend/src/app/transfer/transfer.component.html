@@ -1,4 +1,7 @@
 <div class="transfer-form">
+  <div>Valor em conta: {{ balance | currency: 'BRL' }}</div>
+  <div>Limite: {{ this.accountService.account()?.limite | currency: 'BRL' }}</div>
+  <div>Valor máximo a ser transferido: {{ (this.accountService.account()?.limite ?? 0) + balance | currency: 'BRL' }}</div>
   <mat-form-field>
     <mat-label>Valor a transferir</mat-label>
     <input

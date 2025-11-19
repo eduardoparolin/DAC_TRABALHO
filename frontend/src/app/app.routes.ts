@@ -14,6 +14,7 @@ import {AccountStatementComponent} from './account-statement/account-statement.c
 import {SignupComponent} from './signup/signup.component';
 import {authGuard} from './guards/auth.guard';
 import {adminGuard, adminOrManagerGuard, clientGuard, managerGuard} from './guards/role.guard';
+import {ClientsAdminComponent} from './clients-admin/clients-admin.component';
 
 export const routes: Routes = [
   {
@@ -28,6 +29,11 @@ export const routes: Routes = [
     path: 'clientes',
     component: ClientsComponent,
     canActivate: [authGuard, managerGuard]
+  },
+  {
+    path: 'todos-clientes',
+    component: ClientsAdminComponent,
+    canActivate: [authGuard, adminGuard]
   },
   {
     path: 'dashboard-admin',
