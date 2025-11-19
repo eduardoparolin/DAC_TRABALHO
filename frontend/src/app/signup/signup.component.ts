@@ -54,10 +54,8 @@ export class SignupComponent implements OnInit, OnDestroy {
     CustomValidators.phone()
   ]);
   ruaFormControl = new FormControl('', [Validators.required]);
-  bairroFormControl = new FormControl('', [Validators.required]);
   cidadeFormControl = new FormControl('', [Validators.required]);
   estadoFormControl = new FormControl('', [Validators.required]);
-  numeroFormControl = new FormControl('', [Validators.required]);
   complementoFormControl = new FormControl('', []);
   cepFormControl = new FormControl('', [
     Validators.required,
@@ -80,7 +78,6 @@ export class SignupComponent implements OnInit, OnDestroy {
         this.service.fetchAddress(this.cepFormControl.value!).then((address) => {
           if (address) {
             this.ruaFormControl.setValue(address.street);
-            this.bairroFormControl.setValue(address.neighborhood);
             this.cidadeFormControl.setValue(address.city);
             this.estadoFormControl.setValue(address.state);
           }
@@ -99,10 +96,8 @@ export class SignupComponent implements OnInit, OnDestroy {
       this.cpfFormControl,
       this.phoneFormControl,
       this.ruaFormControl,
-      this.bairroFormControl,
       this.cidadeFormControl,
       this.estadoFormControl,
-      this.numeroFormControl,
       this.cepFormControl,
       this.nameFormControl,
       this.salaryFormControl,
@@ -126,14 +121,7 @@ export class SignupComponent implements OnInit, OnDestroy {
       const cidade = this.cidadeFormControl.value!.trim();
       const estado = this.estadoFormControl.value!.trim().toUpperCase();
       const rua = this.ruaFormControl.value!.trim();
-      const numero = this.numeroFormControl.value!.trim();
-      const bairro = this.bairroFormControl.value?.trim();
       const complemento = this.complementoFormControl.value?.trim();
-
-      let endereco = `${rua}, ${numero}`;
-      if (bairro) {
-        endereco += ` - ${bairro}`;
-      }
 
       const signupData = {
         cpf,
@@ -141,7 +129,7 @@ export class SignupComponent implements OnInit, OnDestroy {
         email: this.emailFormControl.value!.trim(),
         telefone,
         salario,
-        endereco,
+        endereco: rua,
         complemento: complemento || undefined,
         CEP,
         cidade,

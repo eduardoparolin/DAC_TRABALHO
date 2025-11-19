@@ -1,14 +1,19 @@
 <div class="profile-title">Perfil</div>
 @if (!editing()) {
   <div class="profile">
-    <div>Nome: {{sessionService.meClient()?.name}}</div>
-    <div>CPF: {{sessionService.meClient()?.cpf}}</div>
-    <div>E-mail: {{sessionService.meClient()?.email}}</div>
-    <div>Telefone: {{sessionService.meClient()?.phone}}</div>
-    <div>Nome do Gerente: {{'Josias'}}</div>
-    <div>Salário: {{0 | currency:'BRL':'symbol':'1.2-2'}}</div>
-    <div>Saldo: {{sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2'}}</div>
-    <div>Limite: {{0 | currency:'BRL':'symbol':'1.2-2'}}</div>
+    <div>Nome: {{ sessionService.meClient()?.name }}</div>
+    <div>CPF: {{ sessionService.meClient()?.cpf }}</div>
+    <div>E-mail: {{ sessionService.meClient()?.email }}</div>
+    <div>Telefone: {{ sessionService.meClient()?.phone }}</div>
+    <div>CEP: {{ sessionService.meClient()?.zipCode }}</div>
+    <div>Rua: {{ sessionService.meClient()?.street }}</div>
+    <div>Complemento: {{ sessionService.meClient()?.complement }}</div>
+    <div>Cidade: {{ sessionService.meClient()?.city }}</div>
+    <div>Estado: {{ sessionService.meClient()?.state }}</div>
+    <div>Nome do Gerente: {{ 'Josias' }}</div>
+    <div>Salário: {{ 0 | currency:'BRL':'symbol':'1.2-2' }}</div>
+    <div>Saldo: {{ sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2' }}</div>
+    <div>Limite: {{ 0 | currency:'BRL':'symbol':'1.2-2' }}</div>
     <button mat-raised-button (click)="this.setEditing()">Editar</button>
   </div>
 }
@@ -30,6 +35,46 @@
     <mat-form-field>
       <mat-label>Salário</mat-label>
       <input matInput [formControl]="salaryControl" placeholder="Ex. 10000">
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>CEP</mat-label>
+      <input type="text" mask="99999-999" matInput [formControl]="cepFormControl"
+             placeholder="Ex. 99999-999">
+      @if (cepFormControl.hasError('required')) {
+        <mat-error>CEP é <strong>obrigatório</strong></mat-error>
+      }
+      @if (signupService.cepLoading()) {
+        <mat-spinner [diameter]="18" matSuffix style="margin-right: 10px"></mat-spinner>
+      }
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Rua</mat-label>
+      <input type="text" matInput [formControl]="ruaFormControl"
+             placeholder="Ex. Rua das ruas">
+      @if (ruaFormControl.hasError('required')) {
+        <mat-error>Rua é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Cidade</mat-label>
+      <input type="text" matInput [formControl]="cidadeFormControl"
+             placeholder="Ex. Curitiba">
+      @if (cidadeFormControl.hasError('required')) {
+        <mat-error>Cidade é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Estado</mat-label>
+      <input type="text" matInput [formControl]="estadoFormControl"
+             placeholder="Ex. Paraná">
+      @if (estadoFormControl.hasError('required')) {
+        <mat-error>Estado é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Complemento</mat-label>
+      <input type="text" matInput [formControl]="complementoFormControl"
+             placeholder="Ex. Casa 10">
     </mat-form-field>
     <button mat-raised-button (click)="handleEdit()">Salvar</button>
   </div>

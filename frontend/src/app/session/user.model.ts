@@ -11,6 +11,11 @@ interface UserJson {
     cpf: string;
     phone: string;
     email: string;
+    zipCode?: string;
+    state?: string;
+    street?: string;
+    city?: string;
+    complement?: string;
   };
   tipo: UserType | string;
 }
@@ -22,6 +27,11 @@ class User {
   phone: string;
   cpf: string;
   type: UserType;
+  zipCode?: string;
+  state?: string;
+  street?: string;
+  city?: string;
+  complement?: string;
 
   constructor(
     id: number,
@@ -48,7 +58,7 @@ class User {
       typeof json.tipo === 'string'
         ? UserType[json.tipo as keyof typeof UserType]
         : json.tipo;
-    return new User(
+    const myUser = new User(
       id,
       json.usuario.name,
       json.usuario.email,
@@ -56,6 +66,12 @@ class User {
       json.usuario.cpf,
       tipo
     );
+    myUser.zipCode = json.usuario.zipCode;
+    myUser.state = json.usuario.state;
+    myUser.street = json.usuario.street;
+    myUser.city = json.usuario.city;
+    myUser.complement = json.usuario.complement;
+    return myUser;
   }
 
   isAdmin(): boolean {

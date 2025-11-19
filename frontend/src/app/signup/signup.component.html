@@ -70,14 +70,6 @@
         }
       </mat-form-field>
       <mat-form-field class="form-full-width">
-        <mat-label>Bairro</mat-label>
-        <input type="text" matInput [formControl]="bairroFormControl"
-               placeholder="Ex. Vista Feliz">
-        @if (bairroFormControl.hasError('required')) {
-          <mat-error>Bairro é <strong>obrigatório</strong></mat-error>
-        }
-      </mat-form-field>
-      <mat-form-field class="form-full-width">
         <mat-label>Cidade</mat-label>
         <input type="text" matInput [formControl]="cidadeFormControl"
                placeholder="Ex. Curitiba">
@@ -91,14 +83,6 @@
                placeholder="Ex. Paraná">
         @if (estadoFormControl.hasError('required')) {
           <mat-error>Estado é <strong>obrigatório</strong></mat-error>
-        }
-      </mat-form-field>
-      <mat-form-field class="form-full-width">
-        <mat-label>Número</mat-label>
-        <input type="text" matInput [formControl]="numeroFormControl"
-               placeholder="Ex. 100">
-        @if (numeroFormControl.hasError('required')) {
-          <mat-error>Número é <strong>obrigatório</strong></mat-error>
         }
       </mat-form-field>
       <mat-form-field class="form-full-width">

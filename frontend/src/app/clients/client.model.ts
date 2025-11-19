@@ -16,8 +16,6 @@ export class Client extends User {
   balance: number;
   limit: number;
   wage: number;
-  city: string;
-  state: string;
   accountNumber: string;
   cpfManager: string;
   nameManager: string;
@@ -39,6 +37,8 @@ export class Client extends User {
     nameManager?: string
   ) {
     super(id, name, email, phone ?? '', cpf, type);
+    this.state = state;
+    this.city = city;
     this.balance = balance;
     this.limit = limit;
     this.wage = wage;
