@@ -3,7 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
 import {lastValueFrom} from 'rxjs';
 import {ClientDetailsResponse, ClientReportResponse} from './clients.types';
-import {Client} from './client.model';
+import {Client, ClientJson} from './client.model';
 import {ErrorHandlerService} from '../utils/error-handler.service';
 
 @Injectable({
@@ -65,12 +65,13 @@ export class ClientsService {
   private mapClient(client: ClientReportResponse): Client {
     const account = client.conta;
     const manager = client.gerente;
-    const clientJson = {
+    const clientJson: ClientJson = {
       tipo: 'CLIENTE',
       usuario: {
         id: client.id,
         cpf: client.cpf,
         name: client.name,
+        phone: client.phone ?? '',
         email: client.email,
       },
       saldo: account?.saldo ?? 0,

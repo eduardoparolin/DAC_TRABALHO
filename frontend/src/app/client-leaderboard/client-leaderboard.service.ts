@@ -52,6 +52,7 @@ export class ClientLeaderboardService {
             id: Number(account.cliente),
             cpf: account.cliente,
             name: `Cliente ${account.cliente}`,
+            phone: '',
             email: '',
           },
           saldo: account.saldo ?? 0,

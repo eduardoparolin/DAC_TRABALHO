@@ -14,13 +14,15 @@ public class LoggedUserDTO {
     private String name;
     private String cpf;
     private String email;
+    private Role role;
 
     public static LoggedUserDTO fromUser(User user) {
         return new LoggedUserDTO(
                 user.getUserId(),
                 user.getName(),
                 user.getCpf(),
-                user.getEmail()
+                user.getEmail(),
+                user.getRole()
         );
     }
 }

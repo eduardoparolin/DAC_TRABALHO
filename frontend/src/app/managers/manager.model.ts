@@ -1,5 +1,6 @@
 import { Client, ClientJson } from '../clients/client.model';
 import { User, UserType, UserJson } from '../session/user.model';
+import {GetManagersResponse} from './manager.types';
 
 export interface ManagerJson extends UserJson {
   clientes?: ClientJson[];
@@ -8,23 +9,22 @@ export interface ManagerJson extends UserJson {
 
 export class Manager extends User {
   clientList: Client[] = [];
-  phone: string;
 
   constructor(
     id: number,
     name: string,
     email: string,
+    phone: string,
     cpf: string,
     type: UserType,
     clientList: Client[],
-    phone: string
   ) {
-    super(id, name, email, cpf, type);
+    super(id, name, email, phone, cpf, type);
     this.clientList = clientList;
     this.phone = phone;
   }
 
-  static override fromJson(json: ManagerJson): Manager {
+  static override fromJson(json: GetManagersResponse): Manager {
     const clients =
       json.clientes?.map((clientJson) =>
         Client.fromJson(clientJson)
@@ -35,10 +35,10 @@ export class Manager extends User {
       id,
       json.usuario.name,
       json.usuario.email,
+      json.usuario.phone ?? '',
       json.usuario.cpf,
       tipo,
       clients,
-      json.telefone ?? ''
     );
   }
 

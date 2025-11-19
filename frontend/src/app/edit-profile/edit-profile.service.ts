@@ -15,17 +15,17 @@ export class EditProfileService {
   errorHandler = inject(ErrorHandlerService);
   loading = signal(false);
 
-  async editProfile(cpf: string, name: string, email: string, salary: number): Promise<void> {
+  async editProfile(cpf: string, name: string, email: string, phone: string, salary: number): Promise<void> {
     this.loading.set(true);
     const user = this.session.getUser();
     try {
       const response = await lastValueFrom(
-        this.http.put(`${environment.baseUrl}/clientes`, {
+        this.http.put(`${environment.baseUrl}/clientes/${cpf}`, {
           cpf,
-          name,
+          nome: name,
           email,
-          salary,
-          clientId: user?.id,
+          telefone: phone,
+          salario: salary,
         })
       );
       this.loading.set(false);

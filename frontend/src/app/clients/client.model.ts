@@ -18,7 +18,6 @@ export class Client extends User {
   wage: number;
   city: string;
   state: string;
-  phone: string;
   accountNumber: string;
   cpfManager: string;
   nameManager: string;
@@ -39,13 +38,12 @@ export class Client extends User {
     cpfManager?: string,
     nameManager?: string
   ) {
-    super(id, name, email, cpf, type);
+    super(id, name, email, phone ?? '', cpf, type);
     this.balance = balance;
     this.limit = limit;
     this.wage = wage;
     this.city = city || '';
     this.state = state || '';
-    this.phone = phone || '';
     this.accountNumber = accountNumber || '';
     this.cpfManager = cpfManager || '';
     this.nameManager = nameManager || '';

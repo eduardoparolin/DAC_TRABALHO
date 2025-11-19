@@ -9,6 +9,7 @@ interface UserJson {
     id: number;
     name: string;
     cpf: string;
+    phone: string;
     email: string;
   };
   tipo: UserType | string;
@@ -18,6 +19,7 @@ class User {
   id: number;
   name: string;
   email: string;
+  phone: string;
   cpf: string;
   type: UserType;
 
@@ -25,12 +27,14 @@ class User {
     id: number,
     name: string,
     email: string,
+    phone: string,
     cpf: string,
     type: UserType
   ) {
     this.id = id;
     this.name = name;
     this.email = email;
+    this.phone = phone;
     this.cpf = cpf;
     this.type = type;
   }
@@ -48,6 +52,7 @@ class User {
       id,
       json.usuario.name,
       json.usuario.email,
+      json.usuario.phone,
       json.usuario.cpf,
       tipo
     );

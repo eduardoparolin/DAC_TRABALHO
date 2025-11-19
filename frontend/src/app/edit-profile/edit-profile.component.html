@@ -4,6 +4,7 @@
     <div>Nome: {{sessionService.meClient()?.name}}</div>
     <div>CPF: {{sessionService.meClient()?.cpf}}</div>
     <div>E-mail: {{sessionService.meClient()?.email}}</div>
+    <div>Telefone: {{sessionService.meClient()?.phone}}</div>
     <div>Nome do Gerente: {{'Josias'}}</div>
     <div>Salário: {{0 | currency:'BRL':'symbol':'1.2-2'}}</div>
     <div>Saldo: {{sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2'}}</div>
@@ -21,6 +22,10 @@
     <mat-form-field>
       <mat-label>E-mail</mat-label>
       <input matInput [formControl]="emailControl" placeholder="Ex. arlindo@gmail.com">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Telefone</mat-label>
+      <input matInput mask="(99) 99999-9999" [formControl]="phoneControl" placeholder="Ex. (41)99999-9999">
     </mat-form-field>
     <mat-form-field>
       <mat-label>Salário</mat-label>

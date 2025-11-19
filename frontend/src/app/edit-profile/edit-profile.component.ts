@@ -5,6 +5,7 @@ import {CurrencyPipe} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import { EditProfileService } from './edit-profile.service';
+import {NgxMaskDirective} from 'ngx-mask';
 
 @Component({
   selector: 'app-edit-profile',
@@ -16,7 +17,8 @@ import { EditProfileService } from './edit-profile.service';
     MatInput,
     MatLabel,
     MatFormField,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgxMaskDirective
   ],
   templateUrl: './edit-profile.component.html',
   styleUrl: './edit-profile.component.scss'
@@ -28,6 +30,7 @@ export class EditProfileComponent {
 
     nameControl = new FormControl('', [Validators.required]);
     emailControl = new FormControl('', [Validators.required, Validators.email]);
+    phoneControl = new FormControl('', [Validators.required]);
     salaryControl = new FormControl('', [Validators.required]);
 
     setEditing() {
@@ -39,7 +42,7 @@ export class EditProfileComponent {
     }
 
     async handleEdit() {
-      if (this.nameControl.invalid || this.emailControl.invalid || this.salaryControl.invalid) {
+      if (this.nameControl.invalid || this.emailControl.invalid || this.salaryControl.invalid || this.phoneControl.invalid) {
         this.nameControl.markAsTouched();
         this.emailControl.markAsTouched();
         this.salaryControl.markAsTouched();
@@ -53,6 +56,7 @@ export class EditProfileComponent {
         cpf,
         this.nameControl.value!,
         this.emailControl.value!,
+        this.phoneControl.value!,
         Number(this.salaryControl.value)
       );
 

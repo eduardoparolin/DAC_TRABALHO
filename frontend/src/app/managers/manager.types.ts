@@ -6,7 +6,7 @@ export type GetManagersResponse = LoginResponse & {
 }
 
 export type GetManagersAdminDashboardResponse = {
-  gerente: LoginResponse;
+  gerente: GetManagersResponse;
   clientes: GetClientsResponse[];
   saldo_positivo: number;
   saldo_negativo: number;

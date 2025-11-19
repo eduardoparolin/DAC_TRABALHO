@@ -8,6 +8,7 @@ export type LoginResponse = {
   usuario: {
     id: number;
     name: string;
+    phone: string;
     cpf: string;
     email: string;
   };
