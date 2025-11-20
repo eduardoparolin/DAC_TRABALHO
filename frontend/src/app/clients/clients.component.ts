@@ -9,6 +9,8 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SessionService } from '../session/session.service';
 import { ClientDetailsDialogComponent } from './client-details-dialog.component';
 import { Client } from './client.model';
+import { CurrencyPipe } from '@angular/common';
+import { CpfPipe } from '../utils/cpf.pipe';
 
 @Component({
   selector: 'app-clients',
@@ -20,6 +22,8 @@ import { Client } from './client.model';
     MatLabel,
     MatInput,
     ReactiveFormsModule,
+    CurrencyPipe,
+    CpfPipe,
   ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
