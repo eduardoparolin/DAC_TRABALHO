@@ -8,10 +8,11 @@ import { MatButton } from '@angular/material/button';
 import { NewEditManagerDialogComponent } from './new-edit-manager-dialog/new-edit-manager-dialog.component';
 import { Manager } from './manager.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { CpfPipe } from '../utils/cpf.pipe';
 
 @Component({
   selector: 'app-managers',
-  imports: [MatTableModule, MatIconModule, MatButton],
+  imports: [MatTableModule, MatIconModule, MatButton, CpfPipe],
   templateUrl: './managers.component.html',
   styleUrl: './managers.component.scss',
 })

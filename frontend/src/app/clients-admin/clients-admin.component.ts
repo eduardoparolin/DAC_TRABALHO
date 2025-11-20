@@ -7,6 +7,8 @@ import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SessionService } from '../session/session.service';
 import {ClientsService} from '../clients/clients.service';
+import { CpfPipe } from '../utils/cpf.pipe';
+import { CurrencyPipe } from '@angular/common';
 
 @Component({
   selector: 'app-clients-admin',
@@ -18,6 +20,8 @@ import {ClientsService} from '../clients/clients.service';
     MatLabel,
     MatInput,
     ReactiveFormsModule,
+    CpfPipe,
+    CurrencyPipe,
   ],
   templateUrl: './clients-admin.component.html',
   styleUrl: './clients-admin.component.scss',

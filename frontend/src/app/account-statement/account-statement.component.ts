@@ -42,12 +42,21 @@ export class AccountStatementComponent implements OnInit {
   }
 
   getRowClass(row: Transaction): string {
-    if (row.tipo === 'SAQUE' || (row.tipo === 'TRANSFERENCIA' && row.valor < 0)) {
+    const statement = this.service.statement();
+    if (!statement) {
+      return '';
+    }
+
+    const isDebit = row.tipo === 'SAQUE' || (row.tipo === 'TRANSFERENCIA' && row.origem === statement.conta);
+    if (isDebit) {
       return 'red-row';
     }
-    if (row.tipo === 'DEPOSITO' || (row.tipo === 'TRANSFERENCIA' && row.valor > 0)) {
+
+    const isCredit = row.tipo === 'DEPOSITO' || (row.tipo === 'TRANSFERENCIA' && row.destino === statement.conta);
+    if (isCredit) {
       return 'blue-row';
     }
+
     return '';
   }
 }
