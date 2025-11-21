@@ -16,4 +16,8 @@ public class ClientReportResponse {
     private BigDecimal salary;
     private String accountId;
     private Long managerId;
+    private String street;
+    private String city;
+    private String state;
+    private String phone;
 }

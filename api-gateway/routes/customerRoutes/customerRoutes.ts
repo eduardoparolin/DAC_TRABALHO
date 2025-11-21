@@ -69,10 +69,8 @@ customerRoutes.get(
 
             const {clientServiceUrl, managerServiceUrl} = getServiceUrls();
 
-            // Build URL - if managerId is provided, filter by manager, otherwise get all
             let url: string;
             if (managerId) {
-                // Filter by specific manager
                 url = `${clientServiceUrl}/clientes/manager/${managerId}`;
                 const params = new URLSearchParams();
                 if (cpf) params.append("cpf", cpf);
@@ -80,7 +78,6 @@ customerRoutes.get(
                 const queryString = params.toString();
                 if (queryString) url += `?${queryString}`;
             } else {
-                // Get all approved clients
                 url = `${clientServiceUrl}/clientes/status/APROVADO`;
                 const params = new URLSearchParams();
                 if (cpf) params.append("cpf", cpf);
@@ -154,6 +151,10 @@ customerRoutes.get(
                 const account = client.accountId ? accountsMap.get(String(client.accountId)) : null;
                 const myManager = managers.find(((m: any) => String(m.id) === String(account.gerente)))
                 return {
+                    street: client.street,
+                    phone: client.phone,
+                    city: client.city,
+                    state: client.state,
                     cpf: client.cpf,
                     nome: client.name,
                     email: client.email,

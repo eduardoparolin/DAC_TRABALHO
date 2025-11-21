@@ -296,7 +296,11 @@ public class ClientService {
                 e.getEmail(),
                 e.getSalary(),
                 e.getAccountId(),
-                e.getManagerId());
+                e.getManagerId(),
+                e.getStreet(),
+                e.getCity(),
+                e.getState(),
+                e.getPhone());
     }
 
     private String normalizeCpf(String value) {

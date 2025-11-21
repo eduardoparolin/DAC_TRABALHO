@@ -56,10 +56,11 @@ export class ClientsService {
   }
 
   filterClients(filter: string) {
-    const lowerFilter = filter.toLowerCase();
+    const lowerFilter = filter.toLowerCase().trim();
     this.filteredClients.set(this.clients().filter(client =>
       client.name.toLowerCase().includes(lowerFilter) ||
-      client.cpf.includes(lowerFilter)
+      client.cpf.toLowerCase().includes(lowerFilter) ||
+      client.cpf.toLowerCase().includes(lowerFilter.replaceAll('.', '').replaceAll('-', ''))
     ));
   }
 

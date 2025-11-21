@@ -18,6 +18,10 @@ interface UserJson {
     complement?: string;
   };
   tipo: UserType | string;
+  estado?: string;
+  rua?: string;
+  cidade?: string;
+  telefone?: string;
 }
 
 class User {
@@ -62,14 +66,14 @@ class User {
       id,
       json.usuario.name,
       json.usuario.email,
-      json.usuario.phone,
+      json.usuario.phone ?? json.telefone,
       json.usuario.cpf,
       tipo
     );
     myUser.zipCode = json.usuario.zipCode;
-    myUser.state = json.usuario.state;
-    myUser.street = json.usuario.street;
-    myUser.city = json.usuario.city;
+    myUser.state = json.usuario.state ?? json.estado;
+    myUser.street = json.usuario.street ?? json.rua;
+    myUser.city = json.usuario.city ?? json.cidade;
     myUser.complement = json.usuario.complement;
     return myUser;
   }
