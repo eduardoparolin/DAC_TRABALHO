@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import {
   FormControl,
   FormsModule,
@@ -11,14 +11,16 @@ import {
   MatInput,
   MatLabel, MatSuffix,
 } from '@angular/material/input';
-import { MatButton } from '@angular/material/button';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Manager } from '../manager.model';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { ManagersService } from '../managers.service';
-import { MatOption, MatSelect } from '@angular/material/select';
+import {MatButton} from '@angular/material/button';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {Manager} from '../manager.model';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {ManagersService} from '../managers.service';
+import {MatOption, MatSelect} from '@angular/material/select';
 import {MatIcon} from '@angular/material/icon';
 import {MatTooltip} from '@angular/material/tooltip';
+import {NgxMaskDirective} from 'ngx-mask';
+import {insertManagerRequest} from '../manager.types';
 
 @Component({
   selector: 'app-new-edit-manager-dialog',
@@ -33,6 +35,7 @@ import {MatTooltip} from '@angular/material/tooltip';
     MatSuffix,
     MatIcon,
     MatTooltip,
+    NgxMaskDirective,
   ],
   templateUrl: './new-edit-manager-dialog.component.html',
   styleUrl: './new-edit-manager-dialog.component.scss',
@@ -68,26 +71,48 @@ export class NewEditManagerDialogComponent implements OnInit {
   }
 
   async save() {
-  if (
-    this.nameFormControl.valid &&
-    this.emailFormControl.valid
-  ) {
-    const updateManagerRequest: any = {
-      nome: this.nameFormControl.value!,
-      email: this.emailFormControl.value!,
-      tipo: 'GERENTE',
-    };
+    if (this.dialogData.manager == null) {//new
+      if (
+        this.cpfFormControl.valid &&
+        this.nameFormControl.valid &&
+        this.emailFormControl.valid &&
+        this.passwordFormControl.valid
+      ) {
+        const insertManagerRequest: insertManagerRequest = {
+          nome: this.nameFormControl.value!,
+          email: this.emailFormControl.value!,
+          senha: this.passwordFormControl.value!,
+          tipo: 'GERENTE',
+          cpf: this.cpfFormControl.value!,
+        };
 
-    // Só adiciona senha se tiver valor
-    if (this.passwordFormControl.value) {
-      updateManagerRequest.senha = this.passwordFormControl.value;
+        const response = await this.managerService.insert(insertManagerRequest);
+        this.dialog.close(response);
+        return;
+      }
+    } else {//edit
+      if (
+        this.nameFormControl.valid &&
+        this.emailFormControl.valid
+      ) {
+        const updateManagerRequest: any = {
+          nome: this.nameFormControl.value!,
+          email: this.emailFormControl.value!,
+          tipo: 'GERENTE',
+        };
+
+        // Só adiciona senha se tiver valor
+        if (this.passwordFormControl.value) {
+          updateManagerRequest.senha = this.passwordFormControl.value;
+        }
+
+        await this.managerService.update(
+          this.cpfFormControl.value!,
+          updateManagerRequest
+        );
+        this.dialog.close(true);
+      }
     }
 
-    await this.managerService.update(
-      this.cpfFormControl.value!,
-      updateManagerRequest
-    );
-    this.dialog.close(true);
   }
-}
 }

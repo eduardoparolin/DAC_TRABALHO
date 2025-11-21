@@ -26,5 +26,9 @@ export type updateManagerRequest = {
   nome: string;
   email: string;
   senha: string;
-  tipo: 'GERENTE' | 'ADMINISTRADOR';
+  tipo: 'GERENTE';
+}
+
+export type insertManagerRequest = updateManagerRequest & {
+  cpf: string;
 }

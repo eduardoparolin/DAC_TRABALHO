@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import {GetManagersResponse, GetManagersResponse2, updateManagerRequest} from './manager.types';
+import {GetManagersResponse, GetManagersResponse2, insertManagerRequest, updateManagerRequest} from './manager.types';
 import { Manager, ManagerJson } from './manager.model';
 
 @Injectable({
@@ -36,5 +36,19 @@ export class ManagersService {
       this.http.put(`${environment.baseUrl}/gerentes/${cpf}`, updateManagerRequest)
     );
     await this.getAllManagers();
+  }
+
+  async insert(insertManagerRequest: insertManagerRequest) {
+    const response = await lastValueFrom(
+      this.http.post(`${environment.baseUrl}/gerentes`, insertManagerRequest)
+    ).then(() => true)
+      .catch((error) => {
+      if (error.status === 409 && error.error.error != null) {
+        alert(error.error.error);
+      }
+      return false;
+    })
+    await this.getAllManagers();
+    return response;
   }
 }

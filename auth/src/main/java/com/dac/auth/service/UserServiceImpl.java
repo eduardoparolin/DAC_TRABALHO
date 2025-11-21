@@ -30,6 +30,7 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationFacade authentication;
     private final PasswordGenerator passwordGenerator;
     private final EmailService emailService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Override
     public UserDTO save(UserCreateDTO dto) {
@@ -128,10 +129,9 @@ public class UserServiceImpl implements UserService {
         }
 
         if (validField(dto.getPassword())) {
-            PasswordData passwordData = passwordGenerator.generateRandomPassword();
-            user.setPassword(passwordData.encoded());
-            // Send email with new password
-            emailService.sendPasswordEmail(user.getName(), user.getEmail(), passwordData.raw());
+            // Hash the provided password and update
+            String encodedPassword = passwordEncoder.encode(dto.getPassword());
+            user.setPassword(encodedPassword);
         }
 
         return user;

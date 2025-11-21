@@ -2,7 +2,7 @@
   <form class="manager-form-container">
     <mat-form-field class="form-full-width">
       <mat-label>CPF</mat-label>
-      <input type="text" matInput [formControl]="cpfFormControl"
+      <input mask="999.999.999-99" type="text" matInput [formControl]="cpfFormControl"
              placeholder="Ex. 000.000.000-00">
       @if (cpfFormControl.hasError('required')) {
         <mat-error>CPF é <strong>obrigatório</strong></mat-error>
@@ -36,7 +36,9 @@
       @if (passwordFormControl.hasError('required')) {
         <mat-error>Senha é <strong>obrigatória</strong></mat-error>
       }
-      <div style="margin-right: 5px" matSuffix matTooltip="A senha só será alterada se alguma informação for digitada neste campo"><mat-icon>info</mat-icon></div>
+      @if (dialogData.manager != null) {
+        <div style="margin-right: 5px" matSuffix matTooltip="A senha só será alterada se alguma informação for digitada neste campo"><mat-icon>info</mat-icon></div>
+      }
     </mat-form-field>
   </form>
   <div class="manager-save-cancel">

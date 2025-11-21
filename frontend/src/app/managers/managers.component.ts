@@ -43,8 +43,10 @@ export class ManagersComponent implements OnInit {
         manager: null,
       },
     });
-    dialogRef.afterClosed().subscribe(() => {
-      this._snackBar.open('Gerente criado com sucesso');
+    dialogRef.afterClosed().subscribe((value) => {
+      if(value) {
+        this._snackBar.open('Gerente criado com sucesso');
+      }
     });
   }
 
