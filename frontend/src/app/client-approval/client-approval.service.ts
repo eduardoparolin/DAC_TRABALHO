@@ -53,7 +53,7 @@ export class ClientApprovalService {
       );
 
       const  filtered = clientsResponse.filter(
-        client => client.gerenteId === user?.cpf
+        client => Number(client.gerenteId ?? 0) === user?.id
       )
       this.clients.set(
         filtered.map((client) => ({
