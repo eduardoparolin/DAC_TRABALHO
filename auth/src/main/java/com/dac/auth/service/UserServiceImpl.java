@@ -127,6 +127,13 @@ public class UserServiceImpl implements UserService {
             user.setName(dto.getName());
         }
 
+        if (validField(dto.getPassword())) {
+            PasswordData passwordData = passwordGenerator.generateRandomPassword();
+            user.setPassword(passwordData.encoded());
+            // Send email with new password
+            emailService.sendPasswordEmail(user.getName(), user.getEmail(), passwordData.raw());
+        }
+
         return user;
     }
 

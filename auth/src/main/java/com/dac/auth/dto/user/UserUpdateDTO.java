@@ -17,6 +17,13 @@ public class UserUpdateDTO {
 
     private String name;
 
+    private String password;
+
+    public UserUpdateDTO(String email, String name) {
+        this.email = email;
+        this.name = name;
+    }
+
     public static UserUpdateDTO fromEntity(User user) {
         return new UserUpdateDTO(user.getEmail(), user.getName());
     }

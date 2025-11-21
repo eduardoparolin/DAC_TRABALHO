@@ -17,6 +17,7 @@ const getServiceUrls = () => ({
   managerServiceUrl: process.env.MANAGER_SERVICE_URL,
   clientServiceUrl: process.env.CLIENT_SERVICE_URL,
   bankAccountServiceUrl: process.env.BANK_ACCOUNT_SERVICE_URL,
+  authServiceUrl: process.env.AUTH_SERVICE_URL,
 });
 
 const normalizeNumber = (value: unknown): number => {
@@ -488,10 +489,10 @@ managerRoutes.put(
 
     const cpf = c.req.param("cpf");
     const updateData = c.req.valid("json");
-    const { managerServiceUrl } = getServiceUrls();
+    const { managerServiceUrl, authServiceUrl } = getServiceUrls();
 
-    if (!managerServiceUrl) {
-      return c.json({ error: "Serviço de gerente não configurado" }, 500);
+    if (!managerServiceUrl || !authServiceUrl) {
+      return c.json({ error: "Serviços não configurados" }, 500);
     }
 
     try {
@@ -530,6 +531,39 @@ managerRoutes.put(
       }
 
       const updatedManager = await response.json();
+
+      // Call auth service to update user information
+      try {
+        const authUpdatePayload: any = {};
+
+        if (updateData.nome) {
+          authUpdatePayload.name = updateData.nome;
+        }
+        if (updateData.email) {
+          authUpdatePayload.email = updateData.email;
+        }
+        if (updateData.senha) {
+          authUpdatePayload.password = updateData.senha;
+        }
+
+        const authResponse = await fetchWithAuth(
+          c,
+          `${authServiceUrl}/auth/user/${cpf}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(authUpdatePayload),
+          }
+        );
+
+        if (!authResponse.ok) {
+          console.error("Erro ao atualizar usuário no serviço de autenticação");
+          // Continue even if auth update fails to avoid breaking the flow
+        }
+      } catch (authError) {
+        console.error("Erro ao chamar serviço de autenticação:", authError);
+        // Continue even if auth update fails
+      }
 
       // Map response to Portuguese field names
       return c.json(
