@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Formulário Bancário — Gerente & Cliente</title>
+  <link rel="stylesheet" href="hidden.component.scss">
+</head>
+<body>
+  <div class="card">
+    <h1>Cadastro / Apertura de Conta — Gerente & Cliente</h1>
+    <form action="#" method="post" enctype="multipart/form-data">
+      <!-- Dados do Cliente -->
+      <div>
+        <label for="cliente_nome">Nome do cliente</label>
+        <input id="cliente_nome" name="cliente_nome" type="text" placeholder="Fulano da Silva">
+      </div>
+
+      <div>
+        <label for="cpf">CPF</label>
+        <input id="cpf" name="cpf" type="text" placeholder="000.000.000-00">
+      </div>
+
+      <div>
+        <label for="email">E‑mail</label>
+        <input id="email" name="email" type="email" placeholder="cliente@exemplo.com">
+      </div>
+
+      <div>
+        <label for="telefone">Telefone</label>
+        <input id="telefone" name="telefone" type="text" placeholder="(11) 91234-5678">
+      </div>
+
+      <!-- Conta -->
+      <div>
+        <label for="agencia">Agência</label>
+        <input id="agencia" name="agencia" type="text" placeholder="0001">
+      </div>
+
+      <div>
+        <label for="conta">Número da conta</label>
+        <input id="conta" name="conta" type="text" placeholder="123456-7">
+      </div>
+
+      <div>
+        <label for="tipo">Tipo de conta</label>
+        <select id="tipo" name="tipo">
+          <option>Corrente</option>
+          <option>Poupança</option>
+          <option>Salário</option>
+          <option>Investimentos</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="saldo">Saldo inicial (R$)</label>
+        <input id="saldo" name="saldo" type="text" placeholder="0.00">
+      </div>
+
+      <!-- Seção do Gerente -->
+      <div class="section">
+        <label for="gerente_nome">Gerente responsável</label>
+        <input id="gerente_nome" name="gerente_nome" type="text" placeholder="Nome do gerente">
+
+        <label for="gerente_id" style="margin-top:8px">ID do gerente</label>
+        <input id="gerente_id" name="gerente_id" type="text" placeholder="G-000123">
+
+        <label for="status" style="margin-top:8px">Status da abertura</label>
+        <select id="status" name="status">
+          <option>Em análise</option>
+          <option>Aprovado</option>
+          <option>Recusado</option>
+        </select>
+      </div>
+
+      <!-- Observações e uploads -->
+      <div style="grid-column:1 / -1">
+        <label for="observacoes">Observações do gerente</label>
+        <textarea id="observacoes" name="observacoes" placeholder="Notas internas, verificação KYC, etc."></textarea>
+      </div>
+
+      <div>
+        <label for="doc">Upload de documento (RG/Comprovante)</label>
+        <input id="doc" name="doc" type="file">
+      </div>
+
+      <div>
+        <label for="assinatura">Assinatura digital (opcional)</label>
+        <input id="assinatura" name="assinatura" type="file">
+      </div>
+
+      <!-- Consentimentos -->
+      <div style="grid-column:1 / -1">
+        <label class="muted">Consentimentos</label>
+        <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap">
+          <label><input type="checkbox" name="consentimentos" value="termos"> Aceito termos e condições</label>
+          <label><input type="checkbox" name="consentimentos" value="marketing"> Receber comunicações (opcional)</label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="secondary">Limpar</button>
+        <button type="submit">Registrar conta</button>
+      </div>
+
+      <p class="muted" style="grid-column:1 / -1;margin-top:8px">* Este é um formulário simulado para fins de demonstração (Gerente & Cliente).</p>
+    </form>
+  </div>
+</body>
+</html>
