@@ -31,7 +31,7 @@ export class Manager extends User {
       json.name,
       json.email,
       json.cpf,
-      UserType.GERENTE,
+      json.type,
       json.phone,
     );
   }

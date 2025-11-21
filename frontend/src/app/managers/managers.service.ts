@@ -2,8 +2,8 @@ import { inject, Injectable, signal } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import {GetManagersResponse, GetManagersResponse2} from './manager.types';
-import { Manager } from './manager.model';
+import {GetManagersResponse, GetManagersResponse2, updateManagerRequest} from './manager.types';
+import { Manager, ManagerJson } from './manager.model';
 
 @Injectable({
   providedIn: 'root',
@@ -27,6 +27,13 @@ export class ManagersService {
   async removeManager(cpf: string) {
     const managersResponse = await lastValueFrom(
       this.http.delete(`${environment.baseUrl}/gerentes/${cpf}`)
+    );
+    await this.getAllManagers();
+  }
+
+  async update(cpf: string, updateManagerRequest: updateManagerRequest) {
+    await lastValueFrom(
+      this.http.put(`${environment.baseUrl}/gerentes/${cpf}`, updateManagerRequest)
     );
     await this.getAllManagers();
   }

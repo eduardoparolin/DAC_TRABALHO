@@ -1,5 +1,6 @@
 import {LoginResponse} from '../login/login.types';
 import {GetClientsResponse} from '../clients/client.types';
+import { UserType } from '../session/user.model';
 
 export type GetManagersResponse = LoginResponse & {
   clientes: GetClientsResponse[]
@@ -11,6 +12,7 @@ export type GetManagersResponse2 = {
   phone?: string;
   id: number;
   name: string;
+  type: UserType;
 }
 
 export type GetManagersAdminDashboardResponse = {
@@ -18,4 +20,11 @@ export type GetManagersAdminDashboardResponse = {
   clientes: GetClientsResponse[];
   saldo_positivo: number;
   saldo_negativo: number;
+}
+
+export type updateManagerRequest = {
+  nome: string;
+  email: string;
+  senha: string;
+  tipo: 'GERENTE' | 'ADMINISTRADOR';
 }

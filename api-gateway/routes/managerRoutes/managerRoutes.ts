@@ -515,6 +515,7 @@ managerRoutes.put(
           body: JSON.stringify({
             name: updateData.nome,
             email: updateData.email,
+            password: updateData.senha,
             type: updateData.tipo,
           }),
         }
