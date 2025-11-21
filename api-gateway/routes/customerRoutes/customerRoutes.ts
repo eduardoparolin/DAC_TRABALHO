@@ -789,7 +789,7 @@ customerRoutes.post(
     async (c) => {
         try {
             const cpf = c.req.param("cpf");
-            const {usuario, motivo} = c.req.valid("json");
+            const {motivo} = c.req.valid("json");
             const {clientServiceUrl} = getServiceUrls();
 
             const response = await fetchWithAuth(

@@ -53,10 +53,5 @@ export const declineCustomerByCPFSchemaInput = z.object({
 });
 
 export const declineCustomerBodySchema = z.object({
-  usuario: z.object({
-    cpf: z.string(),
-    email: z.string(),
-    nome: z.string(),
-  }),
   motivo: z.string().min(1, "Motivo da rejeição é obrigatório"),
 });
