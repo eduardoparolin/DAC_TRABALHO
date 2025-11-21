@@ -37,6 +37,16 @@
         <mat-error>Senha é <strong>obrigatória</strong></mat-error>
       }
     </mat-form-field>
+    <mat-form-field class="form-full-width">
+      <mat-label>Tipo</mat-label>
+      <mat-select [formControl]="tipoFormControl">
+        <mat-option value="GERENTE">Gerente</mat-option>
+        <mat-option value="ADMINISTRADOR">Administrador</mat-option>
+      </mat-select>
+      @if (tipoFormControl.hasError('required')) {
+        <mat-error>Tipo é <strong>obrigatório</strong></mat-error>
+      }
+    </mat-form-field>
   </form>
   <div class="manager-save-cancel">
     <button mat-button (click)="cancel()">Cancelar</button>

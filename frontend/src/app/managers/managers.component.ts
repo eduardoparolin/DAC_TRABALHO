@@ -49,6 +49,9 @@ export class ManagersComponent implements OnInit {
   }
 
   editManager(manager: Manager) {
+    console.log('Manager sendo editado:', manager);
+    console.log('Tipo do manager:', manager.type);
+
     const dialogRef = this.dialog.open(NewEditManagerDialogComponent, {
       data: {
         manager: manager,
