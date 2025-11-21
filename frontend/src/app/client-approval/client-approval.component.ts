@@ -7,10 +7,12 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {ClientApprovalService, PendingClient} from './client-approval.service';
 import {MatButton} from '@angular/material/button';
 import {MatProgressBar} from '@angular/material/progress-bar';
+import { CpfPipe } from '../utils/cpf.pipe';
+import { CurrencyPipe } from '@angular/common';
 
 @Component({
   selector: 'app-client-approval',
-  imports: [MatTableModule, MatIconModule, ReactiveFormsModule, MatButton, MatProgressBar],
+  imports: [MatTableModule, MatIconModule, ReactiveFormsModule, MatButton, MatProgressBar, CpfPipe, CurrencyPipe,],
   templateUrl: './client-approval.component.html',
   styleUrl: './client-approval.component.scss'
 })

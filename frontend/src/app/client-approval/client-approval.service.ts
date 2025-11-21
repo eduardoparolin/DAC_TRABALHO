@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmationDialogComponent } from '../utils/confirmation-dialog/confirmation-dialog.component';
 import {RejectClientDialogComponent} from './components/reject-client-dialog/reject-client-dialog.component';
 import {ErrorHandlerService} from '../utils/error-handler.service';
+import { SessionService } from '../session/session.service';
 
 export interface PendingClient {
   cpf: string;
@@ -32,6 +33,7 @@ export class ClientApprovalService {
   errorHandler = inject(ErrorHandlerService);
   clients = signal<PendingClient[]>([]);
   loading = signal(false);
+  session = inject(SessionService);
 
   constructor() {
   }
@@ -39,6 +41,8 @@ export class ClientApprovalService {
   async getAllClients() {
     this.loading.set(true);
     try {
+
+      const user = this.session.user();
       const clientsResponse = await lastValueFrom(
         this.http.get<PendingClientApiResponse[]>(
           `${environment.baseUrl}/clientes`,
@@ -47,8 +51,12 @@ export class ClientApprovalService {
           }
         )
       );
+
+      const  filtered = clientsResponse.filter(
+        client => client.gerenteId === user?.cpf
+      )
       this.clients.set(
-        clientsResponse.map((client) => ({
+        filtered.map((client) => ({
           cpf: client.cpf,
           name: client.nome,
           email: client.email,

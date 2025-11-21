@@ -5,10 +5,11 @@ import {CurrencyPipe} from '@angular/common';
 import {FormControl, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatError, MatFormField, MatInput, MatLabel, MatSuffix} from '@angular/material/input';
 import { EditProfileService } from './edit-profile.service';
-import {NgxMaskDirective} from 'ngx-mask';
+import {NgxMaskDirective, NgxMaskPipe} from 'ngx-mask';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {CustomValidators} from '../utils/validators';
 import {SignupService} from '../signup/signup.service';
+import { CpfPipe } from '../utils/cpf.pipe';
 
 @Component({
   selector: 'app-edit-profile',
@@ -24,7 +25,10 @@ import {SignupService} from '../signup/signup.service';
     NgxMaskDirective,
     MatError,
     MatProgressSpinner,
-    MatSuffix
+    MatSuffix,
+    CpfPipe,
+    NgxMaskDirective, 
+    NgxMaskPipe,
   ],
   templateUrl: './edit-profile.component.html',
   styleUrl: './edit-profile.component.scss'

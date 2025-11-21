@@ -2,10 +2,10 @@
 @if (!editing()) {
   <div class="profile">
     <div>Nome: {{ sessionService.meClient()?.name }}</div>
-    <div>CPF: {{ sessionService.meClient()?.cpf }}</div>
+    <div>CPF: {{ sessionService.meClient()?.cpf | cpf}}</div>
     <div>E-mail: {{ sessionService.meClient()?.email }}</div>
-    <div>Telefone: {{ sessionService.meClient()?.phone }}</div>
-    <div>CEP: {{ sessionService.meClient()?.zipCode }}</div>
+    <div>Telefone: {{ (sessionService.meClient()?.phone ?? '') | mask: '(00) 00000-0000'}}</div>
+    <div>CEP: {{ (sessionService.meClient()?.zipCode ?? '') | mask:'00000-000' }}</div>
     <div>Rua: {{ sessionService.meClient()?.street }}</div>
     <div>Complemento: {{ sessionService.meClient()?.complement }}</div>
     <div>Cidade: {{ sessionService.meClient()?.city }}</div>

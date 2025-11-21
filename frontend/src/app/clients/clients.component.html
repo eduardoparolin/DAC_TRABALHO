@@ -61,7 +61,7 @@
 
   @if (sessionService.user()?.isManager()) {
   <ng-container matColumnDef="ACTIONS">
-    <th mat-header-cell *matHeaderCellDef></th>
+    <th mat-header-cell *matHeaderCellDef>Detalhes</th>
     <td mat-cell *matCellDef="let element">
       <mat-icon (click)="openClientDetails(element)" style="cursor: pointer"
         >open_in_new</mat-icon
