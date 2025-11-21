@@ -36,16 +36,7 @@
       @if (passwordFormControl.hasError('required')) {
         <mat-error>Senha é <strong>obrigatória</strong></mat-error>
       }
-    </mat-form-field>
-    <mat-form-field class="form-full-width">
-      <mat-label>Tipo</mat-label>
-      <mat-select [formControl]="tipoFormControl">
-        <mat-option value="GERENTE">Gerente</mat-option>
-        <mat-option value="ADMINISTRADOR">Administrador</mat-option>
-      </mat-select>
-      @if (tipoFormControl.hasError('required')) {
-        <mat-error>Tipo é <strong>obrigatório</strong></mat-error>
-      }
+      <div style="margin-right: 5px" matSuffix matTooltip="A senha só será alterada se alguma informação for digitada neste campo"><mat-icon>info</mat-icon></div>
     </mat-form-field>
   </form>
   <div class="manager-save-cancel">

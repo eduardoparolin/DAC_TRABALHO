@@ -57,8 +57,10 @@ export class ManagersComponent implements OnInit {
         manager: manager,
       },
     });
-    dialogRef.afterClosed().subscribe(() => {
-      this._snackBar.open('Gerente editado com sucesso');
+    dialogRef.afterClosed().subscribe((value) => {
+      if (value) {
+        this._snackBar.open('Gerente editado com sucesso');
+      }
     });
   }
 }
