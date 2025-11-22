@@ -1,81 +1,153 @@
 <div class="profile-title">Perfil</div>
 @if (!editing()) {
-  <div class="profile">
-    <div>Nome: {{ sessionService.meClient()?.name }}</div>
-    <div>CPF: {{ sessionService.meClient()?.cpf | cpf}}</div>
-    <div>E-mail: {{ sessionService.meClient()?.email }}</div>
-    <div>Telefone: {{ (sessionService.meClient()?.phone ?? '') | mask: '(00) 00000-0000'}}</div>
-    <div>CEP: {{ (sessionService.meClient()?.zipCode ?? '') | mask:'00000-000' }}</div>
-    <div>Rua: {{ sessionService.meClient()?.street }}</div>
-    <div>Complemento: {{ sessionService.meClient()?.complement }}</div>
-    <div>Cidade: {{ sessionService.meClient()?.city }}</div>
-    <div>Estado: {{ sessionService.meClient()?.state }}</div>
-    <div>Nome do Gerente: {{ 'Josias' }}</div>
-    <div>Salário: {{ 0 | currency:'BRL':'symbol':'1.2-2' }}</div>
-    <div>Saldo: {{ sessionService.meClient()?.balance | currency:'BRL':'symbol':'1.2-2' }}</div>
-    <div>Limite: {{ 0 | currency:'BRL':'symbol':'1.2-2' }}</div>
-    <button mat-raised-button (click)="this.setEditing()">Editar</button>
-  </div>
-}
+<div class="profile">
+  @if (profileData()) {
+    <div>Nome: {{ profileData()!.cliente.nome }}</div>
+    <div>CPF: {{ profileData()!.cliente.cpf | cpf }}</div>
+    <div>E-mail: {{ profileData()!.cliente.email }}</div>
+    <div>
+      Telefone:
+      {{ profileData()!.cliente.telefone | mask : "(00) 00000-0000" }}
+    </div>
+    <div>
+      Salário: {{ profileData()!.cliente.salario | currency : "BRL" : "symbol" : "1.2-2" }}
+    </div>
+    <div>
+      CEP: {{ profileData()!.cliente.endereco.CEP | mask : "00000-000" }}
+    </div>
+    <div>Rua: {{ profileData()!.cliente.endereco.rua }}, {{ profileData()!.cliente.endereco.numero }}</div>
+    @if (profileData()!.cliente.endereco.complemento) {
+      <div>Complemento: {{ profileData()!.cliente.endereco.complemento }}</div>
+    }
+    <div>Cidade: {{ profileData()!.cliente.endereco.cidade }}</div>
+    <div>Estado: {{ profileData()!.cliente.endereco.estado }}</div>
 
-@if (editing()) {
-  <div class="profile">
-    <mat-form-field>
-      <mat-label>Nome</mat-label>
-      <input matInput [formControl]="nameControl" placeholder="Ex. Josue da Silva">
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>E-mail</mat-label>
-      <input matInput [formControl]="emailControl" placeholder="Ex. arlindo@gmail.com">
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Telefone</mat-label>
-      <input matInput mask="(99) 99999-9999" [formControl]="phoneControl" placeholder="Ex. (41)99999-9999">
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Salário</mat-label>
-      <input matInput [formControl]="salaryControl" placeholder="Ex. 10000">
-    </mat-form-field>
-    <mat-form-field class="form-full-width">
-      <mat-label>CEP</mat-label>
-      <input type="text" mask="99999-999" matInput [formControl]="cepFormControl"
-             placeholder="Ex. 99999-999">
-      @if (cepFormControl.hasError('required')) {
-        <mat-error>CEP é <strong>obrigatório</strong></mat-error>
-      }
-      @if (signupService.cepLoading()) {
-        <mat-spinner [diameter]="18" matSuffix style="margin-right: 10px"></mat-spinner>
-      }
-    </mat-form-field>
-    <mat-form-field class="form-full-width">
-      <mat-label>Rua</mat-label>
-      <input type="text" matInput [formControl]="ruaFormControl"
-             placeholder="Ex. Rua das ruas">
-      @if (ruaFormControl.hasError('required')) {
-        <mat-error>Rua é <strong>obrigatório</strong></mat-error>
-      }
-    </mat-form-field>
-    <mat-form-field class="form-full-width">
-      <mat-label>Cidade</mat-label>
-      <input type="text" matInput [formControl]="cidadeFormControl"
-             placeholder="Ex. Curitiba">
-      @if (cidadeFormControl.hasError('required')) {
-        <mat-error>Cidade é <strong>obrigatório</strong></mat-error>
-      }
-    </mat-form-field>
-    <mat-form-field class="form-full-width">
-      <mat-label>Estado</mat-label>
-      <input type="text" matInput [formControl]="estadoFormControl"
-             placeholder="Ex. Paraná">
-      @if (estadoFormControl.hasError('required')) {
-        <mat-error>Estado é <strong>obrigatório</strong></mat-error>
-      }
-    </mat-form-field>
-    <mat-form-field class="form-full-width">
-      <mat-label>Complemento</mat-label>
-      <input type="text" matInput [formControl]="complementoFormControl"
-             placeholder="Ex. Casa 10">
-    </mat-form-field>
+    @if (profileData()!.conta) {
+      <div>Número da Conta: {{ profileData()!.conta!.numero }}</div>
+      <div>
+        Saldo: {{ profileData()!.conta!.saldo | currency : "BRL" : "symbol" : "1.2-2" }}
+      </div>
+      <div>
+        Limite: {{ profileData()!.conta!.limite | currency : "BRL" : "symbol" : "1.2-2" }}
+      </div>
+      <div>Status: {{ profileData()!.conta!.status }}</div>
+    }
+
+    @if (profileData()!.gerente) {
+      <div>Nome do Gerente: {{ profileData()!.gerente!.nome }}</div>
+      <div>E-mail do Gerente: {{ profileData()!.gerente!.email }}</div>
+      <div>CPF do Gerente: {{ profileData()!.gerente!.cpf | cpf }}</div>
+    }
+
+    <button mat-raised-button (click)="this.setEditing()">Editar</button>
+  } @else {
+    <div>Carregando dados do perfil...</div>
+  }
+</div>
+} @if (editing()) {
+<div class="profile">
+  <mat-form-field>
+    <mat-label>Nome</mat-label>
+    <input
+      matInput
+      [formControl]="nameControl"
+      placeholder="Ex. Josue da Silva"
+    />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>E-mail</mat-label>
+    <input
+      matInput
+      [formControl]="emailControl"
+      placeholder="Ex. arlindo@gmail.com"
+    />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Telefone</mat-label>
+    <input
+      matInput
+      mask="(99) 99999-9999"
+      [formControl]="phoneControl"
+      placeholder="Ex. (41)99999-9999"
+    />
+  </mat-form-field>
+  <mat-form-field>
+    <mat-label>Salário</mat-label>
+    <input
+      matInput
+      currencyMask
+      [formControl]="salaryControl"
+      placeholder="Ex. 10000"
+      [options]="{ prefix: 'R$', thousands: '.', decimal: ',' }"
+    />
+  </mat-form-field>
+  <mat-form-field class="form-full-width">
+    <mat-label>CEP</mat-label>
+    <input
+      type="text"
+      mask="99999-999"
+      matInput
+      [formControl]="cepFormControl"
+      placeholder="Ex. 99999-999"
+    />
+    @if (cepFormControl.hasError('required')) {
+    <mat-error>CEP é <strong>obrigatório</strong></mat-error>
+    } @if (signupService.cepLoading()) {
+    <mat-spinner
+      [diameter]="18"
+      matSuffix
+      style="margin-right: 10px"
+    ></mat-spinner>
+    }
+  </mat-form-field>
+  <mat-form-field class="form-full-width">
+    <mat-label>Rua</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="ruaFormControl"
+      placeholder="Ex. Rua das ruas"
+    />
+    @if (ruaFormControl.hasError('required')) {
+    <mat-error>Rua é <strong>obrigatório</strong></mat-error>
+    }
+  </mat-form-field>
+  <mat-form-field class="form-full-width">
+    <mat-label>Cidade</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="cidadeFormControl"
+      placeholder="Ex. Curitiba"
+    />
+    @if (cidadeFormControl.hasError('required')) {
+    <mat-error>Cidade é <strong>obrigatório</strong></mat-error>
+    }
+  </mat-form-field>
+  <mat-form-field class="form-full-width">
+    <mat-label>Estado</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="estadoFormControl"
+      placeholder="Ex. Paraná"
+    />
+    @if (estadoFormControl.hasError('required')) {
+    <mat-error>Estado é <strong>obrigatório</strong></mat-error>
+    }
+  </mat-form-field>
+  <mat-form-field class="form-full-width">
+    <mat-label>Complemento</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="complementoFormControl"
+      placeholder="Ex. Casa 10"
+    />
+  </mat-form-field>
+  <div class="button-group">
     <button mat-raised-button (click)="handleEdit()">Salvar</button>
+    <button mat-raised-button (click)="cancelEditing()">Cancelar</button>
   </div>
+</div>
 }
