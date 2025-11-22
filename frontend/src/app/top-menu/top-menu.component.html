@@ -9,7 +9,6 @@
     @else if (sessionService.user()?.isManager() ?? false) {
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'aprovacao-clientes'">Aprovações</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'clientes'">Clientes</div>
-      <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'busca-clientes'">Busca</div>
       <div class="navigation-item" routerLinkActive="navigation-item-active" [routerLink]="'top-3-clientes'">Melhores 3</div>
     }
     @else if (sessionService.user()?.isClient() ?? false) {

@@ -5,7 +5,6 @@ import {ManagersComponent} from './managers/managers.component';
 import {AccountsComponent} from './accounts/accounts.component';
 import {DashboardComponent} from './dashboard/dashboard.component';
 import {ClientApprovalComponent} from './client-approval/client-approval.component';
-import {ClientSearchComponent} from './client-search/client-search.component';
 import {ClientLeaderboardComponent} from './client-leaderboard/client-leaderboard.component';
 import {DepositComponent} from './deposit/deposit.component';
 import {WithdrawComponent} from './withdraw/withdraw.component';
@@ -44,11 +43,6 @@ export const routes: Routes = [
     path: 'aprovacao-clientes',
     component: ClientApprovalComponent,
     canActivate: [authGuard, managerGuard]
-  },
-  {
-    path: 'busca-clientes',
-    component: ClientSearchComponent,
-    canActivate: [authGuard, adminOrManagerGuard]
   },
   {
     path: 'top-3-clientes',
