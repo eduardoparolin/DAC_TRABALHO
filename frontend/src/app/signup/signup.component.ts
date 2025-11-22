@@ -11,6 +11,7 @@ import { MatProgressBar } from '@angular/material/progress-bar';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SignupService } from './signup.service';
 import { NgxMaskDirective } from 'ngx-mask';
+import { NgxCurrencyDirective } from 'ngx-currency';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -29,6 +30,7 @@ import { ErrorHandlerService } from '../utils/error-handler.service';
     MatButton,
     MatProgressBar,
     NgxMaskDirective,
+    NgxCurrencyDirective,
     MatSuffix,
     MatProgressSpinner,
   ],
@@ -47,11 +49,11 @@ export class SignupComponent implements OnInit, OnDestroy {
   ]);
   cpfFormControl = new FormControl('', [
     Validators.required,
-    CustomValidators.cpf()
+    CustomValidators.cpf(),
   ]);
   phoneFormControl = new FormControl('', [
     Validators.required,
-    CustomValidators.phone()
+    CustomValidators.phone(),
   ]);
   ruaFormControl = new FormControl('', [Validators.required]);
   cidadeFormControl = new FormControl('', [Validators.required]);
@@ -59,15 +61,15 @@ export class SignupComponent implements OnInit, OnDestroy {
   complementoFormControl = new FormControl('', []);
   cepFormControl = new FormControl('', [
     Validators.required,
-    CustomValidators.cep()
+    CustomValidators.cep(),
   ]);
   nameFormControl = new FormControl('', [
     Validators.required,
-    Validators.minLength(3)
+    Validators.minLength(3),
   ]);
   salaryFormControl = new FormControl(0, [
     Validators.required,
-    Validators.min(0)
+    Validators.min(0),
   ]);
 
   ngOnInit(): void {
@@ -75,13 +77,15 @@ export class SignupComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (this.cepFormControl.invalid) return;
-        this.service.fetchAddress(this.cepFormControl.value!).then((address) => {
-          if (address) {
-            this.ruaFormControl.setValue(address.street);
-            this.cidadeFormControl.setValue(address.city);
-            this.estadoFormControl.setValue(address.state);
-          }
-        });
+        this.service
+          .fetchAddress(this.cepFormControl.value!)
+          .then((address) => {
+            if (address) {
+              this.ruaFormControl.setValue(address.street);
+              this.cidadeFormControl.setValue(address.city);
+              this.estadoFormControl.setValue(address.state);
+            }
+          });
       });
   }
 
@@ -108,7 +112,9 @@ export class SignupComponent implements OnInit, OnDestroy {
     const isFormValid = formControls.every((control) => control.valid);
 
     if (!isFormValid) {
-      this.errorHandler.handleError('Por favor, preencha todos os campos corretamente.');
+      this.errorHandler.handleError(
+        'Por favor, preencha todos os campos corretamente.'
+      );
       return;
     }
 
@@ -117,7 +123,10 @@ export class SignupComponent implements OnInit, OnDestroy {
       const telefone = this.phoneFormControl.value!.replace(/\D/g, '');
       const CEP = this.cepFormControl.value!.replace(/\D/g, '');
       const nome = this.nameFormControl.value!.trim();
-      const salario = Number(this.salaryFormControl.value!);
+      const salario =
+        typeof this.salaryFormControl.value === 'number'
+          ? this.salaryFormControl.value
+          : Number(this.salaryFormControl.value);
       const cidade = this.cidadeFormControl.value!.trim();
       const estado = this.estadoFormControl.value!.trim().toUpperCase();
       const rua = this.ruaFormControl.value!.trim();
@@ -137,7 +146,9 @@ export class SignupComponent implements OnInit, OnDestroy {
       };
 
       await this.service.signup(signupData);
-      this.errorHandler.handleSuccess('Cadastro iniciado com sucesso! Você receberá um email com suas credenciais.');
+      this.errorHandler.handleSuccess(
+        'Cadastro iniciado com sucesso! Você receberá um email com suas credenciais.'
+      );
       this.router.navigate(['/login']);
     } catch (error) {
       this.errorHandler.handleError(error as Error);

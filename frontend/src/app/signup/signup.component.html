@@ -41,8 +41,13 @@
       </mat-form-field>
       <mat-form-field class="form-full-width">
         <mat-label>Salário</mat-label>
-        <input type="number" matInput [formControl]="salaryFormControl"
-               placeholder="Ex. 3000.00">
+        <input
+          matInput
+          currencyMask
+          [formControl]="salaryFormControl"
+          placeholder="Ex. 3000.00"
+          [options]="{ prefix: 'R$', thousands: '.', decimal: ',' }"
+        >
         @if (salaryFormControl.hasError('required')) {
           <mat-error>Salário é <strong>obrigatório</strong></mat-error>
         }
