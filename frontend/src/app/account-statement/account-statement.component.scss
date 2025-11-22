@@ -1,20 +1,5 @@
-.statement-dates-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-
-  mat-form-field {
-    width: 80%;
-  }
-}
-
-.red-row {
-  color: #ee4444 !important;
-}
-
-.blue-row {
-  color: #1f558f !important;
+.statement-header {
+  margin-bottom: 16px;
 }
 
 .statement-actions {
@@ -29,4 +14,115 @@
   gap: 16px;
   margin: 16px 0;
   font-size: 14px;
+}
+
+.date-range-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  align-items: center;
+
+  mat-form-field {
+    flex: 1;
+    max-width: 300px;
+  }
+}
+
+.daily-statement-table {
+  width: 100%;
+
+  .daily-row {
+    cursor: default;
+
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+    }
+  }
+
+  .detail-row {
+    height: 0;
+  }
+
+  .date-cell {
+    font-weight: 500;
+
+    .no-transactions {
+      margin-left: 8px;
+      font-size: 0.85em;
+      color: #999;
+      font-weight: 400;
+    }
+  }
+
+  .expanded-detail-cell {
+    padding: 0 !important;
+  }
+}
+
+.transaction-detail-container {
+  padding: 16px 24px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.transaction-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-left: 40px;
+  max-width: calc(100% - 40px);
+
+  thead {
+    tr {
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      text-align: left;
+      padding: 8px 16px;
+      font-size: 0.9em;
+      font-weight: 500;
+      color: #666;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #eee;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+      }
+    }
+
+    td {
+      padding: 12px 16px;
+      font-size: 0.9em;
+    }
+  }
+}
+
+.red-text {
+  color: #ee4444 !important;
+}
+
+.blue-text {
+  color: #1f558f !important;
+}
+
+// Legacy classes (keeping for backward compatibility)
+.red-row {
+  color: #ee4444 !important;
+}
+
+.blue-row {
+  color: #1f558f !important;
 }
