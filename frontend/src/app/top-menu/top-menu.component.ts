@@ -7,6 +7,7 @@ import {CurrencyPipe} from '@angular/common';
 import {MatDialog} from '@angular/material/dialog';
 import {EditProfileComponent} from '../edit-profile/edit-profile.component';
 import {ClientAccountService} from '../utils/client-account.service';
+import {ClientsService} from '../clients/clients.service';
 
 @Component({
   selector: 'app-top-menu',
@@ -23,8 +24,13 @@ import {ClientAccountService} from '../utils/client-account.service';
 export class TopMenuComponent {
   sessionService = inject(SessionService);
   clientAccountService = inject(ClientAccountService)
+  clientService = inject(ClientsService)
   dialog = inject(MatDialog);
   logout() {
+    this.clientAccountService.account.set(null);
+    this.clientService.currentClient.set(null);
+    this.clientService.clients.set([]);
+    this.clientService.filteredClients.set([]);
     this.sessionService.logout();
   }
 

@@ -17,6 +17,7 @@ export class ClientsService {
   errorHandler = inject(ErrorHandlerService);
   loading = signal(false);
   sessionService = inject(SessionService);
+  currentClient = signal<ClientDetailsResponse | null>(null);
   constructor() { }
 
   getClients(
@@ -33,6 +34,13 @@ export class ClientsService {
     return lastValueFrom(
       this.http.get<ClientReportResponse[]>(`${environment.baseUrl}/clientes`, { params })
     );
+  }
+
+  async getCurrentClient() {
+    if (this.sessionService.user()?.cpf) {
+      const client = await this.getClientByCpf(this.sessionService.user()?.cpf!)
+      this.currentClient.set(client);
+    }
   }
 
   getClientByCpf(cpf: string) {

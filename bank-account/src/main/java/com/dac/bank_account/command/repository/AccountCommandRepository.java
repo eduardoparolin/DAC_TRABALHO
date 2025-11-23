@@ -37,7 +37,7 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
         select managerid
         from account
         where managerid in (select * from d)
-          and balance > 0
+          and balance >= 0
         group by managerid
         order by sum(balance) asc
         limit 1
@@ -52,7 +52,7 @@ public interface AccountCommandRepository extends JpaRepository<Account, Long> {
             value = """
         SELECT *
         FROM account
-        WHERE managerId = :managerId AND balance > 0 AND status = 'ATIVA'
+        WHERE managerId = :managerId AND balance >= 0 AND status = 'ATIVA'
         ORDER BY balance ASC
         LIMIT 1
     """,

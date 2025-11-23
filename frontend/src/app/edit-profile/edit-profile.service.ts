@@ -5,6 +5,7 @@ import {environment} from '../../environments/environment';
 import {ErrorHandlerService} from '../utils/error-handler.service';
 import {SessionService} from '../session/session.service';
 import {idText} from 'typescript';
+import {ClientsService} from '../clients/clients.service';
 
 export interface ClientProfile {
   cliente: {
@@ -45,6 +46,7 @@ export class EditProfileService {
   session = inject(SessionService);
   errorHandler = inject(ErrorHandlerService);
   loading = signal(false);
+  clientService = inject(ClientsService);
 
   async getClientProfile(): Promise<ClientProfile | null> {
     this.loading.set(true);
@@ -86,6 +88,7 @@ export class EditProfileService {
           CEP: cep
         })
       );
+      await this.clientService.getCurrentClient();
       this.loading.set(false);
       this.errorHandler.handleSuccess('Perfil atualizado com sucesso!');
     } catch (error) {

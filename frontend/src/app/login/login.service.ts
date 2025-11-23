@@ -35,12 +35,4 @@ export class LoginService {
     }
 
   }
-
-  logout() {
-    return lastValueFrom(this.http.post(`${environment.baseUrl}/logout`, {}));
-  }
-
-  signup() {
-
-  }
 }

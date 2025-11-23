@@ -82,6 +82,8 @@
                 <tr>
                   <th>Hora</th>
                   <th>Tipo</th>
+                  <th>Origem</th>
+                  <th>Destino</th>
                   <th>Valor</th>
                 </tr>
               </thead>
@@ -90,6 +92,8 @@
                   <tr [ngClass]="getTransactionRowClass(transaction)">
                     <td>{{ transaction.data | date: 'HH:mm' }}</td>
                     <td>{{ transaction.tipo }}</td>
+                    <td>{{ transaction.origem }}</td>
+                    <td>{{ transaction.destino }}</td>
                     <td>{{ transaction.valor | currency:'BRL' }}</td>
                   </tr>
                 }
