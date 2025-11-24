@@ -46,6 +46,6 @@ serve(
     port,
   },
   (info) => {
-    console.log(`🚀 Server running at http://localhost:${info.port}`);
+    console.log(`Server running at http://localhost:${info.port}`);
   }
 );
